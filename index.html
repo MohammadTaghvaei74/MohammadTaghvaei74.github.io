@@ -53,14 +53,7 @@
             padding: 0 24px;
         }
 
-        /* Safe Reveal Animations (No Blank Screen) */
-        .reveal {
-            opacity: 1;
-            transform: none;
-            transition: opacity 0.6s ease, transform 0.6s ease;
-        }
-
-        /* Hero Layout with Avatar */
+        /* Hero Layout with Stage Photo */
         header {
             padding: 70px 0 40px;
             text-align: left;
@@ -84,7 +77,7 @@
             flex: 1;
         }
 
-        /* Avatar Styling */
+        /* Avatar Stage Photo */
         .hero-avatar-wrapper {
             position: relative;
             flex-shrink: 0;
@@ -92,11 +85,11 @@
 
         .avatar-glow-ring {
             position: relative;
-            width: 170px;
-            height: 170px;
+            width: 180px;
+            height: 180px;
             border-radius: 50%;
             padding: 4px;
-            background: linear-gradient(135deg, var(--primary) 0%, rgba(59, 130, 246, 0.6) 100%);
+            background: linear-gradient(135deg, var(--primary) 0%, rgba(59, 130, 246, 0.7) 100%);
             box-shadow: 0 12px 35px rgba(16, 185, 129, 0.25);
         }
 
@@ -105,6 +98,7 @@
             height: 100%;
             border-radius: 50%;
             object-fit: cover;
+            object-position: center 20%;
             display: block;
             background-color: #101522;
             border: 3px solid var(--bg-base);
@@ -114,8 +108,8 @@
             position: absolute;
             bottom: 8px;
             right: 12px;
-            width: 20px;
-            height: 20px;
+            width: 22px;
+            height: 22px;
             background-color: var(--primary);
             border: 3px solid var(--bg-base);
             border-radius: 50%;
@@ -590,8 +584,7 @@
 
     <div class="container">
 
-        <!-- Hero Section with Avatar -->
-        <header class="reveal">
+        <header>
             <div class="hero-layout">
                 <div class="hero-text-content">
                     <div class="badge-hook">
@@ -625,18 +618,16 @@
                     </div>
                 </div>
 
-                <!-- Avatar Profile Image -->
                 <div class="hero-avatar-wrapper">
                     <div class="avatar-glow-ring">
-                        <img src="profile.jpg" alt="Mohammad Taghvaei" class="avatar-img" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=Mohammad+Taghvaei&background=10b981&color=fff&size=256'">
+                        <img src="1720347391844.jpg" alt="Mohammad Taghvaei" class="avatar-img" onerror="this.onerror=null; this.src='profile.jpg'">
                     </div>
                     <div class="avatar-status-badge" title="Active & Available for Remote Roles"></div>
                 </div>
             </div>
         </header>
 
-        <!-- Dual Track Metrics -->
-        <section class="reveal">
+        <section>
             <div class="section-header">
                 <span class="section-tag">Proof of Scale</span>
                 <h2 class="section-title">Individual Product Impact vs. Platform Footprint</h2>
@@ -644,7 +635,6 @@
             </div>
 
             <div class="metrics-comparison">
-                <!-- Column 1: Personal Achievements -->
                 <div class="metric-column">
                     <div class="col-header">
                         <h4>Personal Product Achievements</h4>
@@ -668,7 +658,6 @@
                     </div>
                 </div>
 
-                <!-- Column 2: Exchange Scale -->
                 <div class="metric-column">
                     <div class="col-header">
                         <h4>Tabdeal Platform Footprint</h4>
@@ -694,8 +683,7 @@
             </div>
         </section>
 
-        <!-- Flagship Innovation: Special Leverage (0-to-1) -->
-        <section class="reveal">
+        <section>
             <div class="section-header">
                 <span class="section-tag">0-to-1 Invention</span>
                 <h2 class="section-title">Special Leverage: Re-Inventing Retail Derivatives</h2>
@@ -735,8 +723,7 @@
             </div>
         </section>
 
-        <!-- Shipped Systems & Media Links -->
-        <section class="reveal">
+        <section>
             <div class="section-header">
                 <span class="section-tag">Execution Track Record</span>
                 <h2 class="section-title">Exchange Systems Shipped & Educational Media</h2>
@@ -744,7 +731,6 @@
             </div>
 
             <div class="products-grid">
-                <!-- Classic Margin -->
                 <div class="product-card">
                     <span class="card-tag">Leveraged Architecture</span>
                     <h3>Classic Margin Trading (Isolated & Cross)</h3>
@@ -755,7 +741,6 @@
                     </div>
                 </div>
 
-                <!-- Automated Grid Bot -->
                 <div class="product-card">
                     <span class="card-tag">Algorithmic Systems</span>
                     <h3>Automated Grid Trading Bot</h3>
@@ -765,7 +750,6 @@
                     </div>
                 </div>
 
-                <!-- Spot & Matching Engine -->
                 <div class="product-card">
                     <span class="card-tag">Core Infrastructure</span>
                     <h3>Spot Orderbook & Instant Swap</h3>
@@ -776,7 +760,6 @@
                     </div>
                 </div>
 
-                <!-- Thematic Crypto Baskets -->
                 <div class="product-card">
                     <span class="card-tag">Asset Management</span>
                     <h3>Crypto Baskets (Index Portfolios)</h3>
@@ -788,8 +771,7 @@
             </div>
         </section>
 
-        <!-- Outro Statement & Call to Action -->
-        <div class="bottom-outro reveal">
+        <div class="bottom-outro">
             <h2 class="outro-title">Ready to Architect Your Next Scaled Financial Product</h2>
             <p class="outro-desc">
                 Seeking high-impact remote Product Leadership roles (Head of Product, Senior / Lead PM, Derivatives Lead) with international crypto exchanges, fintechs, and Web3 trading ecosystems worldwide.
@@ -807,7 +789,6 @@
             </div>
         </div>
 
-        <!-- Footer -->
         <footer>
             <div class="footer-links">
                 <a href="https://t.me/mahermichael" target="_blank" rel="noopener">Telegram</a>
