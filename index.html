@@ -194,12 +194,12 @@
         /* Dual Track Grid */
         .dual-grid {
             display: grid;
-            grid-template-columns: 1.2fr 0.8fr;
+            grid-template-columns: 1.25fr 0.75fr;
             gap: 24px;
             margin-bottom: 50px;
         }
 
-        @media (max-width: 800px) {
+        @media (max-width: 850px) {
             .dual-grid {
                 grid-template-columns: 1fr;
             }
@@ -244,7 +244,54 @@
             color: #60a5fa;
         }
 
-        /* Product Delivery List */
+        /* Exchange Logo & Link */
+        .exchange-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background-color: #182030;
+            border: 1px solid #232f48;
+            border-radius: 10px;
+            padding: 12px 16px;
+            margin-bottom: 24px;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+
+        .exchange-brand:hover {
+            border-color: #38bdf8;
+            background-color: #1c263a;
+        }
+
+        .brand-logo-icon {
+            width: 38px;
+            height: 38px;
+            background: linear-gradient(135deg, #0284c7, #2563eb);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 18px;
+            color: #ffffff;
+        }
+
+        .brand-text h5 {
+            font-size: 15px;
+            color: #ffffff;
+            margin-bottom: 2px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .brand-text p {
+            font-size: 12px;
+            color: #94a3b8;
+            margin: 0;
+        }
+
+        /* Product Delivery Items with Video Links */
         .group-title {
             font-size: 11px;
             text-transform: uppercase;
@@ -263,21 +310,29 @@
             background-color: #182030;
             border: 1px solid #232f48;
             border-radius: 8px;
-            padding: 12px 16px;
-            margin-bottom: 10px;
+            padding: 14px 16px;
+            margin-bottom: 12px;
         }
 
         .prod-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 4px;
+            margin-bottom: 6px;
+            flex-wrap: wrap;
+            gap: 6px;
         }
 
         .prod-name {
-            font-size: 14px;
+            font-size: 14.5px;
             font-weight: 700;
             color: #ffffff;
+        }
+
+        .prod-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
         .prod-tag {
@@ -289,13 +344,33 @@
         }
 
         .tag-green { background-color: #064e3b; color: #34d399; }
-        .tag-red { background-color: #7f1d1d; color: #fca5a5; }
         .tag-blue { background-color: #1e3a8a; color: #93c5fd; }
+        .tag-slate { background-color: #334155; color: #cbd5e1; }
+
+        .btn-video-watch {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            color: #fca5a5;
+            background-color: #450a0a;
+            border: 1px solid #7f1d1d;
+            padding: 3px 8px;
+            border-radius: 4px;
+            text-decoration: none;
+            transition: background-color 0.2s;
+        }
+
+        .btn-video-watch:hover {
+            background-color: #5c0e0e;
+        }
 
         .prod-info {
-            font-size: 12px;
+            font-size: 12.5px;
             color: #94a3b8;
             line-height: 1.5;
+            margin-top: 4px;
         }
 
         /* Exchange Scale Stats */
@@ -308,7 +383,7 @@
         }
 
         .stat-num {
-            font-size: 32px;
+            font-size: 30px;
             font-weight: 800;
             color: #38bdf8;
             line-height: 1.1;
@@ -478,7 +553,7 @@
             </div>
 
             <div class="dual-grid">
-                <!-- Personal Products Delivery (No numbers, pure products) -->
+                <!-- Personal Products Delivery (With Video Evidence) -->
                 <div class="card-column">
                     <div class="col-top">
                         <h4>Personal Product Delivery</h4>
@@ -487,63 +562,87 @@
 
                     <div class="group-title">&#9670; Built & Launched from 0-to-1</div>
 
+                    <!-- Easy Leverage -->
                     <div class="prod-box">
                         <div class="prod-header">
                             <span class="prod-name">Easy Leverage</span>
-                            <span class="prod-tag tag-green">Proprietary Flagship</span>
+                            <div class="prod-actions">
+                                <span class="prod-tag tag-green">Proprietary Flagship</span>
+                                <a href="https://tabdeal.org/panel/special-easy-leveraged-token?symbol=BTC_USDT" target="_blank" rel="noopener" class="btn-video-watch">&#9658; Tutorial</a>
+                            </div>
                         </div>
-                        <p class="prod-info">Conceived from scratch as a zero-friction retail derivatives vehicle with built-in algorithmic capital protection.</p>
+                        <p class="prod-info">Conceived from zero as a simplified retail derivatives vehicle with built-in algorithmic capital safeguards.</p>
                     </div>
 
+                    <!-- Classic Margin -->
                     <div class="prod-box">
                         <div class="prod-header">
                             <span class="prod-name">Classic Margin Trading</span>
-                            <span class="prod-tag tag-green">Active Product</span>
+                            <div class="prod-actions">
+                                <span class="prod-tag tag-green">Active Product</span>
+                                <a href="https://tabdeal.org/special-margin" target="_blank" rel="noopener" class="btn-video-watch">&#9658; 3-Part Course</a>
+                            </div>
                         </div>
-                        <p class="prod-info">Architected isolated and cross margin trading engines, borrowing rate curves, and liquidation waterfalls.</p>
+                        <p class="prod-info">Architected isolated and cross margin engines, dynamic borrowing curves, and liquidation waterfalls.</p>
                     </div>
 
+                    <!-- Grid Bot -->
                     <div class="prod-box">
                         <div class="prod-header">
                             <span class="prod-name">Automated Grid Trading Bot</span>
-                            <span class="prod-tag tag-red">Lifecycle Sunset</span>
+                            <span class="prod-tag tag-slate">Delivered System</span>
                         </div>
-                        <p class="prod-info">Engineered 24/7 automated grid order execution for ranging volatility; sunsetted in strategic refocus.</p>
+                        <p class="prod-info">Engineered 24/7 automated grid order execution for range-bound volatility and orderbook liquidity provision.</p>
                     </div>
 
+                    <!-- Winning Baskets -->
                     <div class="prod-box">
                         <div class="prod-header">
-                            <span class="prod-name">Winning Baskets (Index Portfolios)</span>
-                            <span class="prod-tag tag-red">Lifecycle Sunset</span>
+                            <span class="prod-name">Winning Baskets (Thematic Portfolios)</span>
+                            <span class="prod-tag tag-slate">Delivered System</span>
                         </div>
-                        <p class="prod-info">Built 1-click curated multi-asset crypto portfolios; sunsetted after lifecycle market evaluation.</p>
+                        <p class="prod-info">Built 1-click curated multi-asset crypto portfolios with instant multi-order execution and asset rebalancing.</p>
                     </div>
 
                     <div class="group-title blue">&#9670; Continuous Ownership & Scale</div>
 
+                    <!-- Spot -->
                     <div class="prod-box">
                         <div class="prod-header">
                             <span class="prod-name">Spot Matching Engine & Orderbook</span>
-                            <span class="prod-tag tag-blue">Current PM Owner</span>
+                            <div class="prod-actions">
+                                <span class="prod-tag tag-blue">PM Owner</span>
+                                <a href="https://tabdeal.org/panel/trade/CAT_IRT?trade_type=spot" target="_blank" rel="noopener" class="btn-video-watch">&#9658; Tutorial</a>
+                            </div>
                         </div>
-                        <p class="prod-info">Directing matching latency optimizations, depth visualization, and order-routing throughput.</p>
+                        <p class="prod-info">Directing matching latency optimizations, orderbook depth visualization, and trading throughput.</p>
                     </div>
 
+                    <!-- Instant Swap -->
                     <div class="prod-box">
                         <div class="prod-header">
                             <span class="prod-name">Instant Swap (OTC Easy Buy/Sell)</span>
-                            <span class="prod-tag tag-blue">Current PM Owner</span>
+                            <span class="prod-tag tag-blue">PM Owner</span>
                         </div>
-                        <p class="prod-info">Overseeing instant-liquidity execution conduits and retail conversion funnels.</p>
+                        <p class="prod-info">Overseeing instant-liquidity execution conduits, OTC routing, and high-converting retail funnels.</p>
                     </div>
                 </div>
 
-                <!-- Tabdeal Scale -->
+                <!-- Tabdeal Scale Column with Brand Logo & Official Link -->
                 <div class="card-column">
                     <div class="col-top">
-                        <h4>Tabdeal Platform Scale</h4>
-                        <span class="badge-pill pill-blue">Environment Footprint</span>
+                        <h4>Tabdeal Platform Footprint</h4>
+                        <span class="badge-pill pill-blue">Environment</span>
                     </div>
+
+                    <!-- Official Exchange Brand Card -->
+                    <a href="https://tabdeal.org" target="_blank" rel="noopener" class="exchange-brand">
+                        <div class="brand-logo-icon">T</div>
+                        <div class="brand-text">
+                            <h5>Tabdeal Exchange &rarr;</h5>
+                            <p>Official Platform Website (tabdeal.org)</p>
+                        </div>
+                    </a>
 
                     <div class="stat-block">
                         <div class="stat-num">Rank #1 in Volume</div>
@@ -557,7 +656,7 @@
 
                     <div class="stat-block">
                         <div class="stat-num">600+</div>
-                        <div class="stat-text">Active Cryptocurrency Trading Markets supported across spot and derivatives.</div>
+                        <div class="stat-text">Active Cryptocurrency Trading Markets supported across spot and leveraged products.</div>
                     </div>
                 </div>
             </div>
