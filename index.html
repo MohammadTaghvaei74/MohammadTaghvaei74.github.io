@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mohammad Taghvaei | Lead Crypto Product Manager & Derivatives Systems Architect</title>
+    <title>Mohammad Taghvaei | Lead Crypto Product Leader & Derivatives Systems Architect</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -238,83 +238,109 @@
             color: #ffffff;
         }
 
-        /* Case Studies Grid */
-        .case-studies {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 24px;
-            margin-bottom: 80px;
-        }
-
-        .study-card {
-            background-color: var(--bg-card);
+        /* Deep-Dive Flagship Case Study */
+        .flagship-case {
+            background: var(--bg-card);
             border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 32px;
-            transition: all 0.25s ease;
+            border-radius: 16px;
+            padding: 40px;
+            margin-bottom: 80px;
+            position: relative;
+            overflow: hidden;
         }
 
-        .study-card:hover {
-            border-color: var(--border-hover);
+        .flagship-case::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(16, 185, 129, 0.05) 0%, transparent 70%);
+            pointer-events: none;
         }
 
-        .study-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 16px;
-            flex-wrap: wrap;
-            gap: 12px;
-        }
-
-        .study-badge {
+        .flagship-badge {
+            display: inline-block;
             font-size: 11px;
             font-weight: 700;
-            color: var(--primary);
+            color: #10b981;
             background: var(--primary-glow);
-            padding: 4px 10px;
+            padding: 4px 12px;
             border-radius: 4px;
-            border: 1px solid rgba(16, 185, 129, 0.2);
+            border: 1px solid rgba(16, 185, 129, 0.25);
             text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 16px;
         }
 
-        .study-card h3 {
-            font-size: 22px;
-            font-weight: 700;
+        .flagship-title {
+            font-size: 26px;
+            font-weight: 800;
             color: #ffffff;
-            margin-bottom: 14px;
+            margin-bottom: 16px;
+            line-height: 1.3;
         }
 
-        .study-card p {
+        .flagship-narrative {
             color: var(--text-muted);
             font-size: 15px;
-            line-height: 1.7;
-            margin-bottom: 20px;
+            line-height: 1.75;
+            margin-bottom: 28px;
         }
 
-        .study-stats-grid {
+        .case-pillars {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 12px;
-            background: rgba(0, 0, 0, 0.25);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 16px;
-            margin-bottom: 20px;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 32px;
         }
 
-        .stat-item h5 {
-            font-size: 20px;
+        .pillar-box {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 20px;
+        }
+
+        .pillar-box h4 {
+            font-size: 15px;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .pillar-box p {
+            font-size: 13px;
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+
+        .case-impact-metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+            gap: 16px;
+            background: rgba(16, 185, 129, 0.04);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            border-radius: 12px;
+            padding: 24px;
+        }
+
+        .impact-stat h5 {
+            font-size: 26px;
             font-weight: 800;
             color: var(--primary);
-            margin-bottom: 2px;
+            line-height: 1.1;
+            margin-bottom: 4px;
         }
 
-        .stat-item p {
-            font-size: 12px;
-            color: var(--text-dim);
-            margin-bottom: 0;
-            line-height: 1.3;
+        .impact-stat p {
+            font-size: 13px;
+            color: var(--text-muted);
+            line-height: 1.4;
         }
 
         /* Product Cards Grid */
@@ -449,7 +475,7 @@
                     Lead Product Manager &bull; <span>Crypto Trading Systems & Derivatives Architect</span>
                 </div>
                 <p class="hero-bio">
-                    5 years driving financial engines from Day 1 inception to mass scale at Tabdeal (7.5M+ registered traders, 600+ pairs). Spearheaded core trading systems across Spot, Isolated & Cross Margin, Simplified Retail Derivatives, and Algorithmic Bots. High-rigor executor bridging Board-level OKRs, quantitative risk engines, and high-frequency engineering squads.
+                    5 years scaling core exchange infrastructure from Day 1 inception to mass adoption at Tabdeal (7.5M+ registered traders, 600+ markets). Conceived and scaled proprietary trading vehicles from scratch, bridging executive board OKRs, quantitative risk engineering, and high-frequency backend delivery.
                 </p>
                 <div class="cta-group">
                     <a href="mailto:m.taghvaei74@gmail.com" class="btn btn-primary">Get In Touch</a>
@@ -461,143 +487,99 @@
             <!-- Proven Scale Metric Bar -->
             <div class="metrics-bar">
                 <div class="metric-card">
+                    <div class="metric-num">~25<span>%</span></div>
+                    <div class="metric-label">Exchange Gross Revenue Contribution (0-to-1 Flagship)</div>
+                </div>
+                <div class="metric-card">
                     <div class="metric-num">7.5M<span>+</span></div>
                     <div class="metric-label">Registered Exchange Traders</div>
                 </div>
                 <div class="metric-card">
-                    <div class="metric-num">600<span>+</span></div>
-                    <div class="metric-label">Supported Crypto Markets</div>
-                </div>
-                <div class="metric-card">
                     <div class="metric-num">+130<span>%</span></div>
-                    <div class="metric-label">Product Revenue Lift (3-Month Low-Vol Period)</div>
+                    <div class="metric-label">Revenue Expansion (3-Month Low-Vol Period)</div>
                 </div>
                 <div class="metric-card">
                     <div class="metric-num">5<span>+ Yrs</span></div>
-                    <div class="metric-label">Inception-to-Scale Exchange Tenure</div>
+                    <div class="metric-label">Inception-to-Scale Exchange Leadership</div>
                 </div>
             </div>
 
             <!-- Unfair Advantage -->
             <div class="edge-box">
-                <h3>The Unfair Advantage: Quantitative Product Leader & Active Derivatives Trader</h3>
+                <h3>The Unfair Advantage: Quantitative Product Architect & Active Derivatives Trader</h3>
                 <p>
-                    Unlike generic software PMs, I architect trading systems with skin in the game. Having instructed premium derivatives masterclasses and traded complex option and perpetual strategies, I build liquidation engines, pricing multipliers, and hedge execution models designed for both trader retention and platform solvency.
+                    Unlike generic software PMs, I architect financial engines with skin in the game. Having instructed premium derivatives masterclasses and traded complex options/perps, I build liquidation waterfalls, dynamic pricing multipliers, and hedge execution models designed for platform solvency and retail trader retention.
                 </p>
             </div>
         </header>
 
-        <!-- Deep-Dive Case Studies -->
+        <!-- Flagship Deep-Dive: 0-to-1 Innovation -->
         <section>
             <div class="section-header">
-                <span class="section-tag">Case Studies</span>
-                <h2 class="section-title">Data-Driven Financial Engineering & Growth</h2>
+                <span class="section-tag">0-to-1 Flagship Innovation</span>
+                <h2 class="section-title">Special Leverage (Easy Futures): Re-Inventing Retail Derivatives</h2>
             </div>
 
-            <div class="case-studies">
-                <!-- Case Study 1 -->
-                <div class="study-card">
-                    <div class="study-header">
-                        <span class="study-badge">Retail Derivatives Optimization</span>
-                        <span style="color: var(--text-dim); font-size: 13px;">A/B Experimentation & PnL Architecture</span>
+            <div class="flagship-case">
+                <span class="flagship-badge">Proprietary Product &bull; Conceived & Scaled from Scratch</span>
+                <h3 class="flagship-title">From Concept to ~25% of Total Exchange Revenue: Simplifying Market Volatility for Everyday Traders</h3>
+                <p class="flagship-narrative">
+                    Identified a massive conversion gap: hundreds of thousands of retail traders in Spot and Swap wanted exposure to market volatility but were intimidated by professional orderbook interfaces, margin borrowing levels, and complex liquidation math. I originated, designed, and launched <strong>Special Leverage</strong>—a novel, friction-free derivatives vehicle designed to let users profit from volatility safely with zero technical friction.
+                </p>
+
+                <div class="case-pillars">
+                    <div class="pillar-box">
+                        <h4>1. Zero-Friction Execution</h4>
+                        <p>Stripped away orderbook clutter. Users simply choose asset, direction (Long/Short), leverage, and investment amount. No debt ratios, no borrowing approvals, no manual calculations.</p>
                     </div>
-                    <h3>Special Leverage: Removing Friction & Re-Engineering TP/SL Logic</h3>
-                    <p>
-                        Conducted systematic A/B experimentation across onboarding funnels and risk parameters. Eliminated artificial leverage restrictions and redesigned Take-Profit / Stop-Loss mechanisms to address root causes of trader churn.
-                    </p>
-                    <div class="study-stats-grid">
-                        <div class="stat-item">
-                            <h5>+46%</h5>
-                            <p>Revenue Growth via Frictionless Leverage</p>
-                        </div>
-                        <div class="stat-item">
-                            <h5>+26%</h5>
-                            <p>Activation Uplift on First-Time Traders</p>
-                        </div>
-                        <div class="stat-item">
-                            <h5>+83%</h5>
-                            <p>Increase in TP/(TP+SL) Ratio (User Win Rate)</p>
-                        </div>
-                        <div class="stat-item">
-                            <h5>+16%</h5>
-                            <p>Average Revenue Per User (ARPU) Expansion</p>
-                        </div>
+                    <div class="pillar-box">
+                        <h4>2. Algorithmic Capital Safeguards</h4>
+                        <p>Architected mandatory automated Take-Profit (TP) and Stop-Loss (SL) mechanisms directly into the position creation contract, preventing emotional liquidation and maximizing survivability.</p>
                     </div>
-                    <div class="pill-list">
-                        <span class="pill">Funnel Optimization</span>
-                        <span class="pill">Behavioral Economics</span>
-                        <span class="pill">A/B Testing</span>
-                        <span class="pill">Churn Mitigation</span>
+                    <div class="pillar-box">
+                        <h4>3. Behavioral Psychology & Retention</h4>
+                        <p>Reframed product strategy around user confidence rather than raw leverage. Identified that habit formation, rather than the first trade, drives sustainable platform fee capture.</p>
                     </div>
                 </div>
 
-                <!-- Case Study 2 -->
-                <div class="study-card">
-                    <div class="study-header">
-                        <span class="study-badge">Core Financial Systems</span>
-                        <span style="color: var(--text-dim); font-size: 13px;">Execution & Risk Hedging Architecture</span>
+                <div class="case-impact-metrics">
+                    <div class="impact-stat">
+                        <h5>~25%</h5>
+                        <p>Of Total Exchange Gross Revenue Generated</p>
                     </div>
-                    <h3>Multi-Arm Pricing Algorithms & 100× Leverage Rollout</h3>
-                    <p>
-                        Architected multi-arm coefficient pricing algorithms and risk frameworks for high-leverage products. Engineered execution logic across full-hedge, partial-hedge, and non-hedge internal market-making order flows to ensure platform solvency while expanding leverage limits.
-                    </p>
-                    <div class="study-stats-grid">
-                        <div class="stat-item">
-                            <h5>+24%</h5>
-                            <p>New User Influx on 100× Launch</p>
-                        </div>
-                        <div class="stat-item">
-                            <h5>67%</h5>
-                            <p>Revenue Attributed to New Market Clusters</p>
-                        </div>
-                        <div class="stat-item">
-                            <h5>Zero</h5>
-                            <p>Solvency Breaches Across Volatile Swings</p>
-                        </div>
-                        <div class="stat-item">
-                            <h5>Real-time</h5>
-                            <p>WebSocket Latency Reduction for PnL Updates</p>
-                        </div>
+                    <div class="impact-stat">
+                        <h5>+130%</h5>
+                        <p>Revenue Growth Achieved in Ranging/Bearish Cycles</p>
                     </div>
-                    <div class="pill-list">
-                        <span class="pill">Risk Engine</span>
-                        <span class="pill">Hedge Executors</span>
-                        <span class="pill">Liquidation Cascades</span>
-                        <span class="pill">Market Making</span>
+                    <div class="impact-stat">
+                        <h5>+83%</h5>
+                        <p>Increase in User Win Ratio via Optimized TP/SL</p>
+                    </div>
+                    <div class="impact-stat">
+                        <h5>+46%</h5>
+                        <p>Revenue Surge from Frictionless Leverage Flow</p>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- Flagship Products -->
+        <!-- Shipped Systems Grid -->
         <section>
             <div class="section-header">
-                <span class="section-tag">Flagship Systems</span>
-                <h2 class="section-title">Trading Products Shipped</h2>
+                <span class="section-tag">Systems Portfolio</span>
+                <h2 class="section-title">Other Financial Products & Trading Engines Shipped</h2>
             </div>
 
             <div class="products-grid">
                 <!-- Classic Margin -->
                 <div class="product-card">
-                    <span class="card-tag">Derivatives</span>
-                    <h3>Classic Margin Trading</h3>
-                    <p>Designed cross and isolated margin trading systems. Engineered dynamic borrowing rate formulas, collateral tiering, and automated liquidation cascades.</p>
+                    <span class="card-tag">Derivatives & Margin</span>
+                    <h3>Classic Margin Engine (Isolated / Cross)</h3>
+                    <p>Designed and deployed cross and isolated margin trading architecture. Modeled liquidation triggers, borrowing and lending rate curves, and automated liquidation cascades.</p>
                     <div class="pill-list">
-                        <span class="pill">Cross / Isolated</span>
-                        <span class="pill">Dynamic Borrow Rates</span>
+                        <span class="pill">Liquidation Logic</span>
+                        <span class="pill">Borrow / Lend Rates</span>
                         <span class="pill">Risk Engine</span>
-                    </div>
-                </div>
-
-                <!-- Easy Leverage -->
-                <div class="product-card">
-                    <span class="card-tag">Retail Derivatives</span>
-                    <h3>Easy Leverage (Simplified Perpetual UX)</h3>
-                    <p>Re-engineered complex perpetual mechanics into a 1-click execution interface for retail traders, significantly boosting conversion and open interest.</p>
-                    <div class="pill-list">
-                        <span class="pill">1-Click Execution</span>
-                        <span class="pill">Volume Generation</span>
-                        <span class="pill">Retail Friendly</span>
                     </div>
                 </div>
 
@@ -605,9 +587,9 @@
                 <div class="product-card">
                     <span class="card-tag">Algorithmic Systems</span>
                     <h3>Automated Grid Trading Bots</h3>
-                    <p>Delivered algorithmic trading bots allowing users to execute automated volatility strategies 24/7, providing synthetic liquidity on exchange orderbooks.</p>
+                    <p>Engineered automated grid order placement for ranging volatility. Enabled retail users to deploy 24/7 algorithmic strategies, generating synthetic liquidity on exchange books.</p>
                     <div class="pill-list">
-                        <span class="pill">Algo Trading</span>
+                        <span class="pill">Auto-Execution</span>
                         <span class="pill">Liquidity Provision</span>
                         <span class="pill">24/7 Volatility</span>
                     </div>
@@ -616,11 +598,11 @@
                 <!-- Easy Margin -->
                 <div class="product-card">
                     <span class="card-tag">Margin UX</span>
-                    <h3>Easy Margin</h3>
-                    <p>Eliminated technical barriers for retail users by automating collateral requirements and debt maintenance monitoring into an intuitive flow.</p>
+                    <h3>Easy Margin (Simplified Margin UX)</h3>
+                    <p>Eliminated technical barriers for intermediate traders by automating collateral calculations, debt maintenance thresholds, and order entry screens.</p>
                     <div class="pill-list">
                         <span class="pill">UX Simplification</span>
-                        <span class="pill">Debt Buffers</span>
+                        <span class="pill">Conversion Lift</span>
                         <span class="pill">Retention</span>
                     </div>
                 </div>
@@ -628,11 +610,11 @@
                 <!-- Crypto Baskets -->
                 <div class="product-card">
                     <span class="card-tag">Asset Management</span>
-                    <h3>Crypto Baskets (Thematic Indices)</h3>
-                    <p>Designed multi-asset thematic investment bundles with 1-click rebalancing, expanding non-speculative retail AUM across the platform.</p>
+                    <h3>Crypto Baskets (Index Portfolios)</h3>
+                    <p>Built curated multi-token investment bundles (DeFi, Layer 1s, AI Tokens), allowing retail investors to execute instant 1-click diversified allocations and portfolio rebalancing.</p>
                     <div class="pill-list">
                         <span class="pill">Thematic Investing</span>
-                        <span class="pill">Auto-Rebalance</span>
+                        <span class="pill">Multi-Order Routing</span>
                         <span class="pill">AUM Expansion</span>
                     </div>
                 </div>
@@ -641,11 +623,23 @@
                 <div class="product-card">
                     <span class="card-tag">Exchange Core</span>
                     <h3>Spot Orderbook & Instant Swap</h3>
-                    <p>Directed matching engine latency optimizations, market-depth visualization, and OTC instant-swap pipelines connected to quarterly revenue OKRs.</p>
+                    <p>Oversaw matching engine latency optimizations, market-depth visualization, and OTC instant-swap pipelines directly connected to Board-level OKRs.</p>
                     <div class="pill-list">
-                        <span class="pill">Orderbook Latency</span>
-                        <span class="pill">OTC Routing</span>
+                        <span class="pill">Matching Latency</span>
+                        <span class="pill">Depth & Liquidity</span>
                         <span class="pill">Board OKRs</span>
+                    </div>
+                </div>
+
+                <!-- Multi-Arm Pricing Architecture -->
+                <div class="product-card">
+                    <span class="card-tag">Financial Engineering</span>
+                    <h3>Multi-Arm Pricing & Hedging Engine</h3>
+                    <p>Architected multi-arm coefficient pricing algorithms and risk frameworks across full-hedge, partial-hedge, and internal market-making order flows.</p>
+                    <div class="pill-list">
+                        <span class="pill">Pricing Multipliers</span>
+                        <span class="pill">Hedge Executors</span>
+                        <span class="pill">A/B Testing</span>
                     </div>
                 </div>
             </div>
@@ -661,15 +655,15 @@
             <div class="skills-grid">
                 <div class="skill-item">
                     <h4>Board Alignment & OKR Ownership</h4>
-                    <p>Direct liaison to the Board of Directors, translating growth OKRs, exchange fee capture, and monetization targets into structured technical roadmaps.</p>
+                    <p>Direct liaison to the Board of Directors, translating company vision, fee capture, and monetization targets into structured technical roadmaps.</p>
                 </div>
                 <div class="skill-item">
                     <h4>Quantitative Risk & Hedging</h4>
-                    <p>In-depth understanding of orderbook imbalances, delta exposure, liquidation waterfalls, mark-price protection, and internal market making.</p>
+                    <p>In-depth understanding of orderbook imbalances, delta exposure, liquidation cascades, mark-price protection, and internal market making.</p>
                 </div>
                 <div class="skill-item">
                     <h4>High-Velocity Engineering Squads</h4>
-                    <p>Driving backend, blockchain, and QA squads through high-stakes releases with zero downtime and strict security standards.</p>
+                    <p>Directing backend, blockchain, and QA squads through high-stakes releases with zero downtime and strict security standards.</p>
                 </div>
                 <div class="skill-item">
                     <h4>Trader Psychology & Masterclasses</h4>
