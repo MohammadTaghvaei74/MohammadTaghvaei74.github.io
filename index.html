@@ -55,7 +55,7 @@
 
         /* Hero Layout with Stage Photo */
         header {
-            padding: 70px 0 40px;
+            padding: 70px 0 30px;
             text-align: left;
         }
 
@@ -84,7 +84,6 @@
         }
 
         .avatar-glow-ring {
-            position: relative;
             width: 180px;
             height: 180px;
             border-radius: 50%;
@@ -102,18 +101,6 @@
             display: block;
             background-color: #101522;
             border: 3px solid var(--bg-base);
-        }
-
-        .avatar-status-badge {
-            position: absolute;
-            bottom: 8px;
-            right: 12px;
-            width: 22px;
-            height: 22px;
-            background-color: var(--primary);
-            border: 3px solid var(--bg-base);
-            border-radius: 50%;
-            box-shadow: 0 0 10px var(--primary);
         }
 
         .badge-hook {
@@ -173,13 +160,74 @@
             font-size: 16px;
             color: #cbd5e1;
             line-height: 1.8;
-            margin-bottom: 32px;
+            margin-bottom: 24px;
             border-left: 3px solid var(--primary);
             padding-left: 18px;
         }
 
         .hero-hook-text b {
             color: #ffffff;
+        }
+
+        /* Products Overview Strip in Hero */
+        .products-portfolio-summary {
+            background: rgba(0, 0, 0, 0.35);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px 24px;
+            margin-bottom: 30px;
+        }
+
+        .summary-block {
+            margin-bottom: 14px;
+        }
+
+        .summary-block:last-child {
+            margin-bottom: 0;
+        }
+
+        .summary-title {
+            font-size: 12px;
+            font-family: 'Space Grotesk', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--primary);
+            font-weight: 700;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .summary-title.blue {
+            color: var(--accent);
+        }
+
+        .summary-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .summary-tag {
+            font-size: 13px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.09);
+            color: #e2e8f0;
+            padding: 5px 12px;
+            border-radius: 6px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .summary-tag span.badge-status {
+            font-size: 10px;
+            background: rgba(239, 68, 68, 0.15);
+            color: #fca5a5;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            padding: 1px 6px;
+            border-radius: 4px;
         }
 
         .cta-group {
@@ -302,7 +350,7 @@
         }
 
         .stat-row {
-            margin-bottom: 20px;
+            margin-bottom: 24px;
         }
 
         .stat-row:last-child {
@@ -584,6 +632,7 @@
 
     <div class="container">
 
+        <!-- Hero Section with Avatar -->
         <header>
             <div class="hero-layout">
                 <div class="hero-text-content">
@@ -599,6 +648,30 @@
                     <p class="hero-hook-text">
                         Not every great Product Leader can build great products in crypto. I started trading 8 years ago and joined Tabdeal 5 years ago, bringing hands-on market expertise into product leadership. Years of working closely with users and traders led me to a simple insight: the future of both exchange profitability and the trading experience lies in <b>Easy Leverage</b>. I built the concept from zero into a proprietary leveraged trading product.
                     </p>
+
+                    <!-- Explicit Product Ownership Strip -->
+                    <div class="products-portfolio-summary">
+                        <div class="summary-block">
+                            <div class="summary-title">
+                                &#9670; Built & Launched from 0-to-1 (Conception to Production)
+                            </div>
+                            <div class="summary-tags">
+                                <span class="summary-tag"><b>Easy Leverage</b> &bull; Proprietary Model</span>
+                                <span class="summary-tag"><b>Classic Margin Trading</b> &bull; Isolated & Cross</span>
+                                <span class="summary-tag"><b>Automated Grid Bot</b> <span class="badge-status">Lifecycle sunset</span></span>
+                                <span class="summary-tag"><b>Winning Baskets</b> <span class="badge-status">Lifecycle sunset</span></span>
+                            </div>
+                        </div>
+                        <div class="summary-block" style="margin-top: 12px;">
+                            <div class="summary-title blue">
+                                &#9670; Continuous Ownership & Scale
+                            </div>
+                            <div class="summary-tags">
+                                <span class="summary-tag"><b>Spot Orderbook & Matching Engine</b> &bull; Product Owner</span>
+                                <span class="summary-tag"><b>Instant Swap (Easy Buy/Sell)</b> &bull; Product Owner</span>
+                            </div>
+                        </div>
+                    </div>
 
                     <div class="cta-group">
                         <a href="https://t.me/mahermichael" target="_blank" rel="noopener" class="btn btn-brand-telegram">
@@ -618,23 +691,25 @@
                     </div>
                 </div>
 
+                <!-- Avatar Profile Stage Photo (Clean, no dot) -->
                 <div class="hero-avatar-wrapper">
                     <div class="avatar-glow-ring">
                         <img src="1720347391844.jpg" alt="Mohammad Taghvaei" class="avatar-img" onerror="this.onerror=null; this.src='profile.jpg'">
                     </div>
-                    <div class="avatar-status-badge" title="Active & Available for Remote Roles"></div>
                 </div>
             </div>
         </header>
 
+        <!-- Dual Track Metrics -->
         <section>
             <div class="section-header">
                 <span class="section-tag">Proof of Scale</span>
                 <h2 class="section-title">Individual Product Impact vs. Platform Footprint</h2>
-                <p class="section-desc">Strictly distinguishing my direct product innovations from the aggregate scale of the exchange where I directed execution.</p>
+                <p class="section-desc">Strictly distinguishing my direct product innovations from the aggregate scale of Tabdeal where I directed execution.</p>
             </div>
 
             <div class="metrics-comparison">
+                <!-- Column 1: Personal Achievements -->
                 <div class="metric-column">
                     <div class="col-header">
                         <h4>Personal Product Achievements</h4>
@@ -658,10 +733,15 @@
                     </div>
                 </div>
 
+                <!-- Column 2: Exchange Scale (Refined without redundant metrics) -->
                 <div class="metric-column">
                     <div class="col-header">
-                        <h4>Tabdeal Platform Footprint</h4>
-                        <span class="badge-company">Environment Scale</span>
+                        <h4>Tabdeal Platform Scale</h4>
+                        <span class="badge-company">Environment Footprint</span>
+                    </div>
+                    <div class="stat-row">
+                        <div class="stat-val blue">Rank #1<span> in Iran</span></div>
+                        <div class="stat-label">Leading the market in cryptocurrency trading volume</div>
                     </div>
                     <div class="stat-row">
                         <div class="stat-val blue">7.5M<span>+</span></div>
@@ -669,20 +749,13 @@
                     </div>
                     <div class="stat-row">
                         <div class="stat-val blue">600<span>+</span></div>
-                        <div class="stat-label">Live Active Cryptocurrency Trading Markets supported</div>
-                    </div>
-                    <div class="stat-row">
-                        <div class="stat-val blue">5<span> Years</span></div>
-                        <div class="stat-label">From founding startup stage to premier regional tier-1 exchange</div>
-                    </div>
-                    <div class="stat-row">
-                        <div class="stat-val blue">24/7<span> High Uptime</span></div>
-                        <div class="stat-label">High-throughput matching engines & risk hedging pipelines</div>
+                        <div class="stat-label">Active Cryptocurrency Trading Markets supported</div>
                     </div>
                 </div>
             </div>
         </section>
 
+        <!-- Flagship Innovation: Special Leverage (0-to-1) -->
         <section>
             <div class="section-header">
                 <span class="section-tag">0-to-1 Invention</span>
@@ -723,6 +796,7 @@
             </div>
         </section>
 
+        <!-- Shipped Systems & Media Links -->
         <section>
             <div class="section-header">
                 <span class="section-tag">Execution Track Record</span>
@@ -731,6 +805,7 @@
             </div>
 
             <div class="products-grid">
+                <!-- Classic Margin -->
                 <div class="product-card">
                     <span class="card-tag">Leveraged Architecture</span>
                     <h3>Classic Margin Trading (Isolated & Cross)</h3>
@@ -741,6 +816,7 @@
                     </div>
                 </div>
 
+                <!-- Automated Grid Bot -->
                 <div class="product-card">
                     <span class="card-tag">Algorithmic Systems</span>
                     <h3>Automated Grid Trading Bot</h3>
@@ -750,6 +826,7 @@
                     </div>
                 </div>
 
+                <!-- Spot & Matching Engine -->
                 <div class="product-card">
                     <span class="card-tag">Core Infrastructure</span>
                     <h3>Spot Orderbook & Instant Swap</h3>
@@ -760,6 +837,7 @@
                     </div>
                 </div>
 
+                <!-- Thematic Crypto Baskets -->
                 <div class="product-card">
                     <span class="card-tag">Asset Management</span>
                     <h3>Crypto Baskets (Index Portfolios)</h3>
@@ -771,6 +849,7 @@
             </div>
         </section>
 
+        <!-- Outro Statement & Call to Action -->
         <div class="bottom-outro">
             <h2 class="outro-title">Ready to Architect Your Next Scaled Financial Product</h2>
             <p class="outro-desc">
@@ -789,6 +868,7 @@
             </div>
         </div>
 
+        <!-- Footer (Fully Clickable & Functional) -->
         <footer>
             <div class="footer-links">
                 <a href="https://t.me/mahermichael" target="_blank" rel="noopener">Telegram</a>
