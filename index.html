@@ -578,6 +578,67 @@
             flex-grow: 1;
         }
 
+        /* Academic Background Section */
+        .education-section {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 36px;
+            margin-bottom: 70px;
+            backdrop-filter: blur(12px);
+        }
+
+        .edu-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-top: 24px;
+        }
+
+        @media (max-width: 768px) {
+            .edu-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .edu-card {
+            background: rgba(0, 0, 0, 0.35);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            position: relative;
+            transition: all 0.2s ease;
+        }
+
+        .edu-card:hover {
+            border-color: var(--border-hover);
+            transform: translateY(-2px);
+        }
+
+        .edu-degree {
+            font-size: 18px;
+            font-weight: 800;
+            color: #ffffff;
+            margin-bottom: 6px;
+        }
+
+        .edu-institution {
+            font-size: 15px;
+            color: var(--primary);
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .edu-institution.accent {
+            color: var(--accent);
+        }
+
+        .edu-desc {
+            font-size: 13px;
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+
         /* Outro / Contact */
         .bottom-outro {
             padding: 80px 0;
@@ -632,7 +693,6 @@
 
     <div class="container">
 
-        <!-- Hero Section with Avatar -->
         <header>
             <div class="hero-layout">
                 <div class="hero-text-content">
@@ -649,7 +709,6 @@
                         Not every great Product Leader can build great products in crypto. I started trading 8 years ago and joined Tabdeal 5 years ago, bringing hands-on market expertise into product leadership. Years of working closely with users and traders led me to a simple insight: the future of both exchange profitability and the trading experience lies in <b>Easy Leverage</b>. I built the concept from zero into a proprietary leveraged trading product.
                     </p>
 
-                    <!-- Explicit Product Ownership Strip -->
                     <div class="products-portfolio-summary">
                         <div class="summary-block">
                             <div class="summary-title">
@@ -691,7 +750,6 @@
                     </div>
                 </div>
 
-                <!-- Avatar Profile Stage Photo (Clean, no dot) -->
                 <div class="hero-avatar-wrapper">
                     <div class="avatar-glow-ring">
                         <img src="1720347391844.jpg" alt="Mohammad Taghvaei" class="avatar-img" onerror="this.onerror=null; this.src='profile.jpg'">
@@ -700,7 +758,6 @@
             </div>
         </header>
 
-        <!-- Dual Track Metrics -->
         <section>
             <div class="section-header">
                 <span class="section-tag">Proof of Scale</span>
@@ -709,7 +766,6 @@
             </div>
 
             <div class="metrics-comparison">
-                <!-- Column 1: Personal Achievements -->
                 <div class="metric-column">
                     <div class="col-header">
                         <h4>Personal Product Achievements</h4>
@@ -733,7 +789,6 @@
                     </div>
                 </div>
 
-                <!-- Column 2: Exchange Scale (Refined without redundant metrics) -->
                 <div class="metric-column">
                     <div class="col-header">
                         <h4>Tabdeal Platform Scale</h4>
@@ -741,7 +796,7 @@
                     </div>
                     <div class="stat-row">
                         <div class="stat-val blue">Rank #1<span> in Iran</span></div>
-                        <div class="stat-label">Leading the market in cryptocurrency trading volume</div>
+                        <div class="stat-label">Leading the domestic market in crypto trading volume and liquidity</div>
                     </div>
                     <div class="stat-row">
                         <div class="stat-val blue">7.5M<span>+</span></div>
@@ -755,7 +810,6 @@
             </div>
         </section>
 
-        <!-- Flagship Innovation: Special Leverage (0-to-1) -->
         <section>
             <div class="section-header">
                 <span class="section-tag">0-to-1 Invention</span>
@@ -796,7 +850,6 @@
             </div>
         </section>
 
-        <!-- Shipped Systems & Media Links -->
         <section>
             <div class="section-header">
                 <span class="section-tag">Execution Track Record</span>
@@ -805,7 +858,6 @@
             </div>
 
             <div class="products-grid">
-                <!-- Classic Margin -->
                 <div class="product-card">
                     <span class="card-tag">Leveraged Architecture</span>
                     <h3>Classic Margin Trading (Isolated & Cross)</h3>
@@ -816,7 +868,6 @@
                     </div>
                 </div>
 
-                <!-- Automated Grid Bot -->
                 <div class="product-card">
                     <span class="card-tag">Algorithmic Systems</span>
                     <h3>Automated Grid Trading Bot</h3>
@@ -826,7 +877,6 @@
                     </div>
                 </div>
 
-                <!-- Spot & Matching Engine -->
                 <div class="product-card">
                     <span class="card-tag">Core Infrastructure</span>
                     <h3>Spot Orderbook & Instant Swap</h3>
@@ -837,7 +887,6 @@
                     </div>
                 </div>
 
-                <!-- Thematic Crypto Baskets -->
                 <div class="product-card">
                     <span class="card-tag">Asset Management</span>
                     <h3>Crypto Baskets (Index Portfolios)</h3>
@@ -849,7 +898,34 @@
             </div>
         </section>
 
-        <!-- Outro Statement & Call to Action -->
+        <section>
+            <div class="section-header">
+                <span class="section-tag">Academic Foundation</span>
+                <h2 class="section-title">Engineering & Analytical Rigor</h2>
+                <p class="section-desc">Rooted in rigorous mathematical modeling, quantitative systems thinking, and complex structural engineering from Iran's premier tech institutions.</p>
+            </div>
+
+            <div class="education-section">
+                <div class="edu-grid">
+                    <div class="edu-card">
+                        <div class="edu-degree">Master of Science (M.Sc.) in Civil Engineering</div>
+                        <div class="edu-institution">Sharif University of Technology</div>
+                        <p class="edu-desc">
+                            Ranked #1 STEM & engineering institution in Iran (known globally as the MIT of Iran). Advanced focus on mathematical mechanics, structural optimization, and complex dynamic systems.
+                        </p>
+                    </div>
+
+                    <div class="edu-card">
+                        <div class="edu-degree">Bachelor of Science (B.Sc.) in Civil Engineering</div>
+                        <div class="edu-institution accent">Amirkabir University of Technology (Tehran Polytechnic)</div>
+                        <p class="edu-desc">
+                            Iran's first and leading polytechnic university. Rigorous foundational training in advanced calculus, numerical methods, probabilistic risk analysis, and engineering fundamentals.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <div class="bottom-outro">
             <h2 class="outro-title">Ready to Architect Your Next Scaled Financial Product</h2>
             <p class="outro-desc">
@@ -868,7 +944,6 @@
             </div>
         </div>
 
-        <!-- Footer (Fully Clickable & Functional) -->
         <footer>
             <div class="footer-links">
                 <a href="https://t.me/mahermichael" target="_blank" rel="noopener">Telegram</a>
