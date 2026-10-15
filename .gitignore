@@ -1,0 +1,6 @@
+# Local Python/runtime artifacts
+__pycache__/
+*.py[cod]
+
+# Local development output
+.DS_Store
