@@ -1,0 +1,66 @@
+"""Export a public, read-only Market Pulse snapshot from scores_history.db.
+
+Run this on the Bourse Alert VPS and publish the resulting JSON through the
+chosen server-side delivery path. Never put Telegram credentials in the JSON.
+"""
+from __future__ import annotations
+
+import json
+import sqlite3
+from pathlib import Path
+
+
+def export(db_path: str, output_path: str) -> None:
+    conn = sqlite3.connect(f"file:{db_path}?mode=ro", uri=True)
+    conn.row_factory = sqlite3.Row
+    latest = conn.execute(
+        "SELECT timestamp FROM stock_snapshots WHERE valid=1 ORDER BY timestamp DESC LIMIT 1"
+    ).fetchone()["timestamp"]
+    market = dict(conn.execute(
+        "SELECT * FROM market_snapshots WHERE timestamp <= ? ORDER BY timestamp DESC LIMIT 1",
+        (latest,),
+    ).fetchone())
+    groups = [dict(row) for row in conn.execute(
+        "SELECT * FROM group_snapshots WHERE timestamp=? AND group_name IN (?, ?, ?)",
+        (latest, "لیدرها", "اهرمی‌ها", "اهرمی\u200cها"),
+    )]
+    columns = "symbol,industry,score,last_pct,trade_value_toman,buy_queue_value_toman,sell_queue_value_toman"
+    rows = conn.execute(
+        f"SELECT {columns} FROM stock_snapshots WHERE timestamp=? AND valid=1 AND trade_volume>0 ORDER BY score DESC LIMIT 20",
+        (latest,),
+    ).fetchall()
+    top_stocks = []
+    seen = set()
+    for row in rows:
+        if row["symbol"] not in seen:
+            top_stocks.append(dict(row))
+            seen.add(row["symbol"])
+        if len(top_stocks) == 10:
+            break
+    industries = [dict(row) for row in conn.execute(
+        "SELECT industry,count,average,median,turnover_toman,net_queue_hmt FROM industry_detail_snapshots WHERE timestamp=? ORDER BY median DESC LIMIT 6",
+        (latest,),
+    )]
+    daily = [dict(row) for row in conn.execute(
+        "SELECT * FROM daily_market_summary ORDER BY trading_date DESC LIMIT 7"
+    )]
+    payload = {
+        "schema_version": 1,
+        "source": "scores_history.db",
+        "generated_at": latest,
+        "market": market,
+        "groups": groups,
+        "top_stocks": top_stocks,
+        "leveraged": [],
+        "industries": industries,
+        "daily": daily,
+        "options": {
+            "status": "connecting",
+            "message": "داده معتبر آپشن بعد از نهایی شدن قرارداد داده اضافه می‌شود.",
+        },
+    }
+    Path(output_path).write_text(json.dumps(payload, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+
+
+if __name__ == "__main__":
+    export("/root/bourse-alert/scores_history.db", "data/market.json")
