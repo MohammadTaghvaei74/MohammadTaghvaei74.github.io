@@ -6,7 +6,7 @@ A static GitHub Pages dashboard for the Tehran market. It is intentionally a **M
 
 `data/market.json` is a snapshot export from the production `scores_history.db` on the Bourse Alert VPS. The UI consumes this file only; it never exposes Telegram credentials or connects directly to the database.
 
-The next production step is to add a server-side publisher that refreshes this JSON during market hours. The options area is intentionally marked as `connecting` until the Bid/Ask mapping and signal-vs-test contract are approved.
+The next production step is to add a server-side publisher that refreshes this JSON during market hours. The `/market/history/` page exposes the complete-day archive, symbol search, daily rows, CSV export, and browser-generated Excel export. The options area is intentionally marked as `connecting` until the Bid/Ask mapping and signal-vs-test contract are approved.
 
 ## Local verification
 
