@@ -6,8 +6,8 @@
   --muted: #a5b0a7;
   --accent: #d7efa4;
   --border: #344139;
-  --font-body: "DM Sans", sans-serif;
-  --font-display: "Space Grotesk", sans-serif;
+  --font-body: "Vazirmatn", sans-serif;
+  --font-display: "Vazirmatn", sans-serif;
   --max-width: 1200px;
 }
 * {
@@ -110,7 +110,7 @@ a {
   color: var(--accent);
 }
 .serif-word {
-  font-family: Georgia, serif;
+  font-family: "Vazirmatn", sans-serif;
   font-weight: 400;
   font-style: italic;
   color: var(--accent);
@@ -349,7 +349,7 @@ a {
   color: #d0d9cc;
 }
 .portrait figcaption i {
-  font-family: Georgia, serif;
+  font-family: "Vazirmatn", sans-serif;
   color: var(--accent);
 }
 .portrait-corner {
@@ -730,7 +730,7 @@ a {
 }
 .note-asterisk {
   color: var(--accent);
-  font-family: Georgia, serif;
+  font-family: "Vazirmatn", sans-serif;
   font-size: 60px;
   line-height: 0.9;
 }
@@ -866,7 +866,7 @@ a {
   font-weight: 600;
 }
 .signature-mark {
-  font-family: Georgia, serif;
+  font-family: "Vazirmatn", sans-serif;
   font-style: italic;
   font-size: 37px;
   font-weight: 400;
