@@ -91,28 +91,80 @@ def build_market(conn: sqlite3.Connection) -> dict:
 
 
 def build_history(conn: sqlite3.Connection) -> dict:
+    """Build complete-day history from raw snapshots, never stale v2 rows.
+
+    v2_days is the explicit completeness/finalization fence. For every fenced
+    day, scores are recomputed from valid stock_snapshots. This deliberately
+    keeps mean, median, min, max, and last distinct: the old exporter copied
+    incomplete v2_daily_scores and silently lost days after 2026-10-05.
+    """
     days = [dict(row) for row in conn.execute(
         "SELECT day,turnover,source FROM v2_days WHERE complete=1 ORDER BY day"
     )]
+    complete_days = {d["day"] for d in days}
+    observed = {}
+    for row in conn.execute(
+        "SELECT trading_date, COUNT(*) AS snapshot_count,
+                COUNT(DISTINCT timestamp) AS timestamp_count,
+                MIN(timestamp) AS first_timestamp, MAX(timestamp) AS last_timestamp,
+                SUM(CASE WHEN valid=1 THEN 1 ELSE 0 END) AS valid_snapshot_count
+           FROM stock_snapshots GROUP BY trading_date ORDER BY trading_date"
+    ):
+        observed[row["trading_date"]] = dict(row)
+
     rows = []
     for day in days:
+        day_key = day["day"]
+        samples = {}
+        # score IS NOT NULL matches the producer's score eligibility. Do not
+        # invent a score from another table or mutate the production database.
         for row in conn.execute(
-            "SELECT day,symbol,payload FROM v2_daily_scores WHERE day=? ORDER BY symbol",
-            (day["day"],),
+            "SELECT symbol, score, timestamp FROM stock_snapshots
+               WHERE trading_date=? AND valid=1 AND score IS NOT NULL
+               ORDER BY symbol, timestamp",
+            (day_key,),
         ):
-            payload = json.loads(row["payload"])
-            rows.append({"day": row["day"], "symbol": row["symbol"], **payload,
-                         "quality": "review" if abs(float(payload.get("last", 0))) > 20 else "valid"})
+            samples.setdefault(row["symbol"], []).append((row["timestamp"], float(row["score"])))
+        for symbol in sorted(samples):
+            values = samples[symbol]
+            scores = [v for _, v in values]
+            stats = {
+                "count": len(scores),
+                "mean": sum(scores) / len(scores),
+                "median": statistics.median(scores),
+                "min": min(scores),
+                "max": max(scores),
+                "last": values[-1][1],
+            }
+            stats.update({"day": day_key, "symbol": symbol, "source": "stock_snapshots"})
+            stats["quality"] = "review" if abs(stats["last"]) > 20 else "valid"
+            rows.append(stats)
+
+    coverage = []
+    for day_key, meta in observed.items():
+        coverage.append({
+            "day": day_key,
+            "complete": day_key in complete_days,
+            "snapshot_count": meta["snapshot_count"],
+            "valid_snapshot_count": meta["valid_snapshot_count"],
+            "timestamp_count": meta["timestamp_count"],
+            "first_timestamp": meta["first_timestamp"],
+            "last_timestamp": meta["last_timestamp"],
+            "included": day_key in complete_days,
+            "note": "complete fence in v2_days" if day_key in complete_days else "raw snapshots observed but no complete v2_days fence",
+        })
     symbols = sorted({row["symbol"] for row in rows})
     return {
-        "schema_version": 1,
-        "source": "scores_history.db / v2_days + v2_daily_scores",
+        "schema_version": 2,
+        "source": "scores_history.db / v2_days completeness fence + stock_snapshots raw scores",
         "generated_at": days[-1]["day"] if days else None,
         "valid_day_count": len(days),
         "valid_days": days,
         "symbols": symbols,
         "row_count": len(rows),
         "rows": rows,
+        "coverage": coverage,
+        "excluded_raw_days": [c["day"] for c in coverage if not c["complete"]],
     }
 
 
@@ -152,6 +204,9 @@ def build_xlsx(history: dict) -> None:
 
 
 def main() -> None:
+    # Incorporate frontend changes and retry any previously unpushed commit.
+    subprocess.run(["git", "-C", str(SITE), "pull", "--rebase", "origin", "main"], check=True, timeout=60)
+    subprocess.run(["git", "-C", str(SITE), "push", "origin", "main"], check=True, timeout=60)
     with connect() as conn:
         market = build_market(conn)
         history = build_history(conn)
