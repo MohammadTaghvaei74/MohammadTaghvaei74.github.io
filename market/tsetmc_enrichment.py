@@ -104,6 +104,7 @@ def attach_turnover_metrics(stocks: list[dict[str, Any]]) -> None:
         stock["avg15_trade_value_rank"] = position
     for stock in stocks:
         stock.setdefault("avg15_trade_value_rank", None)
+        stock["avg15_trade_value_rank_total"] = len(value_rows)
 
 
 def enrich_stocks(stocks: list[dict[str, Any]], now: datetime | date) -> list[dict[str, Any]]:

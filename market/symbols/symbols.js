@@ -3,11 +3,13 @@
 var C=window.SymbolCore,M=window.MarketCore,$=function(s){return document.querySelector(s);};
 var market=null,archive=null,candlesArchive=null,candleIndex=new Map(),universe=null,items=[],selected=null;
 var esc=function(v){return C.text(v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});};
-var fmt=C.format;
+var fmt=C.format,scoreFmt=function(v){var n=C.number(v);return n===null?'—':C.format(n,1);};
 function money(v){var n=C.number(v);return n===null?'—':C.integer(n)+' تومان';}
+function million(v){var n=C.number(v);return n===null?'—':C.format(n/1e6,1)+' M';}
+function billion(v){var n=C.number(v);return n===null?'—':C.format(n/1e9,1)+' B';}
 function hmt(v){var n=C.number(v);return n===null?'—':n.toLocaleString('fa-IR',{minimumFractionDigits:1,maximumFractionDigits:1})+' همت';}
 function signed(v,d){var n=C.number(v);return n===null?'—':(n>0?'+':n<0?'−':'')+C.format(Math.abs(n),d===undefined?2:d);}
-function queue(v){var n=C.number(v);return n===null||n<=0?'—':money(n);}
+function queue(v){var n=C.number(v);return n===null||n<=0?'—':billion(n);}
 function field(label,value,extra){return '<div class="field '+(extra||'')+'"><span>'+esc(label)+'</span><b><bdi>'+esc(value===null||value===undefined||value===''?'—':value)+'</bdi></b></div>';}
 function group(title,fields,extra){return '<section class="metric-group '+(extra||'')+'"><h3>'+esc(title)+'</h3><div class="fields">'+fields.join('')+'</div></section>';}
 function stamp(v){return M.formatDate(v);}
@@ -26,7 +28,7 @@ function bindChartTooltip(){
  host.querySelectorAll('.score-candle').forEach(function(candle){
   function show(event){
    var d=candle.dataset;
-   tip.innerHTML='<strong>'+esc(faDate(d.day))+'</strong>'+[['باز شدن',d.open],['بیشترین',d.high],['کمترین',d.low],['بسته شدن',d.close]].map(function(row){return '<div><span>'+row[0]+'</span><bdi>'+esc(fmt(row[1]))+'</bdi></div>';}).join('');
+   tip.innerHTML='<strong>'+esc(faDate(d.day))+'</strong>'+[['باز شدن',d.open],['بیشترین',d.high],['کمترین',d.low],['بسته شدن',d.close]].map(function(row){return '<div><span>'+row[0]+'</span><bdi>'+esc(scoreFmt(row[1]))+'</bdi></div>';}).join('');
    tip.innerHTML+='<div><span>اولین نمونه (تهران)</span><bdi>'+esc(d.first?new Date(d.first).toLocaleTimeString('fa-IR',{timeZone:'Asia/Tehran',hour:'2-digit',minute:'2-digit',second:'2-digit'}):'—')+'</bdi></div>';
    tip.hidden=false;
    var box=host.getBoundingClientRect(),anchor=candle.getBoundingClientRect(),px=event.clientX||anchor.x+anchor.width/2,py=event.clientY||anchor.y;
@@ -44,7 +46,7 @@ function render(){
  var list=items.filter(function(x){return !q||C.normalize(x.symbol+' '+(x.current&&x.current.industry||'')).indexOf(q)>=0;});
  list.sort(function(a,b){if(key==='symbol')return a.symbol.localeCompare(b.symbol,'fa');var k=key==='pct'?'last_pct':'score',av=key==='history'?a.history.length:C.number(a.current&&a.current[k]),bv=key==='history'?b.history.length:C.number(b.current&&b.current[k]);if(av===null&&bv===null)return a.symbol.localeCompare(b.symbol,'fa');if(av===null)return 1;if(bv===null)return -1;return bv-av;});
  $('#shown').textContent=C.integer(list.length)+' نماد';
- $('#list').innerHTML=list.map(function(x){return '<button type="button" class="row '+(x.symbol===selected?'sel':'')+'" data-symbol="'+esc(x.symbol)+'"><span><b>'+esc(x.symbol)+'</b><small>'+esc(x.current&&x.current.industry||'فقط آرشیو تاریخی')+'</small></span><strong>'+esc(x.current?fmt(x.current.score):C.integer(x.history.length)+' روز')+'</strong></button>';}).join('')||'<p class="empty">نمادی پیدا نشد.</p>';
+ $('#list').innerHTML=list.map(function(x){return '<button type="button" class="row '+(x.symbol===selected?'sel':'')+'" data-symbol="'+esc(x.symbol)+'"><span><b>'+esc(x.symbol)+'</b><small>'+esc(x.current&&x.current.industry||'فقط آرشیو تاریخی')+'</small></span><strong>'+esc(x.current?scoreFmt(x.current.score):C.integer(x.history.length)+' روز')+'</strong></button>';}).join('')||'<p class="empty">نمادی پیدا نشد.</p>';
  $('#list').querySelectorAll('button').forEach(function(el){el.onclick=function(){select(el.dataset.symbol,true);};});
 }
 function chart(item){
@@ -62,10 +64,20 @@ function chart(item){
  var mobile=window.matchMedia('(max-width:800px)').matches,w=Math.max(240,Math.round(($('#dossier').clientWidth||866)-68)),h=mobile?360:460,left=48,right=w-20,topPad=30,bottomPad=48;
  var step=(right-left)/Math.max(1,valid.length-1),body=Math.max(3,Math.min(18,step*0.62)),x=function(i){return Math.round(left+i*step);},y=function(v){return Math.round(h-bottomPad-(v-lo)*(h-bottomPad-topPad)/(hi-lo));};
  var lines=ticks.map(function(v){return '<line x1="'+left+'" x2="'+right+'" y1="'+y(v)+'" y2="'+y(v)+'" stroke="#d8e3db"/><text class="y-tick" data-value="'+v+'" x="'+(left-10)+'" y="'+(y(v)+4)+'" text-anchor="end">'+esc(C.integer(v))+'</text>';}).join('');
- lines+=thresholds.map(function(v,index){return '<line class="threshold" x1="'+left+'" x2="'+right+'" y1="'+y(v)+'" y2="'+y(v)+'" stroke="#b46a40" stroke-dasharray="5 5"/><text x="'+right+'" y="'+(topPad+12+index*18)+'" text-anchor="end">آستانه '+esc(fmt(v))+'</text>';}).join('');
+ lines+=thresholds.map(function(v,index){return '<line class="threshold" x1="'+left+'" x2="'+right+'" y1="'+y(v)+'" y2="'+y(v)+'" stroke="#b46a40" stroke-dasharray="5 5"/><text x="'+right+'" y="'+(topPad+12+index*18)+'" text-anchor="end">آستانه '+esc(scoreFmt(v))+'</text>';}).join('');
  var plots=valid.map(function(r,j){var open=C.number(r.open),high=C.number(r.high),low=C.number(r.low),close=C.number(r.close),cx=x(j),top=y(Math.max(open,close)),bottom=y(Math.min(open,close)),height=Math.max(2,bottom-top),dir=close>=open?'up':'down';return '<g tabindex="0" role="graphics-symbol" aria-label="'+esc(faDate(r.day)+'؛ باز شدن '+fmt(open)+'؛ بیشترین '+fmt(high)+'؛ کمترین '+fmt(low)+'؛ بسته شدن '+fmt(close))+'" class="score-candle '+dir+'" data-first="'+esc(r.first_timestamp||'')+'" data-day="'+esc(r.day)+'" data-open="'+open+'" data-high="'+high+'" data-low="'+low+'" data-close="'+close+'"><line class="candle-wick" x1="'+cx+'" x2="'+cx+'" y1="'+y(high)+'" y2="'+y(low)+'"/><rect class="candle-body" x="'+(cx-body/2)+'" y="'+top+'" width="'+body+'" height="'+height+'" rx="2"/><rect class="candle-hit" x="'+(cx-Math.max(body,step*.9)/2)+'" y="'+topPad+'" width="'+Math.max(body,step*.9)+'" height="'+(h-topPad-bottomPad)+'" fill="transparent"/></g>';}).join('');
  var labels=(mobile?[0,valid.length-1]:[0,Math.floor((valid.length-1)/2),valid.length-1]).filter(function(v,i,a){return a.indexOf(v)===i;}).map(function(i,index,all){return '<text class="x-date" x="'+x(i)+'" y="'+(h-15)+'" text-anchor="'+(index===0?'start':index===all.length-1?'end':'middle')+'">'+esc(faDate(valid[i].day))+'</text>';}).join('');
- return '<div class="candle-stage"><svg class="chart candle-chart" viewBox="0 0 '+w+' '+h+'" role="group" aria-label="کندل استیک روزانه امتیاز '+esc(item.symbol)+'">'+lines+plots+labels+'</svg><div class="candle-tooltip" role="tooltip" hidden></div></div><p class="meta">هر کندل فقط نمونه‌های معتبر از ۰۹:۱۵ تا ۱۲:۳۰ تهران را نشان می‌دهد؛ باز شدن اولین نمونه این بازه و بیشینه/کمینه/بسته شدن نیز فقط از همین بازه محاسبه شده‌اند؛ بدون درون‌یابی. '+C.integer(valid.filter(function(r){return r.coverage!=='complete';}).length)+' روز دارای پوشش ناقص یا نامشخص پنجره است؛ پوشش کامل پنجره به معنی روز معاملاتی کامل نیست. دریافت خودکار هر ۶۰ ثانیه. سبز: بسته شدن بالاتر یا برابر باز شدن · قرمز: بسته شدن پایین‌تر از باز شدن.</p>';
+ return '<div class="candle-stage"><svg class="chart candle-chart" viewBox="0 '+w+' '+h+'" role="group" aria-label="کندل استیک روزانه امتیاز '+esc(item.symbol)+'">'+lines+plots+labels+'</svg><div class="candle-tooltip" role="tooltip" hidden></div></div><p class="meta">هر کندل فقط نمونه‌های معتبر از ۰۹:۱۵ تا ۱۲:۳۰ تهران را نشان می‌دهد؛ باز شدن اولین نمونه این بازه و بیشینه/کمینه/بسته شدن نیز فقط از همین بازه محاسبه شده‌اند؛ بدون درون‌یابی. '+C.integer(valid.filter(function(r){return r.coverage!=='complete';}).length)+' روز دارای پوشش ناقص یا نامشخص پنجره است؛ پوشش کامل پنجره به معنی روز معاملاتی کامل نیست. دریافت خودکار هر ۶۰ ثانیه. سبز: بسته شدن بالاتر یا برابر باز شدن · قرمز: بسته شدن پایین‌تر از باز شدن.</p>';
+}
+function priceSlider(item){
+ var c=item.current||{},base=C.number(c.yesterday_price),close=C.number(c.close_price),last=C.number(c.last_price);
+ var values=[close,last].filter(function(v){return v!==null&&base!==null&&base>0;}).map(function(v){return (v-base)*100/base;});
+ if(!values.length)return '<div class="price-slider-empty">روند قیمت درون‌روزی برای این نماد موجود نیست.</div>';
+ var min=Math.min.apply(Math,[0].concat(values)),max=Math.max.apply(Math,[0].concat(values)),range=Math.max(.01,max-min),pos=function(v){return ((v-min)/range*100).toFixed(2)+'%';};
+ var buy=C.number(c.buy_queue_value_toman)>0,sell=C.number(c.sell_queue_value_toman)>0;
+ function label(v){if(buy&&v===max)return '+۳';if(sell&&v===min)return '−۳';return (v>0?'+':'')+fmt(v)+'٪';}
+ var marks=[{v:min,k:'min'},{v:(min+max)/2,k:'mid'},{v:max,k:'max'}];
+ return '<div class="price-slider" role="img" aria-label="روند قیمت '+esc(item.symbol)+'"><div class="price-slider-head"><span>کمینهٔ بازه</span><strong>روند قیمت در طول روز</strong><span>بیشینهٔ بازه</span></div><div class="price-track"><div class="price-base"></div><div class="price-fill" style="right:'+pos(min)+';width:'+((max-min)/range*100).toFixed(2)+'%"></div>'+marks.map(function(m){return '<span class="price-mark '+m.k+'" style="right:'+pos(m.v)+'"><b>'+esc(label(m.v))+'</b></span>';}).join('')+'</div><div class="price-slider-foot"><span>قیمت دیروز: '+esc(C.integer(base))+'</span><span>قیمت پایانی: '+esc(C.integer(close))+'</span><span>آخرین: '+esc(C.integer(last))+'</span></div><p class="meta">نمایش درصد تغییر نسبت به قیمت دیروز؛ صف خرید/فروش با +۳/−۳ مشخص می‌شود.</p></div>';
 }
 function download(data,type,name){var u=URL.createObjectURL(new Blob([data],{type:type})),a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(u);},3000);}
 function downloadXlsx(rows,name){if(!window.XLSX){alert('ماژول Excel هنوز بارگذاری نشده است؛ CSV را امتحان کن');return;}var book=XLSX.utils.book_new(),sheet=XLSX.utils.json_to_sheet(rows.map(function(r){return {'تاریخ':r.day,'نماد':r.symbol,'تعداد نمونه':r.count,'میانگین امتیاز':r.mean,'میانه امتیاز':r.median,'کمینه':r.min,'بیشینه':r.max,'آخرین امتیاز':r.last,'کیفیت':r.quality==='review'?'review':'valid'};}));XLSX.utils.book_append_sheet(book,sheet,'Score History');XLSX.writeFile(book,name);
@@ -77,10 +89,10 @@ function select(symbol,push){
  if(!item){$('#dossier').innerHTML='<div class="empty"><h2>'+(symbol?'نماد پیدا نشد':'یک نماد را انتخاب کن')+'</h2><p>از فهرست جست‌وجو و انتخاب کنید.</p></div>';return;}
  var c=item.current,rows=item.history;
  var groups=c?[
-  group('امتیاز و جایگاه',[field('امتیاز فعلی',fmt(c.score),'hero-value'),field('رتبه بین تمام سهام',item.rank===null?'—':C.integer(item.rank)+' / '+C.integer(universe.rankedCount),'rank-value'),field('درصد آخرین قیمت',C.number(c.last_pct)===null?'—':signed(c.last_pct)+'٪',C.number(c.last_pct)<0?'negative':'positive')]),
-  group('قیمت و صف',[field('آخرین قیمت · ریال',fmt(c.last_price)),field('قیمت پایانی · ریال',fmt(c.close_price)),field('ارزش صف خرید',queue(c.buy_queue_value_toman),'queue-buy'),field('ارزش صف فروش',queue(c.sell_queue_value_toman),'queue-sell')]),
-  group('حجم و ارزش معاملات',[field('حجم امروز · سهم',C.integer(c.trade_volume)),field('حجم میانگین ۱۵ روزه',C.integer(c.avg15_trade_volume)),field('ارزش امروز · تومان',money(c.trade_value_toman)),field('ارزش میانگین ۱۵ روزه',money(c.avg15_trade_value_toman)),field('رتبه ارزش میانگین ۱۵ روزه',c.avg15_trade_value_rank===null?'—':C.integer(c.avg15_trade_value_rank))]),
-  group('رفتار خریدار و فروشنده',[field('قدرت خریدار به فروشنده',C.number(c.buyer_power)===null?'—':C.format(c.buyer_power,2),'power-value'),field('سرانه خرید',money(c.buy_per_capita_toman),'positive'),field('سرانه فروش',money(c.sell_per_capita_toman),'negative')]),
+  group('امتیاز و جایگاه',[field('امتیاز فعلی',scoreFmt(c.score),'hero-value'),field('رتبه بین تمام سهام',item.rank===null?'—':C.integer(item.rank)+' / '+C.integer(universe.rankedCount),'rank-value')]),
+  group('قیمت و صف',[field('درصد آخرین قیمت',C.number(c.last_pct)===null?'—':signed(c.last_pct,1)+'٪',C.number(c.last_pct)<0?'negative':'positive'),field('ارزش صف خرید',queue(c.buy_queue_value_toman),'queue-buy'),field('ارزش صف فروش',queue(c.sell_queue_value_toman),'queue-sell')]),
+  group('حجم و ارزش معاملات',[field('حجم امروز',million(c.trade_volume)),field('حجم میانگین ۱۵ روزه',million(c.avg15_trade_volume)),field('ارزش امروز',billion(c.trade_value_toman)),field('ارزش میانگین ۱۵ روزه',billion(c.avg15_trade_value_toman)),field('رتبه میانگین ارزش معاملات ۱۵ روز اخیر',c.avg15_trade_value_rank===null?'—':C.integer(c.avg15_trade_value_rank)+' / '+C.integer(c.avg15_trade_value_rank_total))]),
+  group('رفتار خریدار و فروشنده',[field('سرانه خرید',million(c.buy_per_capita_toman),'positive'),field('سرانه فروش',million(c.sell_per_capita_toman),'negative'),field('قدرت خریدار به فروشنده',C.number(c.buyer_power)===null?'—':C.format(c.buyer_power,1),'power-value')]),
   group('بازار و مشخصات سهم',[field('صنعت',c.industry||'—'),field('مارکت‌کپ',hmt(c.market_cap_hmt),'market-cap'),field('رتبه مارکت‌کپ',c.market_cap_rank===null?'—':C.integer(c.market_cap_rank)),field('روز معاملاتی',c.trading_date||'—')])
  ]:[];
  var table=rows.map(function(r){return '<tr><td>'+esc(r.day)+'</td>'+['count','mean','median','min','max','last'].map(function(k){return '<td><bdi>'+esc(fmt(r[k]))+'</bdi></td>';}).join('')+'<td>'+esc(r.quality==='review'?'نیازمند بررسی':r.quality==='valid'?'معتبر':'نامشخص')+'</td></tr>';}).join('');

@@ -27,13 +27,24 @@ function formatPercent(value, digits = 2) {
   const parsed = number(value);
   return parsed === null ? "—" : `${formatSigned(parsed, digits)}٪`;
 }
+function formatScore(value) { return formatSigned(value, 1); }
+function formatMillion(value, suffix = " M", digits = 1) {
+  const parsed = number(value);
+  return parsed === null ? "—" : `${formatNumber(parsed / 1e6, digits)}${suffix}`;
+}
+function formatBillion(value, suffix = " B", digits = 1) {
+  const parsed = number(value);
+  return parsed === null ? "—" : `${formatNumber(parsed / 1e9, digits)}${suffix}`;
+}
+function formatMillionToman(value) { return formatMillion(value, " M", 1); }
+function formatBillionToman(value) { return formatBillion(value, " B", 1); }
 function closePercent(closePrice, yesterdayPrice) {
   const close = number(closePrice), yesterday = number(yesterdayPrice);
   return close === null || yesterday === null || yesterday === 0 ? null : ((close - yesterday) / yesterday) * 100;
 }
 function formatQueueBillion(value) {
   const parsed = number(value);
-  return parsed === null || parsed <= 0 ? "-" : `${faDigits(Math.round(parsed / 1e9).toLocaleString("fa-IR"))} B`;
+  return parsed === null || parsed <= 0 ? "—" : formatBillionToman(parsed);
 }
 function sourceTimestamp(data) { return data && data.market && data.market.timestamp || data && data.generated_at || null; }
 function formatDate(value) {
@@ -83,6 +94,6 @@ function chartSeries(data) {
   };
 }
 
-const api = { TEHRAN_TIME_ZONE, number, faDigits, formatNumber, formatInteger, formatSigned, formatPercent, closePercent, formatQueueBillion, sourceTimestamp, formatDate, findLeaders, allocation, validateSnapshot, chartSeries };
+const api = { TEHRAN_TIME_ZONE, number, faDigits, formatNumber, formatInteger, formatSigned, formatPercent, formatScore, formatMillion, formatBillion, formatMillionToman, formatBillionToman, closePercent, formatQueueBillion, sourceTimestamp, formatDate, findLeaders, allocation, validateSnapshot, chartSeries };
 if (typeof module !== "undefined") module.exports = api;
 if (typeof window !== "undefined") window.MarketCore = api;

@@ -18,11 +18,8 @@
   const escapeHtml = (value) => String(value === null || value === undefined ? "—" : value).replace(/[&<>"']/g, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[character]));
   const text = (selector, value) => { const element = $(selector); if (element) element.textContent = value; };
   const numeric = (value) => core.number(value);
-  const formatHmt = (value) => core.formatNumber(value, 2);
-  const formatValueBillion = (value) => {
-    const parsed = numeric(value);
-    return parsed === null ? "—" : `${core.formatNumber(parsed / 1e9, 0)} B`;
-  };
+  const formatHmt = (value) => core.formatNumber(value, 1);
+  const formatValueBillion = (value) => core.formatBillionToman(value);
   const signed = (value, digits = 1) => core.formatSigned(value, digits);
   const pct = (value) => core.formatPercent(value, 2);
   const integer = (value) => core.formatInteger(value);
@@ -143,9 +140,9 @@
     const rows = Array.isArray(data.top_buy_queue) ? data.top_buy_queue : [];
     const element = $("#topBuyQueue");
     if (!element) return;
-    const valueB = (v) => numeric(v) === null ? "—" : escapeHtml(core.formatNumber(numeric(v) / 1000000000, 0));
+    const valueB = (v) => numeric(v) === null ? "—" : escapeHtml(core.formatBillionToman(v));
     const valuePct = (v) => numeric(v) === null ? "—" : escapeHtml(core.formatNumber(v, 0) + "%");
-    const valueM = (v) => numeric(v) === null ? "—" : escapeHtml(core.formatNumber(numeric(v) / 1000000, 0));
+    const valueM = (v) => numeric(v) === null ? "—" : escapeHtml(core.formatMillionToman(v));
     const valuePower = (v) => numeric(v) === null ? "—" : escapeHtml(core.formatNumber(v, 1));
     element.innerHTML = rows.map((row, index) => `<tr><td>${core.faDigits(index + 1)}</td><td><a class="ranking-symbol" href="symbols/?symbol=${encodeURIComponent(row.symbol || "")}">${escapeHtml(row.symbol)}</a></td><td><span class="score ${scoreClass(row.score)}">${escapeHtml(signed(row.score))}</span></td><td>${valueB(row.avg_trade_value_toman ?? row.avg15_trade_value_toman)}</td><td><span class="queue-buy">${valueB(row.buy_queue_value_toman)}</span></td><td>${numeric(row.queue_to_avg ?? row.queue_to_avg15) === null ? "—" : `${escapeHtml(core.formatNumber(row.queue_to_avg ?? row.queue_to_avg15, 1))}×`}</td><td>${valueM(row.buy_per_capita_toman)}</td><td>${valuePower(row.buyer_power)}</td><td>${valuePct(row.legal_buy_pct)}</td><td>${valuePct(row.legal_sell_pct)}</td></tr>`).join("") || `<tr><td colspan="10">صف خرید معتبر برای نمایش نیست.</td></tr>`;
   }
