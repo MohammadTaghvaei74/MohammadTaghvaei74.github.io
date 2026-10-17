@@ -1,7 +1,7 @@
 'use strict';
 (function(){
 var C=window.SymbolCore,M=window.MarketCore,$=function(s){return document.querySelector(s);};
-var market=null,archive=null,universe=null,items=[],selected=null;
+var market=null,archive=null,candlesArchive=null,candleIndex=new Map(),universe=null,items=[],selected=null;
 var esc=function(v){return C.text(v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});};
 var fmt=C.format;
 function stamp(v){return M.formatDate(v);}
@@ -15,18 +15,22 @@ function render(){
  $('#list').querySelectorAll('button').forEach(function(el){el.onclick=function(){select(el.dataset.symbol,true);};});
 }
 function chart(item){
- var rows=item.history;if(!rows.length)return '<p class="meta">تاریخچه‌ای در دسترس نیست.</p>';
- var series=C.chartSeries(rows),values=[];series.forEach(function(s){values=values.concat(s.values.filter(function(v){return v!==null;}));});
- if(!values.length)return '<p class="meta">مقادیر نمودار ناموجود یا خارج از دامنه‌اند؛ جدول را بررسی کنید.</p>';
+ var rows=(candleIndex.get(item.symbol)||[]).slice().sort(function(a,b){return String(a.day||'').localeCompare(String(b.day||''));});
+ if(!rows.length)return '<p class="meta">کندل‌های روزانه برای این نماد هنوز منتشر نشده است.</p>';
+ var valid=rows.filter(function(r){
+  var o=C.number(r.open),h=C.number(r.high),l=C.number(r.low),c=C.number(r.close);
+  return [o,h,l,c].every(function(n){return n!==null&&Math.abs(n)<=20;})&&h>=Math.max(o,c)&&l<=Math.min(o,c)&&h>=l;
+ });
+ if(!valid.length)return '<p class="meta">مقادیر معتبر کندل برای نمودار یافت نشد؛ جدول داده را بررسی کنید.</p>';
+ var values=[];valid.forEach(function(r){values.push(r.open,r.high,r.low,r.close);});
  var leverage=Array.isArray(market&&market.leveraged)&&market.leveraged.some(function(r){return r&&r.symbol===item.symbol;});
- var thresholds=C.thresholds([item.current&&item.current.score],leverage),lo=Math.min.apply(Math,[0].concat(values,thresholds))-1,hi=Math.max.apply(Math,[0].concat(values,thresholds))+1;
- var w=800,h=260,p=45,x=function(i){return Math.round(p+i*(w-2*p)/Math.max(1,rows.length-1));},y=function(v){return Math.round(h-p-(v-lo)*(h-2*p)/(hi-lo));};
+ var thresholds=C.thresholds([item.current&&item.current.score].concat(values),leverage),lo=Math.min.apply(Math,[0].concat(values,thresholds))-1,hi=Math.max.apply(Math,[0].concat(values,thresholds))+1;
+ var w=800,h=260,p=45,step=(w-2*p)/Math.max(1,valid.length-1),body=Math.max(4,Math.min(18,step*0.62)),x=function(i){return Math.round(p+i*(w-2*p)/Math.max(1,valid.length-1));},y=function(v){return Math.round(h-p-(v-lo)*(h-2*p)/(hi-lo));};
  var lines=[lo,0,hi].map(function(v){return '<line x1="45" x2="755" y1="'+y(v)+'" y2="'+y(v)+'" stroke="#d8e3db"/><text x="36" y="'+(y(v)+4)+'" text-anchor="end">'+esc(fmt(v,1))+'</text>';}).join('');
  lines+=thresholds.map(function(v){return '<line class="threshold" x1="45" x2="755" y1="'+y(v)+'" y2="'+y(v)+'" stroke="#b46a40" stroke-dasharray="5 5"/><text x="755" y="'+(y(v)-5)+'" text-anchor="end">آستانه '+esc(fmt(v))+'</text>';}).join('');
- var colors=['#247d99','#64882b','#c76a3d'];
- var plots=series.map(function(s,i){return '<path d="'+C.path(s.values,x,y)+'" fill="none" stroke="'+colors[i]+'" stroke-width="2.5"/>'+s.values.map(function(v,j){return v===null?'':'<circle cx="'+x(j)+'" cy="'+y(v)+'" r="2.5" fill="'+colors[i]+'"><title>'+esc(rows[j].day+' : '+fmt(v))+'</title></circle>';}).join('');}).join('');
- var labels=[0,Math.floor((rows.length-1)/2),rows.length-1].filter(function(v,i,a){return a.indexOf(v)===i;}).map(function(i){return '<text x="'+x(i)+'" y="250" text-anchor="middle">'+esc(rows[i].day)+'</text>';}).join('');
- return '<svg class="chart" viewBox="0 0 800 260" role="img" aria-label="روند امتیاز '+esc(item.symbol)+'">'+lines+plots+labels+'</svg><p class="meta">آبی: میانگین · سبز: میانه · نارنجی: آخرین امتیاز. مقادیر خارج از ±۲۰ در نمودار رسم نشده‌اند و در جدول حفظ شده‌اند؛ نقاط گمشده به هم متصل نمی‌شوند.</p>';
+ var plots=valid.map(function(r,j){var open=C.number(r.open),high=C.number(r.high),low=C.number(r.low),close=C.number(r.close),cx=x(j),top=y(Math.max(open,close)),bottom=y(Math.min(open,close)),height=Math.max(2,bottom-top),dir=close>=open?'up':'down';return '<g class="score-candle '+dir+'" data-day="'+esc(r.day)+'" data-open="'+open+'" data-high="'+high+'" data-low="'+low+'" data-close="'+close+'"><title>'+esc(r.day+' · اپن '+fmt(open)+' · high '+fmt(high)+' · low '+fmt(low)+' · کلوز '+fmt(close))+'</title><line class="candle-wick" x1="'+cx+'" x2="'+cx+'" y1="'+y(high)+'" y2="'+y(low)+'"/><rect class="candle-body" x="'+(cx-body/2)+'" y="'+top+'" width="'+body+'" height="'+height+'" rx="2"/></g>';}).join('');
+ var labels=[0,Math.floor((valid.length-1)/2),valid.length-1].filter(function(v,i,a){return a.indexOf(v)===i;}).map(function(i){return '<text x="'+x(i)+'" y="250" text-anchor="middle">'+esc(valid[i].day)+'</text>';}).join('');
+ return '<svg class="chart candle-chart" viewBox="0 0 800 260" role="img" aria-label="کندل استیک روزانه امتیاز '+esc(item.symbol)+'">'+lines+plots+labels+'</svg><p class="meta">هر کندل یک روز است؛ اپن/کلوز اولین و آخرین snapshot و high/low بیشترین و کمترین امتیاز مشاهده‌شده همان روز است. '+C.integer(valid.filter(function(r){return r.coverage!=='complete';}).length)+' روز دارای پوشش ناقص یا نامشخص است؛ این نمودار به معنی ثبت تمام دقایق روز نیست. دریافت خودکار هر ۶۰ ثانیه. سبز: کلوز بالاتر یا برابر اپن · قرمز: کلوز پایین‌تر از اپن.</p>';
 }
 function download(data,type,name){var u=URL.createObjectURL(new Blob([data],{type:type})),a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(u);},3000);}
 function select(symbol,push){
@@ -42,7 +46,7 @@ function select(symbol,push){
  ['ارزش صف خرید · تومان',C.integer(c.buy_queue_value_toman)],['ارزش صف فروش · تومان',C.integer(c.sell_queue_value_toman)],['روز معاملاتی',c.trading_date||'—']
  ]:[];
  var table=rows.map(function(r){return '<tr><td>'+esc(r.day)+'</td>'+['count','mean','median','min','max','last'].map(function(k){return '<td><bdi>'+esc(fmt(r[k]))+'</bdi></td>';}).join('')+'<td>'+esc(r.quality==='review'?'نیازمند بررسی':r.quality==='valid'?'معتبر':'نامشخص')+'</td></tr>';}).join('');
- $('#dossier').innerHTML='<div class="dossier-head"><div><span class="tag">'+(c?'آخرین snapshot':'فقط آرشیو تاریخی')+'</span><h2>'+esc(symbol)+'</h2><p class="meta">'+(c?'زمان منبع: '+esc(stamp(c.timestamp||M.sourceTimestamp(market))):'در snapshot جاری داده‌ای برای این نماد نداریم.')+'</p></div><button class="share" id="copyLink">کپی لینک</button></div><div class="fields">'+fields.map(function(f){return '<div class="field"><span>'+esc(f[0])+'</span><b><bdi>'+esc(f[1])+'</bdi></b></div>';}).join('')+'</div><div class="chartbox"><h3>روند امتیاز در روزهای کامل</h3>'+chart(item)+'</div><div class="export-actions"><button class="share" id="csv">دانلود CSV</button><button class="share" id="json">دانلود JSON</button><a class="share" href="../history/">آرشیو و Excel</a><span class="meta">'+C.integer(rows.length)+' روز موجود؛ نبود سابقه به معنی صفر نیست.</span></div><div class="tablebox"><table><thead><tr><th>تاریخ</th><th>تعداد نمونه</th><th>میانگین</th><th>میانه</th><th>کمینه</th><th>بیشینه</th><th>آخرین</th><th>کیفیت</th></tr></thead><tbody>'+ (table||'<tr><td colspan="8">تاریخچه‌ای در دسترس نیست.</td></tr>')+'</tbody></table></div>';
+ $('#dossier').innerHTML='<div class="dossier-head"><div><span class="tag">'+(c?'آخرین snapshot':'فقط آرشیو تاریخی')+'</span><h2>'+esc(symbol)+'</h2><p class="meta">'+(c?'زمان منبع: '+esc(stamp(c.timestamp||M.sourceTimestamp(market))):'در snapshot جاری داده‌ای برای این نماد نداریم.')+'</p></div><button class="share" id="copyLink">کپی لینک</button></div><div class="fields">'+fields.map(function(f){return '<div class="field"><span>'+esc(f[0])+'</span><b><bdi>'+esc(f[1])+'</bdi></b></div>';}).join('')+'</div><div class="chartbox"><h3>کندل روزانه امتیازهای مشاهده‌شده</h3>'+chart(item)+'</div><div class="export-actions"><button class="share" id="csv">دانلود CSV</button><button class="share" id="json">دانلود JSON</button><a class="share" href="../history/">آرشیو و Excel</a><span class="meta">'+C.integer(rows.length)+' روز موجود؛ نبود سابقه به معنی صفر نیست.</span></div><div class="tablebox"><table><thead><tr><th>تاریخ</th><th>تعداد نمونه</th><th>میانگین</th><th>میانه</th><th>کمینه</th><th>بیشینه</th><th>آخرین</th><th>کیفیت</th></tr></thead><tbody>'+ (table||'<tr><td colspan="8">تاریخچه‌ای در دسترس نیست.</td></tr>')+'</tbody></table></div>';
  $('#csv').disabled=!rows.length;
  $('#csv').onclick=function(){var keys=['day','symbol','count','mean','median','min','max','last','quality'];download('\uFEFF'+C.csv([keys].concat(rows.map(function(r){return keys.map(function(k){return r[k];});}))),'text/csv;charset=utf-8',symbol+'-history.csv');};
  $('#json').onclick=function(){download(JSON.stringify({source_timestamp:M.sourceTimestamp(market),current:c,history:rows},null,2),'application/json',symbol+'.json');};
@@ -50,8 +54,9 @@ function select(symbol,push){
 }
 $('#q').oninput=render;$('#sort').onchange=render;
 window.addEventListener('popstate',function(){select(new URLSearchParams(location.search).get('symbol'),false);});
-Promise.all([load('../data/market.json'),load('../history/data/history.json')]).then(function(results){
- market=results[0];archive=results[1];
+function refresh(){return Promise.all([load('../data/market.json'),load('../history/data/history.json'),load('../history/data/score-candles.json')]).then(function(results){
+ market=results[0];archive=results[1];candlesArchive=results[2];candleIndex=new Map();
+ if(candlesArchive&&Array.isArray(candlesArchive.rows)){candlesArchive.rows.forEach(function(row){if(!row||!row.symbol)return;if(!candleIndex.has(row.symbol))candleIndex.set(row.symbol,[]);candleIndex.get(row.symbol).push(row);});}
  if(!market||!Array.isArray(market.stocks)&&!Array.isArray(market.top_stocks))market=null;
  if(!archive||!Array.isArray(archive.rows))archive=null;
  universe=C.buildUniverse(market,archive);items=Array.from(universe.bySymbol.values());
@@ -60,8 +65,10 @@ Promise.all([load('../data/market.json'),load('../history/data/history.json')]).
  if(!market)messages.push('دریافت snapshot جاری ناموفق بود؛ داده‌های آرشیوی جای قیمت جاری نیستند.');
  else if(!Number.isFinite(age)||age>24*3600000||age< -300000)messages.push('snapshot قدیمی یا زمان منبع نامعتبر است؛ داده زنده محسوب نمی‌شود.');
  if(universe.partial)messages.push('فهرست جاری کامل نیست؛ فقط نمادهای موجود در داده نمایش داده می‌شوند.');
+ if(!candlesArchive)messages.push('دریافت کندل‌ها ناموفق بود؛ تلاش مجدد در ۶۰ ثانیه.');
  if(!archive)messages.push('آرشیو در دسترس نیست؛ اطلاعات جاری همچنان قابل مشاهده است.');
  $('#availability').textContent=messages.length?'داده با محدودیت':'snapshot دریافت شد';$('#notice').hidden=!messages.length;$('#notice').textContent=messages.join(' ');
  render();var wanted=new URLSearchParams(location.search).get('symbol');select(wanted||null,false);
-}).catch(function(){ $('#availability').textContent='خطا در نمایش داده';$('#notice').hidden=false;$('#notice').textContent='داده قابل پردازش نیست. صفحه را دوباره بارگذاری کنید.';});
+}).catch(function(){ $('#availability').textContent='خطا در نمایش داده';$('#notice').hidden=false;$('#notice').textContent='داده قابل پردازش نیست. صفحه را دوباره بارگذاری کنید.';}).then(function(){setTimeout(refresh,60000);});}
+refresh();
 })();
