@@ -4,7 +4,7 @@
 })(typeof self !== "undefined" ? self : this, function () {
   "use strict";
   var FA = "۰۱۲۳۴۵۶۷۸۹";
-  function finite(v) { return v !== null && v !== undefined && v !== "" && !(typeof v === "string" && v.trim() === "") && typeof v !== "boolean" && Number.isFinite(typeof v === "number" ? v : Number(v)); }
+  function finite(v) { return v !== null && v !== undefined && v !== "" && !(typeof v === "string" && v.trim() === "") && typeof v !== "boolean" && typeof v !== "object" && Number.isFinite(typeof v === "number" ? v : Number(v)); }
   function num(v) { return finite(v) ? Number(v) : null; }
   function normalizeFa(v) { return String(v == null ? "" : v).replace(/[\u064A\u0649]/g, "ی").replace(/[\u0643]/g, "ک").replace(/[\u200c\u200f\u0640]/g, "").replace(/[\s\-–—_]+/g, "").replace(/[ًٌٍَُِّْ]/g, "").toLocaleLowerCase("fa-IR"); }
   function median(values) { var a = values.filter(finite).map(Number).sort(function(a,b){return a-b;}); if (!a.length) return null; var m=Math.floor(a.length/2); return a.length%2 ? a[m] : (a[m-1]+a[m])/2; }
