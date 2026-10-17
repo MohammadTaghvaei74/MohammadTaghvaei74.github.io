@@ -231,7 +231,7 @@ def export_from_scores_db(scores_db, output_path, now=None):
                 _record_history(history_db, contracts, raw["timestamp"])
                 # Ordinary-stock v2_days fences do not prove option-session completion.
                 # Never manufacture option history from capture time alone.
-                payload = build_snapshot(scores_db, contracts, leaders, now)
+                payload = build_snapshot(history_db, contracts, leaders, now)
                 payload["source_at"] = raw["timestamp"]
     except (OSError, sqlite3.Error, ValueError, KeyError, IndexError, TypeError) as exc:
         payload = _empty("unavailable", f"داده اختیار در دسترس نیست: {type(exc).__name__}.", now, None)
