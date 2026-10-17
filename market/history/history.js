@@ -55,8 +55,8 @@ function renderArchive() {
   $("#generatedAt").textContent = `آخرین استخراج: ${displayFullDay(archive.generated_at)}`;
   $("#symbolInput").value = preferredSymbol();
   $("#symbolList").innerHTML = archive.symbols.map((symbol) => `<option value="${symbol}"></option>`).join("");
-  renderDays(); renderSelected($("#symbolInput").value);
- }
+  renderSelected($("#symbolInput").value);
+}
 
 function rowsForExport() { return selectedRows.map((row) => ({ "تاریخ": row.day, "نماد": row.symbol, "تعداد نمونه": row.count, "میانگین امتیاز": row.mean, "میانه امتیاز": row.median, "کمینه": row.min, "بیشینه": row.max, "آخرین امتیاز": row.last, "کیفیت": row.quality === "review" ? "review" : "valid" })); }
 function downloadBlob(blob, filename) { const url = URL.createObjectURL(blob); const link = document.createElement("a"); link.href = url; link.download = filename; link.click(); setTimeout(() => URL.revokeObjectURL(url), 1000); }
