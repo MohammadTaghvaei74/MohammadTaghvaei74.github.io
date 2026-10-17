@@ -111,10 +111,6 @@ def build_market(conn: sqlite3.Connection) -> dict:
             complete_days,
         ):
             avg_by_symbol[row[0]] = row[1]
-    # Attach the prior-15-complete-trading-day average to every displayed stock.
-    # The current snapshot day is deliberately excluded by the query above.
-    for item in stocks:
-        item["avg15_trade_value_toman"] = avg_by_symbol.get(item.get("symbol"))
     queue_rows = []
     for row in stocks:
         queue = row.get("buy_queue_value_toman")
@@ -311,9 +307,14 @@ def assert_safe_worktree(status_lines: list[str]) -> None:
             continue
         index_status, worktree_status = line[0], line[1]
         path = line[3:].strip().replace("\\", "/")
+        # The option history DB is a private runtime cache. It is deliberately
+        # not published, but an older/manual run may leave it untracked under
+        # the site tree. Ignore only this exact cache; all other unexpected
+        # files remain fail-closed.
         safe_path = path in PUBLISHED_FILES
+        runtime_cache = path == "market/data/options_history.sqlite"
         unsafe_status = "U" in (index_status, worktree_status) or "D" in (index_status, worktree_status) or index_status == "R" or worktree_status == "R" or " -> " in path
-        if not safe_path or unsafe_status:
+        if (not safe_path and not runtime_cache) or unsafe_status:
             unrelated.append(line)
     if unrelated:
         raise UnsafeWorktreeError(
