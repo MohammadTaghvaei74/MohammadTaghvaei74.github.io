@@ -92,6 +92,22 @@ def enrich_market_cap(stocks: list[dict[str, Any]]) -> None:
         stock["market_cap_rank"] = position
     for stock in stocks:
         stock.setdefault("market_cap_rank", None)
+        stock["market_cap_rank_total"] = len(ranked)
+
+    for field, rank_field, total_field in (
+        ("buy_per_capita_toman", "buy_per_capita_rank", "buy_per_capita_rank_total"),
+        ("sell_per_capita_toman", "sell_per_capita_rank", "sell_per_capita_rank_total"),
+        ("buyer_power", "buyer_power_rank", "buyer_power_rank_total"),
+    ):
+        valid = sorted(
+            (stock for stock in stocks if _number(stock.get(field)) is not None),
+            key=lambda stock: (-float(stock[field]), str(stock.get("symbol") or "")),
+        )
+        for position, stock in enumerate(valid, 1):
+            stock[rank_field] = position
+        for stock in stocks:
+            stock.setdefault(rank_field, None)
+            stock[total_field] = len(valid)
 
 
 def attach_turnover_metrics(stocks: list[dict[str, Any]]) -> None:
@@ -113,16 +129,33 @@ def enrich_stocks(stocks: list[dict[str, Any]], now: datetime | date) -> list[di
     eligible = [stock for stock in stocks if str(stock.get("instrument") or "").strip()]
     if eligible:
         enrich_signal_client_type(eligible, now)
+    for field, rank_field, total_field in (
+        ("buy_per_capita_toman", "buy_per_capita_rank", "buy_per_capita_rank_total"),
+        ("sell_per_capita_toman", "sell_per_capita_rank", "sell_per_capita_rank_total"),
+        ("buyer_power", "buyer_power_rank", "buyer_power_rank_total"),
+    ):
+        valid = sorted(
+            (stock for stock in stocks if _number(stock.get(field)) is not None),
+            key=lambda stock: (-float(stock[field]), str(stock.get("symbol") or "")),
+        )
+        for position, stock in enumerate(valid, 1):
+            stock[rank_field] = position
+        for stock in stocks:
+            stock[total_field] = len(valid)
     for stock in stocks:
         stock.setdefault("tsetmc_url", None)
         stock.setdefault("shares_outstanding", None)
         stock.setdefault("market_cap_toman", None)
         stock.setdefault("market_cap_hmt", None)
         stock.setdefault("market_cap_rank", None)
+        stock.setdefault("market_cap_rank_total", 0)
         stock.setdefault("avg15_trade_value_rank", None)
         stock.setdefault("buy_per_capita_toman", None)
         stock.setdefault("sell_per_capita_toman", None)
         stock.setdefault("buyer_power", None)
+        stock.setdefault("buy_per_capita_rank", None)
+        stock.setdefault("sell_per_capita_rank", None)
+        stock.setdefault("buyer_power_rank", None)
         stock.setdefault("client_type_status", "missing_instrument")
     attach_turnover_metrics(stocks)
     return stocks

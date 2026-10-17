@@ -11,6 +11,8 @@ function hmt(v){var n=C.number(v);return n===null?'—':n.toLocaleString('fa-IR'
 function signed(v,d){var n=C.number(v);return n===null?'—':(n>0?'+':n<0?'−':'')+C.format(Math.abs(n),d===undefined?2:d);}
 function queue(v){var n=C.number(v);return n===null||n<=0?'—':billion(n);}
 function field(label,value,extra){return '<div class="field '+(extra||'')+'"><span>'+esc(label)+'</span><b><bdi>'+esc(value===null||value===undefined||value===''?'—':value)+'</bdi></b></div>';}
+function compare(label,leftLabel,leftValue,rightLabel,rightValue){return '<div class="field compare-field"><span>'+esc(label)+'</span><b style="display:flex;justify-content:space-between;gap:12px"><bdi>'+esc(leftLabel+' '+leftValue)+'</bdi><bdi>'+esc(rightLabel+' '+rightValue)+'</bdi></b></div>';}
+function rank(value,total){var n=C.number(value),t=C.number(total);return n===null?'—':C.integer(n)+' / '+(t===null?'—':C.integer(t));}
 function group(title,fields,extra){return '<section class="metric-group '+(extra||'')+'"><h3>'+esc(title)+'</h3><div class="fields">'+fields.join('')+'</div></section>';}
 function stamp(v){return M.formatDate(v);}
 var solarDate=new Intl.DateTimeFormat('fa-IR-u-ca-persian',{year:'numeric',month:'2-digit',day:'2-digit',timeZone:'UTC'});
@@ -89,11 +91,11 @@ function select(symbol,push){
  if(!item){$('#dossier').innerHTML='<div class="empty"><h2>'+(symbol?'نماد پیدا نشد':'یک نماد را انتخاب کن')+'</h2><p>از فهرست جست‌وجو و انتخاب کنید.</p></div>';return;}
  var c=item.current,rows=item.history;
  var groups=c?[
-  group('امتیاز و جایگاه',[field('امتیاز فعلی',scoreFmt(c.score),'hero-value'),field('رتبه بین تمام سهام',item.rank===null?'—':C.integer(item.rank)+' / '+C.integer(universe.rankedCount),'rank-value')]),
-  group('قیمت و صف',[field('درصد آخرین قیمت',C.number(c.last_pct)===null?'—':signed(c.last_pct,1)+'٪',C.number(c.last_pct)<0?'negative':'positive'),field('ارزش صف خرید',queue(c.buy_queue_value_toman),'queue-buy'),field('ارزش صف فروش',queue(c.sell_queue_value_toman),'queue-sell')]),
-  group('حجم و ارزش معاملات',[field('حجم امروز',million(c.trade_volume)),field('حجم میانگین ۱۵ روزه',million(c.avg15_trade_volume)),field('ارزش امروز',billion(c.trade_value_toman)),field('ارزش میانگین ۱۵ روزه',billion(c.avg15_trade_value_toman)),field('رتبه میانگین ارزش معاملات ۱۵ روز اخیر',c.avg15_trade_value_rank===null?'—':C.integer(c.avg15_trade_value_rank)+' / '+C.integer(c.avg15_trade_value_rank_total))]),
-  group('رفتار خریدار و فروشنده',[field('سرانه خرید',million(c.buy_per_capita_toman),'positive'),field('سرانه فروش',million(c.sell_per_capita_toman),'negative'),field('قدرت خریدار به فروشنده',C.number(c.buyer_power)===null?'—':C.format(c.buyer_power,1),'power-value')]),
-  group('بازار و مشخصات سهم',[field('صنعت',c.industry||'—'),field('مارکت‌کپ',hmt(c.market_cap_hmt),'market-cap'),field('رتبه مارکت‌کپ',c.market_cap_rank===null?'—':C.integer(c.market_cap_rank)),field('روز معاملاتی',c.trading_date||'—')])
+  group('امتیاز و جایگاه',[field('امتیاز فعلی',scoreFmt(c.score),'hero-value'),field('رتبه بین تمام سهام',rank(item.rank,universe.rankedCount),'rank-value')]),
+  group('قیمت و صف',[field('درصد آخرین قیمت',C.number(c.last_pct)===null?'—':signed(c.last_pct,1)+'٪',C.number(c.last_pct)<0?'negative':'positive')].concat(C.number(c.buy_queue_value_toman)>0?[field('ارزش صف خرید',queue(c.buy_queue_value_toman),'queue-buy')]:[]).concat(C.number(c.sell_queue_value_toman)>0?[field('ارزش صف فروش',queue(c.sell_queue_value_toman),'queue-sell')]:[]).concat(C.number(c.buy_queue_value_toman)<=0&&C.number(c.sell_queue_value_toman)<=0?[field('صف','—')]:[])),
+  group('حجم و ارزش معاملات',[compare('حجم معاملات','امروز',million(c.trade_volume),'میانگین ۱۵ روزه',million(c.avg15_trade_volume)),compare('ارزش معاملات','امروز',billion(c.trade_value_toman),'میانگین ۱۵ روزه',billion(c.avg15_trade_value_toman)),field('رتبه میانگین ارزش معاملات ۱۵ روز اخیر',rank(c.avg15_trade_value_rank,c.avg15_trade_value_rank_total))]),
+  group('رفتار خریدار و فروشنده',[field('سرانه خرید · رتبه',million(c.buy_per_capita_toman)+' · '+rank(c.buy_per_capita_rank,c.buy_per_capita_rank_total),'positive'),field('سرانه فروش · رتبه',million(c.sell_per_capita_toman)+' · '+rank(c.sell_per_capita_rank,c.sell_per_capita_rank_total),'negative'),field('قدرت خریدار به فروشنده · رتبه',(C.number(c.buyer_power)===null?'—':C.format(c.buyer_power,1))+' · '+rank(c.buyer_power_rank,c.buyer_power_rank_total),'power-value')]),
+  group('بازار و مشخصات سهم',[field('صنعت',c.industry||'—'),field('مارکت‌کپ',hmt(c.market_cap_hmt),'market-cap'),field('رتبه مارکت‌کپ',rank(c.market_cap_rank,c.market_cap_rank_total)),field('روز معاملاتی',faDate(c.trading_date))])
  ]:[];
  var table=rows.map(function(r){return '<tr><td>'+esc(r.day)+'</td>'+['count','mean','median','min','max','last'].map(function(k){return '<td><bdi>'+esc(k==='count'?C.integer(r[k]):scoreFmt(r[k]))+'</bdi></td>';}).join('')+'<td>'+esc(r.quality==='review'?'نیازمند بررسی':r.quality==='valid'?'معتبر':'نامشخص')+'</td></tr>';}).join('');
  var tsetmc=c&&c.tsetmc_url?'<a class="tsetmc-link" href="'+esc(c.tsetmc_url)+'" target="_blank" rel="noopener">مشاهده صفحه سهم در TSETMC ↗</a>':'';
