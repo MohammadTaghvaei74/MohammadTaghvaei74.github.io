@@ -86,7 +86,7 @@ def build_market(conn: sqlite3.Connection) -> dict:
             seen.add(row["symbol"])
     top_stocks = stocks[:10]
     industries = [dict(row) for row in conn.execute(
-        "SELECT industry,count,average,median,turnover_toman,net_queue_hmt FROM industry_detail_snapshots WHERE timestamp=? ORDER BY median DESC LIMIT 6",
+        "SELECT industry,count,average,median,turnover_toman,net_queue_hmt FROM industry_detail_snapshots WHERE timestamp=? AND count >= 5 ORDER BY median DESC LIMIT 6",
         (latest,),
     )]
     daily = load_daily_chart_rows(conn)
