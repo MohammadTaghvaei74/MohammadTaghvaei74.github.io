@@ -98,6 +98,38 @@
   .native-market-webview .mobile-nav { display: none !important; }
 }
 
+/* Keep the remote WebView responsive on phones: expensive compositing effects
+   are useful in a desktop browser but make touch scrolling janky on older GPUs. */
+.native-market-webview body {
+  background-image: none;
+  -webkit-font-smoothing: auto;
+}
+.native-market-webview body::before { display: none; }
+.native-market-webview .topbar {
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  background: var(--bg);
+  box-shadow: 0 1px 0 var(--line);
+}
+.native-market-webview .mobile-nav {
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  background: #fff;
+  box-shadow: 0 4px 14px rgba(38, 73, 60, .14);
+}
+.native-market-webview .metric-card,
+.native-market-webview .panel,
+.native-market-webview .table-panel,
+.native-market-webview .industry-card,
+.native-market-webview .options-section {
+  box-shadow: 0 4px 14px rgba(38, 73, 60, .08);
+  transition: none;
+}
+.native-market-webview .metric-card:hover,
+.native-market-webview .panel:hover,
+.native-market-webview .table-panel:hover,
+.native-market-webview .industry-card:hover { transform: none; }
+
 .chart-path { stroke: #388268; fill: none; }
 .chart-market { stroke: #388268; }
 .chart-leaders { stroke: var(--orange); stroke-dasharray: 6 6; }
