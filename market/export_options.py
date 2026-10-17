@@ -104,7 +104,9 @@ def _history(db_path: os.PathLike[str] | str, symbol: str, before: str):
         with sqlite3.connect(f"file:{Path(db_path).resolve()}?mode=ro", uri=True) as c:
             cols = {r[1] for r in c.execute("pragma table_info(option_daily_values)")}
             if not {"trading_date", "symbol", "value_toman", "complete"} <= cols: return None, 0
-            complete = " AND complete=1"
+            # Legacy complete flags were inferred from capture time, not verified.
+            if "completion_source" not in cols: return None, 0
+            complete = " AND complete=1 AND completion_source='tsetmc_verified_daily_final'"
             rows = c.execute("SELECT trading_date,value_toman FROM option_daily_values WHERE symbol=? AND trading_date<?" + complete + " GROUP BY trading_date ORDER BY trading_date DESC", (symbol, before)).fetchall()
         if len(rows) < 7: return None, len(rows)
         values = [float(r[1]) for r in rows[:7]]
@@ -184,11 +186,9 @@ def _record_history(path, contracts, source_at):
     _init_history(path)
     try:
         stamp = datetime.fromisoformat(source_at.replace("Z", "+00:00"))
-        # TSETMC's persisted end-of-session snapshot is around 12:30 Tehran.
-        # Use the source timezone instead of comparing UTC hours; 12:30+03:30
-        # is 09:00 UTC and must still count as a completed trading session.
+        # Persist provisional observations only; no verified finalization source yet.
         local = stamp
-        complete = int((local.hour, local.minute) >= (12, 30))
+        complete = 0  # Capture time alone never proves option-session completion.
         day = stamp.date().isoformat()
     except (AttributeError, ValueError):
         return
