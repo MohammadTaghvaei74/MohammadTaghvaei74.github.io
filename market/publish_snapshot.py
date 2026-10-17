@@ -16,8 +16,20 @@ import tempfile
 from datetime import datetime
 from pathlib import Path
 
-from zipfile import ZIP_DEFLATED, ZipFile
+from zipfile import ZIP_DEFLATED, ZipFile, ZipInfo
 from xml.sax.saxutils import escape
+
+if __package__:
+    from .export_signals import export as export_signals
+else:
+    from export_signals import export as export_signals
+
+PUBLISHED_FILES = (
+    "market/data/market.json",
+    "market/data/signals.json",
+    "market/history/data/history.json",
+    "market/history/data/market-score-history.xlsx",
+)
 
 DB = Path(os.environ.get("BOURSE_DB", "/root/bourse-alert/scores_history.db"))
 SITE = Path(os.environ.get("SITE_REPO", "/root/bourse-site"))
@@ -91,6 +103,12 @@ def build_market(conn: sqlite3.Connection) -> dict:
     }
 
 
+def _rows_as_dicts(cursor: sqlite3.Cursor) -> list[dict]:
+    """Return query rows as mappings without changing the connection factory."""
+    columns = [column[0] for column in cursor.description or ()]
+    return [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+
 def build_history(conn: sqlite3.Connection) -> dict:
     """Build complete-day history from raw snapshots, never stale v2 rows.
 
@@ -99,19 +117,19 @@ def build_history(conn: sqlite3.Connection) -> dict:
     keeps mean, median, min, max, and last distinct: the old exporter copied
     incomplete v2_daily_scores and silently lost days after 2026-10-05.
     """
-    days = [dict(row) for row in conn.execute(
+    days = _rows_as_dicts(conn.execute(
         "SELECT day,turnover,source FROM v2_days WHERE complete=1 ORDER BY day"
-    )]
+    ))
     complete_days = {d["day"] for d in days}
     observed = {}
-    for row in conn.execute(
+    for row in _rows_as_dicts(conn.execute(
         """SELECT trading_date, COUNT(*) AS snapshot_count,
                 COUNT(DISTINCT timestamp) AS timestamp_count,
                 MIN(timestamp) AS first_timestamp, MAX(timestamp) AS last_timestamp,
                 SUM(CASE WHEN valid=1 THEN 1 ELSE 0 END) AS valid_snapshot_count
            FROM stock_snapshots GROUP BY trading_date ORDER BY trading_date"""
-    ):
-        observed[row["trading_date"]] = dict(row)
+    )):
+        observed[row["trading_date"]] = row
 
     rows = []
     for day in days:
@@ -119,12 +137,12 @@ def build_history(conn: sqlite3.Connection) -> dict:
         samples = {}
         # score IS NOT NULL matches the producer's score eligibility. Do not
         # invent a score from another table or mutate the production database.
-        for row in conn.execute(
+        for row in _rows_as_dicts(conn.execute(
             """SELECT symbol, score, timestamp FROM stock_snapshots
                WHERE trading_date=? AND valid=1 AND score IS NOT NULL
                ORDER BY symbol, timestamp""",
             (day_key,),
-        ):
+        )):
             samples.setdefault(row["symbol"], []).append((row["timestamp"], float(row["score"])))
         for symbol in sorted(samples):
             values = samples[symbol]
@@ -138,7 +156,7 @@ def build_history(conn: sqlite3.Connection) -> dict:
                 "last": values[-1][1],
             }
             stats.update({"day": day_key, "symbol": symbol, "source": "stock_snapshots"})
-            stats["quality"] = "review" if abs(stats["last"]) > 20 else "valid"
+            stats["quality"] = "review" if any(abs(score) > 20 for score in scores) else "valid"
             rows.append(stats)
 
     coverage = []
@@ -182,15 +200,18 @@ def _sheet_xml(rows: list[list[object]]) -> str:
     for r, row in enumerate(rows, 1):
         parts = []
         for c, value in enumerate(row, 1):
+            if isinstance(value, (int, float)) and not isinstance(value, bool):
+                parts.append(f'<c r="{_col(c)}{r}"><v>{value}</v></c>')
+                continue
             text = escape("" if value is None else str(value))
             parts.append(f'<c r="{_col(c)}{r}" t="inlineStr"><is><t>{text}</t></is></c>')
         cells.append(f'<row r="{r}">' + "".join(parts) + "</row>")
     return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData>' + "".join(cells) + "</sheetData></worksheet>"
 
 
-def build_xlsx(history: dict) -> None:
-    XLSX_OUT.parent.mkdir(parents=True, exist_ok=True)
-    temp = XLSX_OUT.with_suffix(".tmp.xlsx")
+def write_xlsx(target: Path, history: dict) -> None:
+    target.parent.mkdir(parents=True, exist_ok=True)
+    temp = target.with_suffix(".tmp.xlsx")
     readme = [["آرشیو امتیاز نبض بازار"], ["روزهای کامل و تأییدشده", history["valid_day_count"]], ["تعداد نمادها", len(history["symbols"])], ["تعداد ردیف‌های امتیاز", history["row_count"]], ["منبع", "scores_history.db / v2_days + v2_daily_scores"]]
     summary = [["تاریخ", "ارزش معاملات (تومان)", "وضعیت", "منبع تأیید"]] + [[d["day"], d["turnover"], "کامل و تأییدشده", d["source"]] for d in history["valid_days"]]
     scores = [["تاریخ", "نماد", "تعداد نمونه", "میانگین", "میانه", "کمینه", "بیشینه", "آخرین", "کیفیت"]] + [[r.get("day"), r.get("symbol"), r.get("count"), r.get("mean"), r.get("median"), r.get("min"), r.get("max"), r.get("last"), "نیازمند بررسی" if r.get("quality") == "review" else "معتبر"] for r in history["rows"]]
@@ -199,38 +220,98 @@ def build_xlsx(history: dict) -> None:
     workbook = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="راهنما" sheetId="1" r:id="rId1"/><sheet name="روزهای معتبر" sheetId="2" r:id="rId2"/><sheet name="امتیاز روزانه" sheetId="3" r:id="rId3"/></sheets></workbook>'
     workbook_rels = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet2.xml"/><Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet3.xml"/></Relationships>'
     with ZipFile(temp, "w", ZIP_DEFLATED) as z:
-        z.writestr("[Content_Types].xml", content_types); z.writestr("_rels/.rels", rels); z.writestr("xl/workbook.xml", workbook); z.writestr("xl/_rels/workbook.xml.rels", workbook_rels)
-        z.writestr("xl/worksheets/sheet1.xml", _sheet_xml(readme)); z.writestr("xl/worksheets/sheet2.xml", _sheet_xml(summary)); z.writestr("xl/worksheets/sheet3.xml", _sheet_xml(scores))
-    os.replace(temp, XLSX_OUT)
+        for name, content in (
+            ("[Content_Types].xml", content_types),
+            ("_rels/.rels", rels),
+            ("xl/workbook.xml", workbook),
+            ("xl/_rels/workbook.xml.rels", workbook_rels),
+            ("xl/worksheets/sheet1.xml", _sheet_xml(readme)),
+            ("xl/worksheets/sheet2.xml", _sheet_xml(summary)),
+            ("xl/worksheets/sheet3.xml", _sheet_xml(scores)),
+        ):
+            # Explicit metadata avoids ZIP wall-clock timestamps changing bytes.
+            info = ZipInfo(name, date_time=(1980, 1, 1, 0, 0, 0))
+            info.compress_type = ZIP_DEFLATED
+            z.writestr(info, content)
+    os.replace(temp, target)
+
+
+def build_xlsx(history: dict) -> None:
+    write_xlsx(XLSX_OUT, history)
+
+
+class UnsafeWorktreeError(RuntimeError):
+    """Raised when publication could overwrite unrelated local work."""
+
+
+def assert_safe_worktree(status_lines: list[str]) -> None:
+    """Allow only generated outputs, never conflicts, deletes, or renames."""
+    unrelated = []
+    for line in status_lines:
+        if len(line) < 3:
+            unrelated.append(line)
+            continue
+        index_status, worktree_status = line[0], line[1]
+        path = line[3:].strip().replace("\\", "/")
+        safe_path = path in PUBLISHED_FILES
+        unsafe_status = "U" in (index_status, worktree_status) or "D" in (index_status, worktree_status) or index_status == "R" or worktree_status == "R" or " -> " in path
+        if not safe_path or unsafe_status:
+            unrelated.append(line)
+    if unrelated:
+        raise UnsafeWorktreeError(
+            "refusing publication with unrelated or unsafe dirty files: " + ", ".join(unrelated)
+        )
+
+
+def _git(site: Path, *args: str, check: bool = True) -> subprocess.CompletedProcess:
+    return subprocess.run(
+        ["git", "-C", str(site), *args],
+        check=check,
+        text=True,
+        capture_output=True,
+    )
+
+
+def git_publish(site: Path, paths: list[str]) -> bool:
+    """Commit and push only the generated public files.
+
+    ``git diff --cached --quiet`` follows Git's convention: 0 means no staged
+    change, 1 means staged changes, and 2+ is an error that must propagate.
+    """
+    status = _git(site, "status", "--porcelain").stdout.splitlines()
+    assert_safe_worktree(status)
+    _git(site, "add", "--", *paths)
+    staged = _git(site, "diff", "--cached", "--quiet", check=False)
+    if staged.returncode == 2:
+        raise subprocess.CalledProcessError(staged.returncode, staged.args)
+    if staged.returncode == 0:
+        _git(site, "pull", "--rebase", "origin", "main")
+        _git(site, "push", "origin", "main")
+        return False
+    _git(site, "commit", "-m", "chore: publish market and signal data")
+    _git(site, "pull", "--rebase", "origin", "main")
+    _git(site, "push", "origin", "main")
+    return True
 
 
 def main() -> None:
-    # Incorporate frontend changes and retry any previously unpushed commit.
-    subprocess.run(["git", "-C", str(SITE), "pull", "--rebase", "origin", "main"], check=True, timeout=60)
-    subprocess.run(["git", "-C", str(SITE), "push", "origin", "main"], check=True, timeout=60)
+    global DB, SITE, MARKET_OUT, HISTORY_OUT, XLSX_OUT
+    DB = Path(os.environ.get("BOURSE_DB", str(DB)))
+    event_db = Path(os.environ.get("EVENT_DB", "/root/bourse-alert/event_live.db"))
+    SITE = Path(os.environ.get("SITE_REPO", str(SITE)))
+    MARKET_OUT = SITE / "market/data/market.json"
+    SIGNALS_OUT = SITE / "market/data/signals.json"
+    HISTORY_OUT = SITE / "market/history/data/history.json"
+    XLSX_OUT = SITE / "market/history/data/market-score-history.xlsx"
     with connect() as conn:
         market = build_market(conn)
         history = build_history(conn)
-    old_market = MARKET_OUT.read_bytes() if MARKET_OUT.exists() else b""
-    old_history = HISTORY_OUT.read_bytes() if HISTORY_OUT.exists() else b""
-    new_market = (json.dumps(market, ensure_ascii=False, separators=(",", ":")) + "\n").encode("utf-8")
-    new_history = (json.dumps(history, ensure_ascii=False, separators=(",", ":")) + "\n").encode("utf-8")
-    changed = old_market != new_market or old_history != new_history
-    if not changed:
-        print("NO_CHANGE", market["generated_at"], history["valid_day_count"])
-        return
+    signal_payload = export_signals(event_db, SIGNALS_OUT)
     atomic_json(MARKET_OUT, market)
     atomic_json(HISTORY_OUT, history)
     build_xlsx(history)
-    subprocess.run(["git", "-C", str(SITE), "add", "market/data/market.json", "market/history/data/history.json", "market/history/data/market-score-history.xlsx"], check=True)
-    staged = subprocess.run(["git", "-C", str(SITE), "diff", "--cached", "--quiet"])
-    if staged.returncode == 0:
-        print("NO_CHANGE", market["generated_at"], history["valid_day_count"])
-        return
-    message = f"chore: publish market data {market['generated_at']}"
-    subprocess.run(["git", "-C", str(SITE), "commit", "-m", message], check=True)
-    subprocess.run(["git", "-C", str(SITE), "push", "origin", "main"], check=True)
-    print("PUBLISHED", market["generated_at"], history["valid_day_count"], history["row_count"])
+    changed = git_publish(SITE, list(PUBLISHED_FILES))
+    print("PUBLISHED" if changed else "NO_CHANGE", market["generated_at"], history["valid_day_count"], history["row_count"], signal_payload["status"])
 
 
 if __name__ == "__main__":

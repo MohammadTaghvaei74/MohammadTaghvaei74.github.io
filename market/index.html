@@ -3,12 +3,13 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#07131a" />
+    <meta name="theme-color" content="#f4f6ef" />
     <meta name="description" content="نبض بازار؛ داشبورد داده‌محور بازار بورس تهران و رصد اهرمی‌ها، لیدرها و آپشن." />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="mobile.css" />
     <title>نبض بازار | Market Pulse</title>
   </head>
   <body>
@@ -20,6 +21,7 @@
         </a>
         <nav class="main-nav" aria-label="ناوبری اصلی">
           <a class="active" href="#overview">نمای کلی</a>
+          <a href="signals/">سیگنال‌ها</a>
           <a href="history/">آرشیو امتیاز</a>
           <a href="#leaders">لیدرها و اهرمی‌ها</a>
           <a href="#industries">صنایع</a>
@@ -32,10 +34,10 @@
       </header>
 
       <main id="overview">
-        <section class="hero-block">
+        <section class="hero-block" aria-labelledby="pageTitle">
           <div>
             <div class="kicker"><span class="pulse-dot"></span> داشبورد تصمیم‌گیری بازار تهران <span class="slash">/</span> نسخه MVP</div>
-            <h1>بازار را <em>قبل از شلوغی</em><br />ببین.</h1>
+            <h1 id="pageTitle"><span class="desktop-title">بازار را <em>قبل از شلوغی</em><br />ببین.</span><span class="mobile-title">وضعیت بازار تهران</span></h1>
             <p class="hero-lede">تصویر فشرده‌ای از امتیاز بازار، فشار صف‌ها، لیدرها و صنایع؛ با همان منطق تحلیلی که گزارش‌های تلگرام را می‌سازد.</p>
           </div>
           <div class="hero-meta">
@@ -75,10 +77,10 @@
               <span class="panel-note">روند میانه امتیاز روزانه</span>
             </div>
             <div class="chart-wrap"><svg id="marketChart" viewBox="0 0 760 265" role="img" aria-label="روند میانه امتیاز بازار"></svg></div>
-            <div class="chart-legend"><span><i class="legend-line market-line"></i> کل بازار</span><span><i class="legend-line leader-line"></i> لیدرها</span><span class="chart-caption">امتیاز، نه سیگنال خرید</span></div>
+            <div class="chart-legend"><span><i class="legend-line market-line"></i> میانه بازار</span><span><i class="legend-line average-line"></i> میانگین بازار</span><span class="chart-caption">امتیاز، نه سیگنال خرید · داده تاریخی لیدرها موجود نیست.</span></div>
           </article>
           <aside class="panel signal-panel">
-            <div class="panel-heading"><div><span class="section-index">02</span><h2>سیگنال تخصیص</h2></div><span class="tiny-label">بازار / لیدر</span></div>
+            <div class="panel-heading"><div><span class="section-index">02</span><h2>مقایسه تخصیص</h2></div><span class="tiny-label">بازار / لیدر</span></div>
             <div class="allocation-copy"><strong id="allocationLabel">در حال محاسبه</strong><span id="allocationGap">فاصله میانه‌ها: —</span></div>
             <div class="allocation-bar"><span class="allocation-leaders">لیدرها</span><div class="allocation-track"><i id="allocationMarker"></i></div><span class="allocation-broad">هم‌وزن</span></div>
             <div class="signal-list">
@@ -111,7 +113,13 @@
 
       <footer class="site-footer"><div><span class="brand-mark">mt<span>.</span></span><span>نبض بازار / ساخته‌شده برای تصمیم‌های دقیق‌تر</span></div><span>داده نمایشی و تحلیلی است؛ توصیه سرمایه‌گذاری نیست.</span></footer>
     </div>
+    <nav class="mobile-nav" aria-label="ناوبری سریع موبایل">
+      <a class="active" href="#overview"><span aria-hidden="true">⌂</span><b>نمای کلی</b></a>
+      <a href="signals/"><span aria-hidden="true">⌁</span><b>سیگنال‌ها</b></a>
+      <a href="history/"><span aria-hidden="true">◷</span><b>آرشیو</b></a>
+    </nav>
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <script src="core.js" defer></script>
     <script src="app.js" defer></script>
   </body>
 </html>
