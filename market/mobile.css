@@ -73,7 +73,7 @@
   .site-footer { padding: 28px 0 14px; display: block; font-size: 9px; }
   .site-footer > span { display: block; margin-top: 8px; }
 
-  .mobile-nav { display: grid; grid-template-columns: repeat(3, 1fr); position: fixed; z-index: 30; right: 8px; bottom: 8px; left: 8px; min-height: 60px; padding: 4px; border: 1px solid #d6e1d9; border-radius: 17px; background: rgba(255, 255, 255, .94); box-shadow: 0 9px 28px rgba(38, 73, 60, .18); backdrop-filter: blur(14px); }
+  .mobile-nav { display: grid; grid-template-columns: repeat(4, 1fr); position: fixed; z-index: 30; right: 8px; bottom: 8px; left: 8px; min-height: 60px; padding: 4px; border: 1px solid #d6e1d9; border-radius: 17px; background: rgba(255, 255, 255, .94); box-shadow: 0 9px 28px rgba(38, 73, 60, .18); backdrop-filter: blur(14px); }
   .mobile-nav a { display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 1px; min-height: 52px; border-radius: 13px; color: var(--muted); font-size: 10px; }
   .mobile-nav a span { font-size: 18px; line-height: 1.1; }
   .mobile-nav a b { font-weight: 600; }
