@@ -4,6 +4,12 @@ var C=window.SymbolCore,M=window.MarketCore,$=function(s){return document.queryS
 var market=null,archive=null,candlesArchive=null,candleIndex=new Map(),universe=null,items=[],selected=null;
 var esc=function(v){return C.text(v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});};
 var fmt=C.format;
+function money(v){var n=C.number(v);return n===null?'—':C.integer(n)+' تومان';}
+function hmt(v){var n=C.number(v);return n===null?'—':n.toLocaleString('fa-IR',{minimumFractionDigits:1,maximumFractionDigits:1})+' همت';}
+function signed(v,d){var n=C.number(v);return n===null?'—':(n>0?'+':n<0?'−':'')+C.format(Math.abs(n),d===undefined?2:d);}
+function queue(v){var n=C.number(v);return n===null||n<=0?'—':money(n);}
+function field(label,value,extra){return '<div class="field '+(extra||'')+'"><span>'+esc(label)+'</span><b><bdi>'+esc(value===null||value===undefined||value===''?'—':value)+'</bdi></b></div>';}
+function group(title,fields,extra){return '<section class="metric-group '+(extra||'')+'"><h3>'+esc(title)+'</h3><div class="fields">'+fields.join('')+'</div></section>';}
 function stamp(v){return M.formatDate(v);}
 var solarDate=new Intl.DateTimeFormat('fa-IR-u-ca-persian',{year:'numeric',month:'2-digit',day:'2-digit',timeZone:'UTC'});
 function faDate(day){var date=new Date(String(day)+'T12:00:00Z');return Number.isNaN(date.getTime())?'—':solarDate.format(date);}
@@ -62,27 +68,32 @@ function chart(item){
  return '<div class="candle-stage"><svg class="chart candle-chart" viewBox="0 0 '+w+' '+h+'" role="group" aria-label="کندل استیک روزانه امتیاز '+esc(item.symbol)+'">'+lines+plots+labels+'</svg><div class="candle-tooltip" role="tooltip" hidden></div></div><p class="meta">هر کندل فقط نمونه‌های معتبر از ۰۹:۱۵ تا ۱۲:۳۰ تهران را نشان می‌دهد؛ باز شدن اولین نمونه این بازه و بیشینه/کمینه/بسته شدن نیز فقط از همین بازه محاسبه شده‌اند؛ بدون درون‌یابی. '+C.integer(valid.filter(function(r){return r.coverage!=='complete';}).length)+' روز دارای پوشش ناقص یا نامشخص پنجره است؛ پوشش کامل پنجره به معنی روز معاملاتی کامل نیست. دریافت خودکار هر ۶۰ ثانیه. سبز: بسته شدن بالاتر یا برابر باز شدن · قرمز: بسته شدن پایین‌تر از باز شدن.</p>';
 }
 function download(data,type,name){var u=URL.createObjectURL(new Blob([data],{type:type})),a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(u);},3000);}
+function downloadXlsx(rows,name){if(!window.XLSX){alert('ماژول Excel هنوز بارگذاری نشده است؛ CSV را امتحان کن');return;}var book=XLSX.utils.book_new(),sheet=XLSX.utils.json_to_sheet(rows.map(function(r){return {'تاریخ':r.day,'نماد':r.symbol,'تعداد نمونه':r.count,'میانگین امتیاز':r.mean,'میانه امتیاز':r.median,'کمینه':r.min,'بیشینه':r.max,'آخرین امتیاز':r.last,'کیفیت':r.quality==='review'?'review':'valid'};}));XLSX.utils.book_append_sheet(book,sheet,'Score History');XLSX.writeFile(book,name);
+}
+function archiveDate(v){return v?faDate(v):'—';}
 function select(symbol,push){
  selected=symbol;var item=universe&&universe.bySymbol.get(symbol);render();
  if(push)history.pushState(null,'','?symbol='+encodeURIComponent(symbol));
  if(!item){$('#dossier').innerHTML='<div class="empty"><h2>'+(symbol?'نماد پیدا نشد':'یک نماد را انتخاب کن')+'</h2><p>از فهرست جست‌وجو و انتخاب کنید.</p></div>';return;}
  var c=item.current,rows=item.history;
- var fields=c?[
- ['امتیاز',fmt(c.score)],['رتبه در نمادهای جاری',item.rank===null?'—':C.integer(item.rank)+' / '+C.integer(universe.rankedCount)],['درصد آخرین',C.number(c.last_pct)===null?'—':fmt(c.last_pct)+'٪'],
- ['قیمت دیروز · ریال',fmt(c.yesterday_price)],['قیمت پایانی · ریال',fmt(c.close_price)],['آخرین قیمت · ریال',fmt(c.last_price)],
- ['حجم معامله · سهم',C.integer(c.trade_volume)],['ارزش معامله · تومان',C.integer(c.trade_value_toman)],['نوع ابزار',c.instrument_type||'—'],
- ['حجم صف خرید · سهم',C.integer(c.buy_queue_volume)],['حجم صف فروش · سهم',C.integer(c.sell_queue_volume)],['صنعت',c.industry||'—'],
- ['ارزش صف خرید · تومان',C.integer(c.buy_queue_value_toman)],['ارزش صف فروش · تومان',C.integer(c.sell_queue_value_toman)],['روز معاملاتی',c.trading_date||'—']
+ var groups=c?[
+  group('امتیاز و جایگاه',[field('امتیاز فعلی',fmt(c.score),'hero-value'),field('رتبه بین تمام سهام',item.rank===null?'—':C.integer(item.rank)+' / '+C.integer(universe.rankedCount),'rank-value'),field('درصد آخرین قیمت',C.number(c.last_pct)===null?'—':signed(c.last_pct)+'٪',C.number(c.last_pct)<0?'negative':'positive')]),
+  group('قیمت و صف',[field('آخرین قیمت · ریال',fmt(c.last_price)),field('قیمت پایانی · ریال',fmt(c.close_price)),field('ارزش صف خرید',queue(c.buy_queue_value_toman),'queue-buy'),field('ارزش صف فروش',queue(c.sell_queue_value_toman),'queue-sell')]),
+  group('حجم و ارزش معاملات',[field('حجم امروز · سهم',C.integer(c.trade_volume)),field('حجم میانگین ۱۵ روزه',C.integer(c.avg15_trade_volume)),field('ارزش امروز · تومان',money(c.trade_value_toman)),field('ارزش میانگین ۱۵ روزه',money(c.avg15_trade_value_toman)),field('رتبه ارزش میانگین ۱۵ روزه',c.avg15_trade_value_rank===null?'—':C.integer(c.avg15_trade_value_rank))]),
+  group('رفتار خریدار و فروشنده',[field('قدرت خریدار به فروشنده',C.number(c.buyer_power)===null?'—':C.format(c.buyer_power,2),'power-value'),field('سرانه خرید',money(c.buy_per_capita_toman),'positive'),field('سرانه فروش',money(c.sell_per_capita_toman),'negative')]),
+  group('بازار و مشخصات سهم',[field('صنعت',c.industry||'—'),field('مارکت‌کپ',hmt(c.market_cap_hmt),'market-cap'),field('رتبه مارکت‌کپ',c.market_cap_rank===null?'—':C.integer(c.market_cap_rank)),field('روز معاملاتی',c.trading_date||'—')])
  ]:[];
  var table=rows.map(function(r){return '<tr><td>'+esc(r.day)+'</td>'+['count','mean','median','min','max','last'].map(function(k){return '<td><bdi>'+esc(fmt(r[k]))+'</bdi></td>';}).join('')+'<td>'+esc(r.quality==='review'?'نیازمند بررسی':r.quality==='valid'?'معتبر':'نامشخص')+'</td></tr>';}).join('');
- $('#dossier').innerHTML='<div class="dossier-head"><div><span class="tag">'+(c?'آخرین snapshot':'فقط آرشیو تاریخی')+'</span><h2>'+esc(symbol)+'</h2><p class="meta">'+(c?'زمان منبع: '+esc(stamp(c.timestamp||M.sourceTimestamp(market))):'در snapshot جاری داده‌ای برای این نماد نداریم.')+'</p></div><button class="share" id="copyLink">کپی لینک</button></div><div class="fields">'+fields.map(function(f){return '<div class="field"><span>'+esc(f[0])+'</span><b><bdi>'+esc(f[1])+'</bdi></b></div>';}).join('')+'</div><div class="chartbox"><h3>کندل روزانه امتیازهای مشاهده‌شده</h3>'+chart(item)+'</div><div class="export-actions"><button class="share" id="csv">دانلود CSV</button><button class="share" id="json">دانلود JSON</button><a class="share" href="../history/">آرشیو و Excel</a><span class="meta">'+C.integer(rows.length)+' روز موجود؛ نبود سابقه به معنی صفر نیست.</span></div><div class="tablebox"><table><thead><tr><th>تاریخ</th><th>تعداد نمونه</th><th>میانگین</th><th>میانه</th><th>کمینه</th><th>بیشینه</th><th>آخرین</th><th>کیفیت</th></tr></thead><tbody>'+ (table||'<tr><td colspan="8">تاریخچه‌ای در دسترس نیست.</td></tr>')+'</tbody></table></div>';
+ var tsetmc=c&&c.tsetmc_url?'<a class="tsetmc-link" href="'+esc(c.tsetmc_url)+'" target="_blank" rel="noopener">مشاهده صفحه سهم در TSETMC ↗</a>':'';
+ $('#dossier').innerHTML='<div class="dossier-head"><div><span class="tag">'+(c?'آخرین snapshot':'فقط آرشیو تاریخی')+'</span><h2>'+esc(symbol)+'</h2><p class="meta">'+(c?'زمان منبع: '+esc(stamp(c.timestamp||M.sourceTimestamp(market))):'در snapshot جاری داده‌ای برای این نماد نداریم.')+'</p></div><div class="head-actions">'+tsetmc+'<button class="share" id="copyLink">کپی لینک</button></div></div><div class="metric-groups">'+groups.join('')+'</div><div class="chartbox"><h3>کندل روزانه امتیازهای مشاهده‌شده</h3>'+chart(item)+'</div><div class="export-actions"><button class="share" id="csv">دانلود CSV</button><button class="share" id="json">دانلود JSON</button><a class="share" href="../history/">آرشیو و Excel</a><span class="meta">'+C.integer(rows.length)+' روز موجود؛ نبود سابقه به معنی صفر نیست.</span></div><div class="tablebox"><table><thead><tr><th>تاریخ</th><th>تعداد نمونه</th><th>میانگین</th><th>میانه</th><th>کمینه</th><th>بیشینه</th><th>آخرین</th><th>کیفیت</th></tr></thead><tbody>'+ (table||'<tr><td colspan="8">تاریخچه‌ای در دسترس نیست.</td></tr>')+'</tbody></table></div>';
  bindChartTooltip();
  $('#csv').disabled=!rows.length;
  $('#csv').onclick=function(){var keys=['day','symbol','count','mean','median','min','max','last','quality'];download('\uFEFF'+C.csv([keys].concat(rows.map(function(r){return keys.map(function(k){return r[k];});}))),'text/csv;charset=utf-8',symbol+'-history.csv');};
+ $('#xlsx').onclick=function(){downloadXlsx(rows,symbol+'-score-history.xlsx');};
  $('#json').onclick=function(){download(JSON.stringify({source_timestamp:M.sourceTimestamp(market),current:c,history:rows},null,2),'application/json',symbol+'.json');};
  $('#copyLink').onclick=function(){var el=this;if(!navigator.clipboard){el.textContent='کپی پشتیبانی نمی‌شود';return;}navigator.clipboard.writeText(location.href).then(function(){el.textContent='کپی شد';},function(){el.textContent='کپی ناموفق';});};
 }
-$('#q').oninput=render;$('#sort').onchange=render;
+$('#q').oninput=render;$('#sort').onchange=render;$('#downloadAllArchive').onclick=function(){location.href='../history/data/market-score-history.xlsx';};
 window.addEventListener('popstate',function(){select(new URLSearchParams(location.search).get('symbol'),false);});
 function refresh(){return Promise.all([load('../data/market.json'),load('../history/data/history.json'),load('../history/data/score-candles.json')]).then(function(results){
  market=results[0];archive=results[1];candlesArchive=results[2];candleIndex=new Map();
@@ -90,7 +101,8 @@ function refresh(){return Promise.all([load('../data/market.json'),load('../hist
  if(!market||!Array.isArray(market.stocks)&&!Array.isArray(market.top_stocks))market=null;
  if(!archive||!Array.isArray(archive.rows))archive=null;
  universe=C.buildUniverse(market,archive);items=Array.from(universe.bySymbol.values());
- $('#count').textContent=C.integer(items.length);$('#stamp').textContent=stamp(M.sourceTimestamp(market));
+  if(archive){$('#archiveDays').textContent=C.integer(archive.valid_day_count);$('#archiveRows').textContent=C.integer(archive.row_count);$('#archiveLastDay').textContent=archiveDate(archive.generated_at);}
+  $('#count').textContent=C.integer(items.length);$('#stamp').textContent=stamp(M.sourceTimestamp(market));
  var age=Date.now()-Date.parse(M.sourceTimestamp(market)||''),messages=[];
  if(!market)messages.push('دریافت snapshot جاری ناموفق بود؛ داده‌های آرشیوی جای قیمت جاری نیستند.');
  else if(!Number.isFinite(age)||age>24*3600000||age< -300000)messages.push('snapshot قدیمی یا زمان منبع نامعتبر است؛ داده زنده محسوب نمی‌شود.');
