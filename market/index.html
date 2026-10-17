@@ -10,6 +10,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="styles.css" />
     <link rel="stylesheet" href="mobile.css" />
+    <link rel="stylesheet" href="ranking.css" />
+    <link rel="stylesheet" href="options.css" />
     <title>نبض بازار | Market Pulse</title>
   </head>
   <body>
@@ -23,10 +25,11 @@
           <a class="active" href="#overview">نمای کلی</a>
           <a href="signals/">سیگنال‌ها</a>
           <a href="history/">آرشیو امتیاز</a>
+          <a href="symbols/">کاوش نماد</a>
           <a href="industries/">صنایع و سهام</a>
           <a href="#leaders">لیدرها و اهرمی‌ها</a>
           <a href="#industries">نقشه خلاصه</a>
-          <a class="options-link" href="#options">آپشن <span>به‌زودی</span></a>
+          <a class="options-link" href="#options">آپشن <span>بول کال</span></a>
         </nav>
         <div class="topbar-actions">
           <span class="market-state"><i></i><span id="marketState">داده زنده</span></span>
@@ -108,8 +111,9 @@
         </section>
 
         <section class="options-section" id="options">
-          <div class="options-copy"><span class="section-index">05</span><span class="category-tag blue">OPTIONS DESK</span><h2>اتاق آپشن<br /><em>در حال اتصال.</em></h2><p id="optionsMessage">قرارداد داده آپشن در حال نهایی شدن است. بعد از تأیید mapping فیلدهای Bid / Ask و تفکیک سیگنال تست از سیگنال معتبر، این بخش به همین داشبورد اضافه می‌شود.</p><div class="options-points"><span><i>01</i> زنجیره قراردادها</span><span><i>02</i> Greeks و نوسان</span><span><i>03</i> سیگنال با منبع مشخص</span></div></div>
-          <div class="options-visual"><div class="orbit orbit-one"></div><div class="orbit orbit-two"></div><div class="option-core"><span>OPT</span><b>۰۱</b><small>DATA CONTRACT<br />PENDING</small></div><div class="floating-token token-a">IV</div><div class="floating-token token-b">Δ</div><div class="floating-token token-c">Bid / Ask</div></div>
+          <div class="options-copy"><span class="section-index">05</span><span class="category-tag blue">OPTIONS DESK · BULL CALL SPREAD</span><h2>اتاق آپشن<br /><em id="optionsStatus">در حال دریافت داده.</em></h2><p id="optionsMessage">داده فقط از snapshot معتبر و خواندنی آپشن نمایش داده می‌شود؛ سیگنال تست، قیمت Last به‌جای Bid/Ask و داده ناقص وارد محاسبه نمی‌شود.</p><div class="options-points"><span><i>01</i> رتبه لیدر ۱ تا ۱۰</span><span><i>02</i> DTE پنج تا بیست روز</span><span><i>03</i> بازده ماهانه حداقل ۳۰٪</span></div></div>
+          <div class="options-visual"><div class="orbit orbit-one"></div><div class="orbit orbit-two"></div><div class="option-core"><span>OPT</span><b id="optionsPairCount">—</b><small>BULL CALL<br />SPREAD</small></div><div class="floating-token token-a">IV</div><div class="floating-token token-b">Δ</div><div class="floating-token token-c">Bid / Ask</div></div>
+          <div class="options-data" aria-live="polite"><div class="options-summary"><span>منبع: <b id="optionsSource">—</b></span><span>آخرین داده: <b id="optionsUpdatedAt">—</b></span><span>جفت واجد شرایط: <b id="optionsEligibleCount">—</b></span></div><div class="options-table-wrap"><table class="options-table"><thead><tr><th>پایه / رتبه</th><th>سررسید</th><th>Strikeها</th><th>Ask خرید / Bid فروش</th><th>Debit</th><th>سود / زیان</th><th>بازده ماهانه</th></tr></thead><tbody id="optionsPairs"><tr><td colspan="7">در حال دریافت snapshot آپشن…</td></tr></tbody></table></div><div class="options-rejected" id="optionsRejected"></div><div class="options-contracts" id="optionsContracts"></div><div class="options-diagnostics" id="optionsDiagnostics"></div></div>
         </section>
       </main>
 
@@ -124,5 +128,6 @@
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
     <script src="core.js" defer></script>
     <script src="app.js" defer></script>
+    <script src="ranking.js" defer></script>
   </body>
 </html>

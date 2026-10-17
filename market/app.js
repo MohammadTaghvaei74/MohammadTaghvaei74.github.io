@@ -164,24 +164,43 @@
     if (element) element.innerHTML = markup || `<div class="industry-card">داده صنعت هنوز آماده نیست.</div>`;
   }
 
-  function renderOptions(data) { text("#optionsMessage", data.options && data.options.message || "اتاق آپشن پس از تأیید قرارداد داده فعال می‌شود."); }
-  function render(data) { currentData = data; renderMetrics(data); renderChart(data); renderTables(data); renderIndustries(data); renderOptions(data); }
+  const optionsNumber = (value, digits = 0) => { const parsed = numeric(value); return parsed === null ? "—" : core.faDigits(parsed.toLocaleString("fa-IR", { maximumFractionDigits: digits, minimumFractionDigits: digits })); };
+  const optionsPercent = (value) => { const parsed = numeric(value); return parsed === null ? "—" : `${optionsNumber(parsed, 1)}٪`; };
+  function optionsStatusLabel(status) { return ({ ready: "داده معتبر آماده است.", no_opportunity: "فعلاً جفت واجد شرایط پیدا نشد.", insufficient_data: "داده کافی برای محاسبه کامل نیست.", stale: "داده آپشن قدیمی است.", unavailable: "منبع داده آپشن در دسترس نیست." }[status] || "وضعیت داده نامشخص است."); }
+  function renderOptions(options) {
+    const payload = options && typeof options === "object" ? options : {};
+    const allPairs = Array.isArray(payload.pairs) ? payload.pairs : [];
+    const sourceTime = Date.parse(payload.source_at || "");
+    const stale = Number.isFinite(sourceTime) && (Date.now() - sourceTime > 120000 || sourceTime > Date.now() + 5000);
+    const status = stale ? "stale" : payload.status;
+    const pairs = status === "ready" ? allPairs.filter(pair => pair.eligible === true && !(pair.reasons || []).length) : [];
+    const rejected = allPairs.filter(pair => pairs.indexOf(pair) < 0);
+    text("#optionsStatus", optionsStatusLabel(status));
+    text("#optionsMessage", stale ? "آخرین snapshot برای بررسی نمایش داده می‌شود؛ قیمت قدیمی مبنای ورود یا سیگنال نیست." : payload.message || "snapshot آپشن هنوز منتشر نشده است.");
+    text("#optionsSource", payload.source || "—");
+    text("#optionsUpdatedAt", core.formatDate(payload.source_at));
+    text("#optionsEligibleCount", status === "unavailable" ? "—" : optionsNumber(pairs.length));
+    text("#optionsPairCount", status === "unavailable" ? "—" : optionsNumber(pairs.length));
+    const reasonText = pair => escapeHtml((pair.reasons && pair.reasons.length ? pair.reasons : ["قیمت قدیمی یا اعتبار قابل تأیید نیست"]).join("؛ "));
+    const rejectedElement = $("#optionsRejected");
+    if (rejectedElement) rejectedElement.innerHTML = rejected.length ? `<details><summary>بررسی جفت‌ها · ${optionsNumber(rejected.length)} جفت غیرمجاز برای سیگنال</summary><p>این جدول فقط تشخیصی است؛ هیچ ردیف آن پیشنهاد ورود نیست.</p>${rejected.map(pair => `<details class="option-detail"><summary>${escapeHtml(pair.underlying)} · ${escapeHtml(pair.long_symbol)} / ${escapeHtml(pair.short_symbol)} · ${escapeHtml(pair.expiry)}</summary><p class="options-warning">${reasonText(pair)}</p><div class="option-facts"><span>قیمت پایه: ${optionsNumber(pair.underlying_price_toman, 1)}</span><span>اعمال پایین / بالا: ${optionsNumber(pair.k1_toman, 1)} / ${optionsNumber(pair.k2_toman, 1)}</span><span>Ask خرید / Bid فروش: ${optionsNumber(pair.ask_toman, 1)} / ${optionsNumber(pair.bid_toman, 1)}</span><span>هزینه ورود با کارمزد: ${optionsNumber(pair.net_debit_toman, 2)}</span><span>کارمزد: ${optionsNumber(pair.fees_toman, 2)}</span><span>حداکثر زیان: ${optionsNumber(pair.max_loss_toman, 2)}</span><span>حداکثر سود: ${optionsNumber(pair.max_profit_toman, 2)}</span><span>سربه‌سر: ${optionsNumber(pair.break_even_toman, 2)}</span><span>بازده کل / ماهانه: ${optionsPercent(pair.total_return_pct)} / ${optionsPercent(pair.monthly_return_pct)}</span><span>میانگین ارزش ۷ روز خرید / فروش: ${optionsNumber(pair.long_avg7d_toman)} / ${optionsNumber(pair.short_avg7d_toman)}</span></div></details>`).join("")}</details>` : "";
+    const contracts = Array.isArray(payload.contracts) ? payload.contracts : [];
+    const contractsElement = $("#optionsContracts");
+    if (contractsElement) contractsElement.innerHTML = `<h3>قراردادهای رصدشده · ${optionsNumber(contracts.length)}</h3><p>قیمت‌ها تومان به‌ازای واحد پایه هستند؛ ارزش معاملات تومان است. تاریخچه ناقص با «—» نمایش داده می‌شود.</p><div class="options-table-wrap"><table class="options-table"><thead><tr><th>قرارداد / پایه</th><th>رتبه</th><th>سررسید / روز</th><th>اعمال</th><th>Ask</th><th>Bid</th><th>ارزش امروز</th><th>میانگین ۷ روز</th><th>روز معتبر</th></tr></thead><tbody>${contracts.map(c => `<tr><td><b>${escapeHtml(c.symbol)}</b><small>${escapeHtml(c.underlying)}</small></td><td>${optionsNumber(c.leader_rank)}</td><td>${escapeHtml(c.expiry)}<small>${optionsNumber(c.dte)} روز</small></td><td>${optionsNumber(c.strike_toman, 1)}</td><td>${optionsNumber(c.ask_toman, 1)}</td><td>${optionsNumber(c.bid_toman, 1)}</td><td>${optionsNumber(c.trade_value_toman)}</td><td>${optionsNumber(c.avg7d_toman)}</td><td>${optionsNumber(c.history_days)} / ۷</td></tr>`).join("") || '<tr><td colspan="9">قرارداد قابل نمایش موجود نیست.</td></tr>'}</tbody></table></div>`;
+    const rows = pairs.map((pair) => `<tr><td><b>${escapeHtml(pair.underlying || "—")}</b><small>رتبه ${escapeHtml(optionsNumber(pair.leader_rank))}</small></td><td>${escapeHtml(pair.expiry || "—")}<small>${escapeHtml(optionsNumber(pair.dte))} روز</small></td><td><span class="ltr">${escapeHtml(optionsNumber(pair.k1_toman))}</span> / <span class="ltr">${escapeHtml(optionsNumber(pair.k2_toman))}</span><small>${escapeHtml(pair.long_symbol || "—")} / ${escapeHtml(pair.short_symbol || "—")}</small></td><td><span class="ltr">${escapeHtml(optionsNumber(pair.ask_toman))}</span> / <span class="ltr">${escapeHtml(optionsNumber(pair.bid_toman))}</span><small>Ask / Bid</small></td><td><span class="ltr">${escapeHtml(optionsNumber(pair.net_debit_toman))}</span><small>تومان/واحد پایه</small></td><td><span class="positive ltr">${escapeHtml(optionsNumber(pair.max_profit_toman))}</span> / <span class="negative ltr">${escapeHtml(optionsNumber(pair.max_loss_toman))}</span><small>سود / زیان سقف</small></td><td><b class="positive ltr">${escapeHtml(optionsPercent(pair.monthly_return_pct))}</b><small>بازده کل: ${escapeHtml(optionsPercent(pair.total_return_pct))}</small></td></tr>`).join("");
+    const table = $("#optionsPairs"); if (table) table.innerHTML = rows || `<tr><td colspan="7">${escapeHtml(payload.message || "جفت واجد شرایطی برای نمایش نیست.")}</td></tr>`;
+    const diagnostics = Array.isArray(payload.diagnostics) ? payload.diagnostics : [], diagnosticElement = $("#optionsDiagnostics"); if (diagnosticElement) diagnosticElement.innerHTML = diagnostics.length ? `<span>کنترل فیلترها:</span> ${diagnostics.map((item) => `<b>${escapeHtml(item.label)}: ${escapeHtml(optionsNumber(item.count))}</b>`).join(" · ")}` : "فقط جفت‌های تأییدشده نمایش داده می‌شوند؛ سفارش خودکار فعال نیست.";
+  }
+  function render(data, options) { currentData = data; renderMetrics(data); renderChart(data); renderTables(data); renderIndustries(data); renderOptions(options || data.options); }
 
   async function fetchSnapshot() {
-    const controller = new AbortController();
-    const timeout = window.setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+    const controller = new AbortController(); const timeout = window.setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
     try {
-      const response = await fetch(`data/market.json?ts=${Date.now()}`, { cache: "no-store", signal: controller.signal });
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      const data = await response.json();
-      return core.validateSnapshot(data);
-    } catch (error) {
-      if (error.name === "AbortError") throw new Error("مهلت دریافت snapshot تمام شد.");
-      if (error instanceof SyntaxError) throw new Error("فایل snapshot JSON نامعتبر است.");
-      throw error;
-    } finally {
-      window.clearTimeout(timeout);
-    }
+      const marketResponse = await fetch(`data/market.json?ts=${Date.now()}`, { cache: "no-store", signal: controller.signal }); if (!marketResponse.ok) throw new Error(`HTTP ${marketResponse.status}`); const data = await marketResponse.json();
+      let options = { status: "unavailable", source: "options.json", message: "snapshot آپشن هنوز منتشر نشده است.", counts: { eligible_pairs: null }, pairs: [], diagnostics: [] };
+      try { const optionsResponse = await fetch(`data/options.json?ts=${Date.now()}`, { cache: "no-store", signal: controller.signal }); if (optionsResponse.ok) options = await optionsResponse.json(); } catch (optionsError) { console.warn("Options snapshot unavailable", optionsError); }
+      return { data: core.validateSnapshot(data), options };
+    } catch (error) { if (error.name === "AbortError") throw new Error("مهلت دریافت snapshot تمام شد."); if (error instanceof SyntaxError) throw new Error("فایل snapshot JSON نامعتبر است."); throw error; } finally { window.clearTimeout(timeout); }
   }
 
   async function loadData(showToast = false) {
@@ -189,7 +208,8 @@
     loading = true;
     if (!currentData) setStatus("در حال دریافت", "loading");
     try {
-      render(await fetchSnapshot());
+      const snapshot = await fetchSnapshot();
+      render(snapshot.data, snapshot.options);
       text("#sourceStatus", `منبع: ${currentData.source} · زمان منبع: ${core.formatDate(core.sourceTimestamp(currentData))}`);
       if (showToast) toast("داده داشبورد به‌روزرسانی شد");
     } catch (error) {

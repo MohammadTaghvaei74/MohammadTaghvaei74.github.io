@@ -1,0 +1,30 @@
+/* Scoped options desk; shared by the website and Android WebView. */
+#options.options-section{display:block;padding:28px;color:#edf6ef;background:#173b3f;min-width:0}
+#options:before{display:none}
+#options .options-copy{max-width:none}
+#options .options-copy h2{font-size:28px;margin:14px 0}
+#options .options-copy h2 br{display:none}
+#options .options-copy h2 em{display:block;font-size:18px;color:#d8f58c;margin-top:6px}
+#options .options-copy p{max-width:none;color:#c2d7d2;font-size:13px}
+#options .options-visual{display:none}
+#options .options-points{flex-wrap:wrap;color:#d5e8e2;margin:16px 0;gap:12px}
+#options .options-data{position:relative;min-width:0;color:#edf6ef}
+#options .options-summary{display:flex;flex-wrap:wrap;gap:12px 22px;font-size:12px;padding:15px 0;border-top:1px solid #416267;border-bottom:1px solid #416267;margin-bottom:16px;color:#c2d7d2}
+#options .options-summary b{color:#edf6ef}
+#options .options-table-wrap{overflow-x:auto;max-width:100%;border:1px solid #416267;border-radius:12px;margin:12px 0;background:#123035}
+#options .options-table{width:100%;min-width:850px;border-collapse:collapse;font-size:12px;color:#edf6ef}
+#options .options-table th,#options .options-table td{padding:12px 10px;border-bottom:1px solid #34575b;text-align:right;vertical-align:top;white-space:nowrap}
+#options .options-table th{background:#20474a;color:#c2d7d2;font-size:11px}
+#options .options-table td small{display:block;color:#b1ccc5;font-size:11px;margin-top:4px}
+#options .options-table .ltr{direction:ltr;unicode-bidi:isolate;display:inline-block}
+#options .positive{color:#d8f58c}
+#options .negative,#options .options-warning{color:#ffb5a4}
+#options h3{font-size:16px;margin:22px 0 8px}
+#options p{font-size:12px;color:#c2d7d2}
+#options details{border:1px solid #416267;border-radius:10px;padding:12px;margin:12px 0;background:#153438}
+#options summary{cursor:pointer;font-size:13px;line-height:1.9}
+#options .option-detail{margin:10px 0}
+#options .option-facts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;font-size:12px;padding:8px 0;color:#d5e8e2}
+#options .options-diagnostics{font-size:12px;line-height:2;color:#c2d7d2;margin-top:18px}
+#options .options-diagnostics b{font-weight:500}
+@media(max-width:720px){#options.options-section{padding:18px 12px}#options .options-copy h2{font-size:24px}#options .options-copy h2 em{font-size:16px}#options .options-summary{font-size:11px}#options .option-facts{grid-template-columns:1fr}#options .options-points{font-size:11px;flex-direction:row}#options .options-table{font-size:12px}}

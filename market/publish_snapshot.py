@@ -23,14 +23,17 @@ if __package__:
     from .export_signals import export as export_signals
     from .leveraged_snapshots import read_latest as read_leveraged
     from .chart_data import load_daily_chart_rows
+    from .export_options import export_from_scores_db
 else:
     from export_signals import export as export_signals
     from leveraged_snapshots import read_latest as read_leveraged
     from chart_data import load_daily_chart_rows
+    from export_options import export_from_scores_db
 
 PUBLISHED_FILES = (
     "market/data/market.json",
     "market/data/signals.json",
+    "market/data/options.json",
     "market/history/data/history.json",
     "market/history/data/market-score-history.xlsx",
 )
@@ -316,15 +319,17 @@ def main() -> None:
     SIGNALS_OUT = SITE / "market/data/signals.json"
     HISTORY_OUT = SITE / "market/history/data/history.json"
     XLSX_OUT = SITE / "market/history/data/market-score-history.xlsx"
+    OPTIONS_OUT = SITE / "market/data/options.json"
     with connect() as conn:
         market = build_market(conn)
         history = build_history(conn)
     signal_payload = export_signals(event_db, SIGNALS_OUT)
+    options_payload = export_from_scores_db(DB, OPTIONS_OUT)
     atomic_json(MARKET_OUT, market)
     atomic_json(HISTORY_OUT, history)
     build_xlsx(history)
     changed = git_publish(SITE, list(PUBLISHED_FILES))
-    print("PUBLISHED" if changed else "NO_CHANGE", market["generated_at"], history["valid_day_count"], history["row_count"], signal_payload["status"])
+    print("PUBLISHED" if changed else "NO_CHANGE", market["generated_at"], history["valid_day_count"], history["row_count"], signal_payload["status"], options_payload["status"], options_payload["counts"])
 
 
 if __name__ == "__main__":
