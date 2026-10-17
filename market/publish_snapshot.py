@@ -80,7 +80,9 @@ def build_market(conn: sqlite3.Connection) -> dict:
         "SELECT * FROM group_snapshots WHERE timestamp=? AND group_name IN (?, ?, ?)",
         (latest, "لیدرها", "اهرمی‌ها", "اهرمی\u200cها"),
     )]
-    columns = "symbol,industry,score,last_pct,trade_value_toman,buy_queue_value_toman,sell_queue_value_toman"
+    available = {row[1] for row in conn.execute("PRAGMA table_info(stock_snapshots)")}
+    wanted = "symbol,industry,instrument_type,trading_date,timestamp,yesterday_price,close_price,last_price,last_pct,trade_volume,trade_value_toman,buy_queue_volume,sell_queue_volume,buy_queue_value_toman,sell_queue_value_toman,score".split(",")
+    columns = ",".join(column for column in wanted if column in available)
     rows = conn.execute(
         f"SELECT {columns} FROM stock_snapshots WHERE timestamp=? AND valid=1 AND trade_volume>0 ORDER BY score DESC, symbol ASC",
         (latest,),
