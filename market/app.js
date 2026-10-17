@@ -143,6 +143,12 @@
     const topMarkup = top.map((row, index) => `<tr><td>${core.faDigits(index + 1)}</td><td>${escapeHtml(row.symbol)}</td><td><span class="score ${scoreClass(row.score)}">${escapeHtml(signed(row.score))}</span></td><td><span class="pct">${escapeHtml(pct(row.last_pct))}</span></td><td><span class="pct">${escapeHtml(formatValueHmt(row.trade_value_toman))}</span></td></tr>`).join("");
     const topElement = $("#topStocks");
     if (topElement) topElement.innerHTML = topMarkup || `<tr><td colspan="5">داده‌ای برای نمایش نیست.</td></tr>`;
+    if (typeof window.dispatchEvent === "function") {
+      var snapshotEvent = null;
+      if (typeof window.CustomEvent === "function") snapshotEvent = new window.CustomEvent("market:snapshot", {detail: data});
+      else if (document && typeof document.createEvent === "function") { snapshotEvent = document.createEvent("CustomEvent"); snapshotEvent.initCustomEvent("market:snapshot", false, false, data); }
+      if (snapshotEvent) window.dispatchEvent(snapshotEvent);
+    }
     const leveraged = Array.isArray(data.leveraged) ? data.leveraged : [];
     const leveragedMarkup = leveraged.map((row) => `<tr><td>${escapeHtml(row.symbol)}</td><td><span class="score ${scoreClass(row.score)}">${escapeHtml(signed(row.score))}</span></td><td><span class="pct">${escapeHtml(pct(row.last_pct))}</span></td><td>${queueMarkup(row)}</td></tr>`).join("");
     const leveragedElement = $("#leveragedStocks");
