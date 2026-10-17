@@ -104,8 +104,10 @@ def build_market(conn: sqlite3.Connection) -> dict:
     if complete_days:
         placeholders = ",".join("?" for _ in complete_days)
         for row in conn.execute(
-            f"SELECT symbol, AVG(trade_value_toman) FROM stock_snapshots "
-            f"WHERE valid=1 AND trade_volume>0 AND trading_date IN ({placeholders}) GROUP BY symbol",
+            f"SELECT symbol, AVG(day_value) FROM ("
+            f"SELECT symbol, trading_date, SUM(trade_value_toman) AS day_value "
+            f"FROM stock_snapshots WHERE valid=1 AND trade_volume>0 AND trading_date IN ({placeholders}) "
+            f"GROUP BY symbol, trading_date) GROUP BY symbol",
             complete_days,
         ):
             avg_by_symbol[row[0]] = row[1]
