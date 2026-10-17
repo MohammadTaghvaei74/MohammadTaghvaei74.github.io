@@ -1,0 +1,132 @@
+/* Shared market header: identical geometry and controls on every route. */
+.market-header,
+.topbar,
+.top {
+  height: 92px !important;
+  min-height: 92px !important;
+  display: flex;
+  align-items: center;
+  gap: 26px;
+  padding: 0;
+  border-bottom: 1px solid var(--line, #d6e1d9);
+  background: rgba(244, 246, 239, .92);
+  color: var(--ink, #102b30);
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+.market-header .brand,
+.topbar .brand,
+.top .brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 0 0 236px;
+  min-width: 236px;
+  color: var(--ink, #102b30);
+  text-decoration: none;
+}
+.market-header .brand-mark,
+.topbar .brand-mark {
+  font: 700 38px/1 var(--display, "Vazirmatn", sans-serif);
+  letter-spacing: -3px;
+}
+.market-header .brand-mark span,
+.topbar .brand-mark span { color: var(--orange, #e97845); }
+.market-header .brand-copy,
+.topbar .brand-copy { display: flex; flex-direction: column; gap: 1px; line-height: 1.25; }
+.market-header .brand-copy b,
+.topbar .brand-copy b { font-size: 15px; font-weight: 700; }
+.market-header .brand-copy small,
+.topbar .brand-copy small { font: 500 8px/1.4 var(--display, "Vazirmatn", sans-serif); letter-spacing: 1.3px; color: var(--muted, #5e7472); direction: ltr; }
+.market-header .main-nav,
+.topbar .main-nav,
+.top .nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(14px, 2.2vw, 30px);
+  flex: 1;
+  height: 100%;
+  color: var(--muted, #5e7472);
+  font-size: 13px;
+  white-space: nowrap;
+}
+.market-header .main-nav a,
+.topbar .main-nav a,
+.top .nav a {
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: 100%;
+  color: inherit;
+  text-decoration: none;
+}
+.market-header .main-nav a::after,
+.topbar .main-nav a::after,
+.top .nav a::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  bottom: -1px;
+  width: 0;
+  height: 2px;
+  background: var(--orange, #e97845);
+  transition: width .2s ease;
+}
+.market-header .main-nav a:hover,
+.market-header .main-nav a.active,
+.topbar .main-nav a:hover,
+.topbar .main-nav a.active,
+.top .nav a:hover,
+.top .nav a.active { color: var(--ink, #102b30); }
+.market-header .main-nav a:hover::after,
+.market-header .main-nav a.active::after,
+.topbar .main-nav a:hover::after,
+.topbar .main-nav a.active::after,
+.top .nav a:hover::after,
+.top .nav a.active::after { width: 100%; }
+.market-header .topbar-actions,
+.topbar .topbar-actions,
+.market-header .header-actions { display: flex; align-items: center; gap: 12px; flex: 0 0 auto; }
+.market-header .market-state,
+.topbar .market-state,
+.top .state { color: var(--muted, #5e7472); font-size: 12px; white-space: nowrap; }
+.market-header .market-state i,
+.topbar .market-state i { display: inline-block; width: 8px; height: 8px; margin-left: 7px; border-radius: 50%; background: var(--green, #33966b); box-shadow: 0 0 0 5px rgba(51,150,107,.12); }
+.market-header .refresh-button,
+.topbar .refresh-button,
+.top .header-refresh { width: 42px; height: 42px; border: 1px solid #c6d6ca; border-radius: 10px; background: #fff; color: var(--muted, #5e7472); cursor: pointer; font-size: 22px; line-height: 1; }
+.market-header .refresh-button:hover,
+.topbar .refresh-button:hover,
+.top .header-refresh:hover { color: var(--ink, #102b30); border-color: var(--orange, #e97845); }
+@media (max-width: 1050px) {
+  .market-header .brand, .topbar .brand, .top .brand { flex-basis: 190px; min-width: 190px; }
+  .market-header .main-nav, .topbar .main-nav, .top .nav { gap: 14px; font-size: 12px; }
+}
+@media (max-width: 720px) {
+  .market-header, .topbar, .top { height: 62px !important; min-height: 62px !important; padding: 0 12px; margin-inline: -12px; position: sticky; }
+  .market-header .brand, .topbar .brand, .top .brand { flex: 1 1 auto; min-width: 0; gap: 8px; }
+  .market-header .brand-mark, .topbar .brand-mark { font-size: 29px; }
+  .market-header .brand-copy small, .topbar .brand-copy small { display: none; }
+  .market-header .brand-copy b, .topbar .brand-copy b { font-size: 13px; }
+  .market-header .main-nav, .topbar .main-nav, .top .nav { display: none; }
+  .market-header .market-state, .topbar .market-state, .top .state { max-width: 100px; overflow: hidden; text-overflow: ellipsis; font-size: 10px; }
+  .market-header .refresh-button, .topbar .refresh-button, .top .header-refresh { width: 40px; height: 40px; }
+}
+@media (min-width: 721px) { .market-header + main, .topbar + main, .top + main { scroll-margin-top: 92px; } }
+/* The explorer page used a separate inline header; keep its body wrapper aligned. */
+.wrap:has(.top) { max-width: 1380px; padding-inline: 40px; }
+.top .brand { font-size: inherit; font-weight: inherit; }
+.top .brand i { color: var(--orange, #e97845); font-style: normal; }
+.top .header-refresh { margin-inline-start: 0; }
+@media (max-width: 720px) { .wrap:has(.top) { padding-inline: 15px; } }
+.phone-nav { z-index: 30; }
+.mobile-nav { z-index: 30; }
+@media (max-width: 720px) {
+  body { padding-bottom: 76px; }
+  .topbar + main, .top + main { scroll-margin-top: 62px; }
+}
+@media (prefers-reduced-motion: reduce) { .market-header .main-nav a::after, .topbar .main-nav a::after, .top .nav a::after { transition: none; } }
