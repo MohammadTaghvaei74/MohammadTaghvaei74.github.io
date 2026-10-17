@@ -43,6 +43,30 @@ def export(db_path: str, output_path: str) -> None:
             stocks.append(dict(row))
             seen.add(row["symbol"])
     top_stocks = stocks[:10]
+    complete_days = [row[0] for row in conn.execute(
+        "SELECT day FROM v2_days WHERE complete=1 AND day < ? ORDER BY day DESC LIMIT 15",
+        (latest[:10],),
+    )] if "v2_days" in {row[0] for row in conn.execute("SELECT name FROM sqlite_master WHERE type='table'")} else []
+    avg_by_symbol = {}
+    if complete_days:
+        placeholders = ",".join("?" for _ in complete_days)
+        for row in conn.execute(
+            f"SELECT symbol, AVG(trade_value_toman) FROM stock_snapshots WHERE valid=1 AND trade_volume>0 AND trading_date IN ({placeholders}) GROUP BY symbol",
+            complete_days,
+        ):
+            avg_by_symbol[row[0]] = row[1]
+    queue_rows = []
+    for row in stocks:
+        queue = row.get("buy_queue_value_toman")
+        if queue is None or float(queue or 0) <= 0:
+            continue
+        item = dict(row)
+        item["avg15_trade_value_toman"] = avg_by_symbol.get(item.get("symbol"))
+        item["queue_to_avg15"] = float(queue) / float(item["avg15_trade_value_toman"]) if item["avg15_trade_value_toman"] else None
+        for key in ("legal_buy_value_toman", "legal_sell_value_toman", "retail_buy_value_toman", "retail_sell_value_toman"):
+            item[key] = None
+        queue_rows.append(item)
+    queue_rows.sort(key=lambda item: (-float(item.get("buy_queue_value_toman") or 0), -float(item.get("score") or 0), str(item.get("symbol") or "")))
     industries = [dict(row) for row in conn.execute(
         "SELECT industry,count,average,median,turnover_toman,net_queue_hmt FROM industry_detail_snapshots WHERE timestamp=? ORDER BY median DESC LIMIT 6",
         (latest,),
@@ -55,6 +79,7 @@ def export(db_path: str, output_path: str) -> None:
         "market": market,
         "groups": groups,
         "top_stocks": top_stocks,
+        "top_buy_queue": queue_rows[:10],
         "stocks": [row for row in stocks if row.get("industry")],
         "leveraged": [],
         "industries": industries,

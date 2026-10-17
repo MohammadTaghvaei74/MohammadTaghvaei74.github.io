@@ -28,6 +28,7 @@
           <a href="symbols/">کاوش نماد</a>
           <a href="industries/">صنایع و سهام</a>
           <a href="#leaders">لیدرها و اهرمی‌ها</a>
+          <a href="#top-buy-queue">صف خریدهای برتر</a>
           <a href="#industries">نقشه خلاصه</a>
           <a class="options-link" href="#options">آپشن <span>بول کال</span></a>
         </nav>
@@ -105,13 +106,22 @@
           </div>
         </section>
 
+        <section class="content-section queue-leaders-section" id="top-buy-queue">
+          <div class="section-heading"><div><span class="section-index">04</span><h2>صف خریدهای برتر</h2></div><p>همان رتبه‌بندی صف خرید تلگرام؛ مرتب‌سازی بر اساس ارزش صف خرید. داده ناموجود با «—» نمایش داده می‌شود.</p></div>
+          <article class="table-panel queue-leaders-panel">
+            <div class="table-title"><div><span class="category-tag orange">TOP BUY QUEUE</span><h3>صف خریدهای برتر</h3></div><span class="count-label">۱۰ نماد</span></div>
+            <div class="table-scroll"><table class="queue-leaders-table"><thead><tr><th>رتبه</th><th>سهم</th><th>امتیاز</th><th>میانگین ارزش ۱۵روز</th><th>صف B</th><th>صف / میانگین ارزش</th><th>خ حقوقی</th><th>ف حقوقی</th></tr></thead><tbody id="topBuyQueue"></tbody></table></div>
+            <p class="table-note">فیلدهای حقوقی تا زمانی که منبع داده عمومی‌شان به publisher اضافه نشود، عمداً عددسازی نمی‌شوند.</p>
+          </article>
+        </section>
+
         <section class="content-section industries-section" id="industries">
-          <div class="section-heading"><div><span class="section-index">04</span><h2>نقشه صنایع</h2></div><p>مرتب‌سازی بر اساس میانه امتیاز · <a href="industries/">مشاهده همه صنایع و سهام هر صنعت ←</a></p></div>
+          <div class="section-heading"><div><span class="section-index">05</span><h2>نقشه صنایع</h2></div><p>مرتب‌سازی بر اساس میانه امتیاز · <a href="industries/">مشاهده همه صنایع و سهام هر صنعت ←</a></p></div>
           <div class="industry-grid" id="industriesGrid"></div>
         </section>
 
         <section class="options-section" id="options">
-          <div class="options-copy"><span class="section-index">05</span><span class="category-tag blue">OPTIONS DESK · BULL CALL SPREAD</span><h2>اتاق آپشن<br /><em id="optionsStatus">در حال دریافت داده.</em></h2><p id="optionsMessage">داده فقط از snapshot معتبر و خواندنی آپشن نمایش داده می‌شود؛ سیگنال تست، قیمت Last به‌جای Bid/Ask و داده ناقص وارد محاسبه نمی‌شود.</p><div class="options-points"><span><i>01</i> رتبه لیدر ۱ تا ۱۰</span><span><i>02</i> DTE پنج تا بیست روز</span><span><i>03</i> بازده ماهانه حداقل ۳۰٪</span></div></div>
+          <div class="options-copy"><span class="section-index">06</span><span class="category-tag blue">OPTIONS DESK · BULL CALL SPREAD</span><h2>اتاق آپشن<br /><em id="optionsStatus">در حال دریافت داده.</em></h2><p id="optionsMessage">داده فقط از snapshot معتبر و خواندنی آپشن نمایش داده می‌شود؛ سیگنال تست، قیمت Last به‌جای Bid/Ask و داده ناقص وارد محاسبه نمی‌شود.</p><div class="options-points"><span><i>01</i> رتبه لیدر ۱ تا ۱۰</span><span><i>02</i> DTE پنج تا بیست روز</span><span><i>03</i> بازده ماهانه حداقل ۳۰٪</span></div></div>
           <div class="options-visual"><div class="orbit orbit-one"></div><div class="orbit orbit-two"></div><div class="option-core"><span>OPT</span><b id="optionsPairCount">—</b><small>BULL CALL<br />SPREAD</small></div><div class="floating-token token-a">IV</div><div class="floating-token token-b">Δ</div><div class="floating-token token-c">Bid / Ask</div></div>
           <div class="options-data" aria-live="polite"><div class="options-summary"><span>منبع: <b id="optionsSource">—</b></span><span>آخرین داده: <b id="optionsUpdatedAt">—</b></span><span>جفت واجد شرایط: <b id="optionsEligibleCount">—</b></span></div><div class="options-table-wrap"><table class="options-table"><thead><tr><th>پایه / رتبه</th><th>سررسید</th><th>Strikeها</th><th>Ask خرید / Bid فروش</th><th>Debit</th><th>سود / زیان</th><th>بازده ماهانه</th></tr></thead><tbody id="optionsPairs"><tr><td colspan="7">در حال دریافت snapshot آپشن…</td></tr></tbody></table></div><div class="options-rejected" id="optionsRejected"></div><div class="options-contracts" id="optionsContracts"></div><div class="options-diagnostics" id="optionsDiagnostics"></div></div>
         </section>

@@ -138,12 +138,21 @@
     return `<span class="pct">—</span>`;
   }
 
+  function renderTopBuyQueue(data) {
+    const rows = Array.isArray(data.top_buy_queue) ? data.top_buy_queue : [];
+    const element = $("#topBuyQueue");
+    if (!element) return;
+    const value = (v) => numeric(v) === null ? "—" : escapeHtml(formatValueHmt(v));
+    element.innerHTML = rows.map((row, index) => `<tr><td>${core.faDigits(index + 1)}</td><td><a class="ranking-symbol" href="symbols/?symbol=${encodeURIComponent(row.symbol || "")}">${escapeHtml(row.symbol)}</a></td><td><span class="score ${scoreClass(row.score)}">${escapeHtml(signed(row.score))}</span></td><td>${value(row.avg15_trade_value_toman)}</td><td><span class="queue-buy">${value(row.buy_queue_value_toman)}</span></td><td>${numeric(row.queue_to_avg15) === null ? "—" : `${escapeHtml(core.formatNumber(row.queue_to_avg15, 1))}×`}</td><td>${value(row.legal_buy_value_toman)}</td><td>${value(row.legal_sell_value_toman)}</td></tr>`).join("") || `<tr><td colspan="8">صف خرید معتبر برای نمایش نیست.</td></tr>`;
+  }
+
   function renderTables(data) {
     const top = Array.isArray(data.top_stocks) ? data.top_stocks : [];
     const topMarkup = top.map((row, index) => `<tr><td>${core.faDigits(index + 1)}</td><td>${escapeHtml(row.symbol)}</td><td><span class="score ${scoreClass(row.score)}">${escapeHtml(signed(row.score))}</span></td><td><span class="pct">${escapeHtml(pct(row.last_pct))}</span></td><td><span class="pct">${escapeHtml(formatValueHmt(row.trade_value_toman))}</span></td></tr>`).join("");
     const topElement = $("#topStocks");
     const rankingManaged = topElement && topElement.closest(".table-panel") && topElement.closest(".table-panel").querySelector(".ranking-tools");
     if (topElement && !rankingManaged) topElement.innerHTML = topMarkup || `<tr><td colspan="5">داده‌ای برای نمایش نیست.</td></tr>`;
+    renderTopBuyQueue(data);
     if (typeof window.dispatchEvent === "function") {
       var snapshotEvent = null;
       if (typeof window.CustomEvent === "function") snapshotEvent = new window.CustomEvent("market:snapshot", {detail: data});
