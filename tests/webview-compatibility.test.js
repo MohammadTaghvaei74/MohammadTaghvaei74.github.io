@@ -46,13 +46,13 @@ test('nullable core inputs preserve missing values, zero scores and timestamp pr
   for (const missing of [undefined, null, {}]) {
     assert.equal(core.sourceTimestamp(missing), null);
     assert.equal(core.findLeaders(missing), null);
-    assert.deepEqual(core.chartSeries(missing), { market: [], average: [], leaders: null });
+    assert.deepEqual(core.chartSeries(missing), { market: [], leaders: [], rest: [] });
   }
   assert.equal(core.sourceTimestamp({ market: null, generated_at: 'fallback' }), 'fallback');
   assert.equal(core.sourceTimestamp({ market: { timestamp: 'source' }, generated_at: 'fallback' }), 'source');
   assert.equal(core.sourceTimestamp({ market: { timestamp: '' }, generated_at: 'fallback' }), 'fallback');
   assert.equal(core.findLeaders({ groups: [{ group_name: 'لیدر', median: 0 }] }).median, 0);
-  assert.deepEqual(core.chartSeries({ daily: [{ median_score: 0, average_score: null }] }), { market: [0], average: [null], leaders: null });
+  assert.deepEqual(core.chartSeries({ daily: [{ median_score: 0, average_score: null }] }), { market: [0], leaders: [null], rest: [null] });
 });
 
 test('dashboard renders missing leaders/options and preserves falsy text rather than using a fallback', async () => {

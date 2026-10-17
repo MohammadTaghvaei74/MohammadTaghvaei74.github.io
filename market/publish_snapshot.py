@@ -22,9 +22,11 @@ from xml.sax.saxutils import escape
 if __package__:
     from .export_signals import export as export_signals
     from .leveraged_snapshots import read_latest as read_leveraged
+    from .chart_data import load_daily_chart_rows
 else:
     from export_signals import export as export_signals
     from leveraged_snapshots import read_latest as read_leveraged
+    from chart_data import load_daily_chart_rows
 
 PUBLISHED_FILES = (
     "market/data/market.json",
@@ -87,9 +89,7 @@ def build_market(conn: sqlite3.Connection) -> dict:
         "SELECT industry,count,average,median,turnover_toman,net_queue_hmt FROM industry_detail_snapshots WHERE timestamp=? ORDER BY median DESC LIMIT 6",
         (latest,),
     )]
-    daily = [dict(row) for row in conn.execute(
-        "SELECT * FROM daily_market_summary ORDER BY trading_date DESC LIMIT 7"
-    )]
+    daily = load_daily_chart_rows(conn)
     return {
         "schema_version": 1,
         "source": "scores_history.db",

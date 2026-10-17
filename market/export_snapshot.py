@@ -9,6 +9,11 @@ import json
 import sqlite3
 from pathlib import Path
 
+try:
+    from .chart_data import load_daily_chart_rows
+except ImportError:
+    from chart_data import load_daily_chart_rows
+
 
 def export(db_path: str, output_path: str) -> None:
     conn = sqlite3.connect(f"file:{db_path}?mode=ro", uri=True)
@@ -40,9 +45,7 @@ def export(db_path: str, output_path: str) -> None:
         "SELECT industry,count,average,median,turnover_toman,net_queue_hmt FROM industry_detail_snapshots WHERE timestamp=? ORDER BY median DESC LIMIT 6",
         (latest,),
     )]
-    daily = [dict(row) for row in conn.execute(
-        "SELECT * FROM daily_market_summary ORDER BY trading_date DESC LIMIT 7"
-    )]
+    daily = load_daily_chart_rows(conn)
     payload = {
         "schema_version": 1,
         "source": "scores_history.db",

@@ -99,8 +99,11 @@
 }
 
 .chart-path { stroke: #388268; fill: none; }
-.chart-average { stroke: var(--orange); stroke-dasharray: 6 6; fill: none; }
-.average-line { background: var(--orange); }
+.chart-market { stroke: #388268; }
+.chart-leaders { stroke: var(--orange); stroke-dasharray: 6 6; }
+.chart-rest { stroke: var(--blue); stroke-dasharray: 2 5; }
+.leaders-line { background: var(--orange); }
+.rest-line { background: var(--blue); }
 .mobile-title { display: none; }
 @media (max-width: 720px) {
   .hero-block h1 { font-size: 23px; line-height: 1.4; letter-spacing: -.5px; }

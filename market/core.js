@@ -70,8 +70,8 @@ function chartSeries(data) {
   const daily = Array.isArray(data && data.daily) ? [...data.daily].reverse() : [];
   return {
     market: daily.map((row) => chartScore(row.median_score)),
-    average: daily.map((row) => chartScore(row.average_score)),
-    leaders: null,
+    leaders: daily.map((row) => chartScore(row.leader_median_score)),
+    rest: daily.map((row) => chartScore(row.rest_median_score)),
   };
 }
 

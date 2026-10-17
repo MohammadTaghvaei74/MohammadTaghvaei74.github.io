@@ -102,7 +102,7 @@
     if (!svg) return;
     const days = [...(Array.isArray(data.daily) ? data.daily : [])].reverse();
     const series = core.chartSeries(data);
-    const actualValues = [...series.market, ...series.average].map(numeric).filter((value) => value !== null);
+    const actualValues = [series.leaders, series.rest, series.market].flat().map(numeric).filter((value) => value !== null);
     const width = 760, height = 265, pad = { top: 18, right: 14, bottom: 32, left: 38 };
     if (!actualValues.length) {
       svg.innerHTML = `<text class="chart-empty" x="380" y="130" text-anchor="middle">داده تاریخی بازار موجود نیست.</text>`;
@@ -113,14 +113,16 @@
     const x = (index) => pad.left + index * (width - pad.left - pad.right) / Math.max(days.length - 1, 1);
     const y = (value) => pad.top + (max - value) * (height - pad.top - pad.bottom) / (max - min);
     const marketPath = pathFor(series.market, x, y);
-    const averagePath = pathFor(series.average, x, y);
+    const leadersPath = pathFor(series.leaders, x, y);
+    const restPath = pathFor(series.rest, x, y);
     const zeroY = y(0);
     // Do not bridge missing samples with a filled area.
     const areaPath = marketPath && series.market.every((value) => value !== null) ? `${marketPath} L ${x(days.length - 1)},${zeroY} L ${x(0)},${zeroY} Z` : "";
     const grid = [-3, 0, 3].map((tick) => `<line class="${tick === 0 ? "chart-zero" : "chart-grid-line"}" x1="${pad.left}" x2="${width - pad.right}" y1="${y(tick)}" y2="${y(tick)}"/><text class="chart-label" x="${pad.left - 9}" y="${y(tick) + 4}" text-anchor="end">${core.faDigits(tick)}</text>`).join("");
     const labels = days.map((day, index) => `<text class="chart-label" x="${x(index)}" y="${height - 8}" text-anchor="middle">${escapeHtml(core.faDigits(String(day.trading_date || "").slice(5)))}</text>`).join("");
-    const averageMarkup = averagePath ? `<path class="chart-path chart-average" d="${averagePath}"/>` : "";
-    svg.innerHTML = `<defs><linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b8df55" stop-opacity=".25"/><stop offset="1" stop-color="#b8df55" stop-opacity="0"/></linearGradient></defs>${grid}${labels}${areaPath ? `<path class="chart-area" d="${areaPath}"/>` : ""}<path class="chart-path" d="${marketPath}"/>${averageMarkup}`;
+    const leadersMarkup = leadersPath ? `<path class="chart-path chart-leaders" d="${leadersPath}"/>` : "";
+    const restMarkup = restPath ? `<path class="chart-path chart-rest" d="${restPath}"/>` : "";
+    svg.innerHTML = `<defs><linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b8df55" stop-opacity=".25"/><stop offset="1" stop-color="#b8df55" stop-opacity="0"/></linearGradient></defs>${grid}${labels}${areaPath ? `<path class="chart-area" d="${areaPath}"/>` : ""}${leadersMarkup}${restMarkup}<path class="chart-path chart-market" d="${marketPath}"/>`;
   }
 
   function scoreClass(value) {

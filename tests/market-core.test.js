@@ -44,15 +44,15 @@ test('snapshot validation requires arrays and uses market source timestamp', () 
   assert.throws(() => core.validateSnapshot({ ...valid, daily: null }), /daily/);
 });
 
-test('chart series contains only actual market fields', () => {
-  assert.deepEqual(core.chartSeries({ daily: [{ median_score: 2, average_score: 3 }] }), { market: [2], average: [3], leaders: null });
-  assert.deepEqual(core.chartSeries({ daily: [{ median_score: 2 }] }), { market: [2], average: [null], leaders: null });
+test('chart uses exactly three medians, preserving absent cohorts', () => {
+  assert.deepEqual(core.chartSeries({ daily: [{ median_score: 2, average_score: 99, leader_median_score: 4, rest_median_score: 1 }] }), { market: [2], leaders: [4], rest: [1] });
+  assert.deepEqual(core.chartSeries({ daily: [{ median_score: 2 }] }), { market: [2], leaders: [null], rest: [null] });
 });
 
 const realSnapshot = JSON.parse(fs.readFileSync(path.join(__dirname, '../market/data/market.json'), 'utf8'));
 test('current market snapshot validates and has no synthetic leader series', () => {
   assert.equal(core.validateSnapshot(realSnapshot), realSnapshot);
-  assert.equal(core.chartSeries(realSnapshot).leaders, null);
+  assert.deepEqual(core.chartSeries(realSnapshot).leaders, [...realSnapshot.daily].reverse().map(row => row.leader_median_score == null || Math.abs(row.leader_median_score) > 20 ? null : row.leader_median_score));
   assert.equal(core.sourceTimestamp(realSnapshot), realSnapshot.market.timestamp);
 });
 
