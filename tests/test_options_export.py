@@ -136,7 +136,7 @@ import pytest
 @pytest.mark.parametrize('value,pass_liquidity', [(15000000001,True),(15000000000,False),(14999999999,False),(None,False),(float('nan'),False),(float('inf'),False),(-1,False)])
 def test_today_strict_threshold_without_history(tmp_path,value,pass_liquidity):
     now=datetime(2026,10,17,8,tzinfo=timezone.utc)
-    contracts=[dict(symbol='A',underlying='X',expiry='1405/08/06',strike=80,ask=25,bid=24,trade_value_toman=value,quote_timestamp=now.isoformat()),dict(symbol='B',underlying='X',expiry='1405/08/06',strike=100,ask=7,bid=6,trade_value_toman=20e9,quote_timestamp=now.isoformat())]
+    contracts=[dict(symbol='A',underlying='X',expiry='1405/08/06',strike=80,ask=20,bid=19,trade_value_toman=value,quote_timestamp=now.isoformat()),dict(symbol='B',underlying='X',expiry='1405/08/06',strike=100,ask=7,bid=6,trade_value_toman=20e9,quote_timestamp=now.isoformat())]
     p=build_snapshot(tmp_path/'missing.db',contracts,{'X':dict(last_price=100,leader_rank=1,quote_timestamp=now.isoformat())},now)
     assert p['pairs'][0]['eligible'] is pass_liquidity
     assert not any('تاریخچه' in r for r in p['pairs'][0]['reasons'])
