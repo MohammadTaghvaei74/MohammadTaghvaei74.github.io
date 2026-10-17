@@ -4,7 +4,7 @@ const $ = (selector) => document.querySelector(selector);
 const faDigits = (value) => String(value).replace(/[0-9]/g, (d) => "۰۱۲۳۴۵۶۷۸۹"[d]);
 const number = (value, digits = 2) => faDigits(Number(value || 0).toLocaleString("en-US", { maximumFractionDigits: digits, minimumFractionDigits: digits }));
 const integer = (value) => faDigits(Math.round(Number(value || 0)).toLocaleString("en-US"));
-const csvCell = (value) => `"${String(value ?? "").replaceAll('"', '""')}"`;
+const csvCell = (value) => `"${String(value === null || value === undefined ? "" : value).replace(/"/g, '""')}"`;
 let archive = null;
 let selectedRows = [];
 
@@ -12,7 +12,7 @@ function toast(message) {
   const el = $("#toast"); el.textContent = message; el.classList.add("show");
   clearTimeout(toast.timer); toast.timer = setTimeout(() => el.classList.remove("show"), 2800);
 }
-function symbolRows(symbol) { return (archive?.rows || []).filter((row) => row.symbol === symbol).sort((a, b) => a.day.localeCompare(b.day)); }
+function symbolRows(symbol) { return ((archive && archive.rows) || []).filter((row) => row.symbol === symbol).sort((a, b) => a.day.localeCompare(b.day)); }
 function preferredSymbol() { return ["فولاد", "فملی", "خودرو", "شستا"].find((symbol) => archive.symbols.includes(symbol)) || archive.symbols[0]; }
 function displayDay(day) { return faDigits(new Date(`${day}T12:00:00Z`).toLocaleDateString("fa-IR", { month: "short", day: "numeric" })); }
 function displayFullDay(day) { return faDigits(new Date(`${day}T12:00:00Z`).toLocaleDateString("fa-IR", { year: "numeric", month: "short", day: "numeric" })); }
@@ -61,7 +61,7 @@ function rowsForExport() { return selectedRows.map((row) => ({ "تاریخ": row
 function downloadBlob(blob, filename) { const url = URL.createObjectURL(blob); const link = document.createElement("a"); link.href = url; link.download = filename; link.click(); setTimeout(() => URL.revokeObjectURL(url), 1000); }
 function downloadCsv() { if (!selectedRows.length) return toast("برای این نماد داده‌ای وجود ندارد"); const headers = ["day","symbol","count","mean","median","min","max","last","quality"]; const lines = [headers.join(","), ...selectedRows.map((row) => [row.day,row.symbol,row.count,row.mean,row.median,row.min,row.max,row.last,row.quality].map(csvCell).join(","))]; downloadBlob(new Blob(["\ufeff" + lines.join("\n")], { type: "text/csv;charset=utf-8" }), `${selectedRows[0].symbol}-score-history.csv`); toast("فایل CSV آماده دانلود شد"); }
 function downloadXlsx() { if (!selectedRows.length) return toast("برای این نماد داده‌ای وجود ندارد"); if (!window.XLSX) return toast("ماژول Excel هنوز بارگذاری نشده است؛ CSV را امتحان کن"); const book = XLSX.utils.book_new(); const sheet = XLSX.utils.json_to_sheet(rowsForExport()); sheet["!cols"] = [{ wch: 14 },{ wch: 16 },{ wch: 12 },{ wch: 16 },{ wch: 16 },{ wch: 14 },{ wch: 14 },{ wch: 16 },{ wch: 14 }]; XLSX.utils.book_append_sheet(book, sheet, "Score History"); XLSX.writeFile(book, `${selectedRows[0].symbol}-score-history.xlsx`); toast("فایل Excel آماده دانلود شد"); }
-async function copyJson() { if (!selectedRows.length) return; try { await navigator.clipboard.writeText(JSON.stringify(selectedRows, null, 2)); toast("JSON تاریخچه کپی شد"); } catch { toast("کپی در این مرورگر مجاز نیست"); } }
+async function copyJson() { if (!selectedRows.length) return; try { await navigator.clipboard.writeText(JSON.stringify(selectedRows, null, 2)); toast("JSON تاریخچه کپی شد"); } catch (error) { toast("کپی در این مرورگر مجاز نیست"); } }
 
 $("#symbolInput").addEventListener("input", (event) => { const value = event.target.value.trim(); if (archive.symbols.includes(value)) renderSelected(value); });
 $("#symbolInput").addEventListener("change", (event) => renderSelected(event.target.value.trim()));
