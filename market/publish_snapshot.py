@@ -10,6 +10,7 @@ import json
 import os
 import shutil
 import sqlite3
+import statistics
 import subprocess
 import tempfile
 from datetime import datetime
@@ -104,11 +105,11 @@ def build_history(conn: sqlite3.Connection) -> dict:
     complete_days = {d["day"] for d in days}
     observed = {}
     for row in conn.execute(
-        "SELECT trading_date, COUNT(*) AS snapshot_count,
+        """SELECT trading_date, COUNT(*) AS snapshot_count,
                 COUNT(DISTINCT timestamp) AS timestamp_count,
                 MIN(timestamp) AS first_timestamp, MAX(timestamp) AS last_timestamp,
                 SUM(CASE WHEN valid=1 THEN 1 ELSE 0 END) AS valid_snapshot_count
-           FROM stock_snapshots GROUP BY trading_date ORDER BY trading_date"
+           FROM stock_snapshots GROUP BY trading_date ORDER BY trading_date"""
     ):
         observed[row["trading_date"]] = dict(row)
 
@@ -119,9 +120,9 @@ def build_history(conn: sqlite3.Connection) -> dict:
         # score IS NOT NULL matches the producer's score eligibility. Do not
         # invent a score from another table or mutate the production database.
         for row in conn.execute(
-            "SELECT symbol, score, timestamp FROM stock_snapshots
+            """SELECT symbol, score, timestamp FROM stock_snapshots
                WHERE trading_date=? AND valid=1 AND score IS NOT NULL
-               ORDER BY symbol, timestamp",
+               ORDER BY symbol, timestamp""",
             (day_key,),
         ):
             samples.setdefault(row["symbol"], []).append((row["timestamp"], float(row["score"])))
