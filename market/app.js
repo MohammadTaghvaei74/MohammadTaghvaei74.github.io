@@ -19,9 +19,9 @@
   const text = (selector, value) => { const element = $(selector); if (element) element.textContent = value; };
   const numeric = (value) => core.number(value);
   const formatHmt = (value) => core.formatNumber(value, 2);
-  const formatValueBillion = (value) => {
+  const formatValueHmt = (value) => {
     const parsed = numeric(value);
-    return parsed === null ? "—" : `${core.formatNumber(parsed / 1e9, 0)} B`;
+    return parsed === null ? "—" : `${formatHmt(parsed / 1e12)} همت`;
   };
   const signed = (value, digits = 1) => core.formatSigned(value, digits);
   const pct = (value) => core.formatPercent(value, 2);
@@ -143,13 +143,16 @@
     const rows = Array.isArray(data.top_buy_queue) ? data.top_buy_queue : [];
     const element = $("#topBuyQueue");
     if (!element) return;
-    const value = (v) => numeric(v) === null ? "—" : escapeHtml(formatValueBillion(v));
-    element.innerHTML = rows.map((row, index) => `<tr><td>${core.faDigits(index + 1)}</td><td><a class="ranking-symbol" href="symbols/?symbol=${encodeURIComponent(row.symbol || "")}">${escapeHtml(row.symbol)}</a></td><td><span class="score ${scoreClass(row.score)}">${escapeHtml(signed(row.score))}</span></td><td>${value(row.avg15_trade_value_toman)}</td><td><span class="queue-buy">${value(row.buy_queue_value_toman)}</span></td><td>${numeric(row.queue_to_avg15) === null ? "—" : `${escapeHtml(core.formatNumber(row.queue_to_avg15, 1))}×`}</td><td>${value(row.legal_buy_value_toman)}</td><td>${value(row.legal_sell_value_toman)}</td></tr>`).join("") || `<tr><td colspan="8">صف خرید معتبر برای نمایش نیست.</td></tr>`;
+    const valueB = (v) => numeric(v) === null ? "—" : escapeHtml(core.formatNumber(numeric(v) / 1000000000, 1));
+    const valuePct = (v) => numeric(v) === null ? "—" : escapeHtml(core.formatNumber(v, 0) + "%");
+    const valueM = (v) => numeric(v) === null ? "—" : escapeHtml(core.formatNumber(numeric(v) / 1000000, 0));
+    const valuePower = (v) => numeric(v) === null ? "—" : escapeHtml(core.formatNumber(v, 1));
+    element.innerHTML = rows.map((row, index) => `<tr><td>${core.faDigits(index + 1)}</td><td><a class="ranking-symbol" href="symbols/?symbol=${encodeURIComponent(row.symbol || "")}">${escapeHtml(row.symbol)}</a></td><td><span class="score ${scoreClass(row.score)}">${escapeHtml(signed(row.score))}</span></td><td>${valueB(row.avg_trade_value_toman ?? row.avg15_trade_value_toman)}</td><td><span class="queue-buy">${valueB(row.buy_queue_value_toman)}</span></td><td>${numeric(row.queue_to_avg ?? row.queue_to_avg15) === null ? "—" : `${escapeHtml(core.formatNumber(row.queue_to_avg ?? row.queue_to_avg15, 1))}×`}</td><td>${valueM(row.buy_per_capita_toman)}</td><td>${valuePower(row.buyer_power)}</td><td>${valuePct(row.legal_buy_pct)}</td><td>${valuePct(row.legal_sell_pct)}</td></tr>`).join("") || `<tr><td colspan="10">صف خرید معتبر برای نمایش نیست.</td></tr>`;
   }
 
   function renderTables(data) {
     const top = Array.isArray(data.top_stocks) ? data.top_stocks : [];
-    const topMarkup = top.map((row, index) => `<tr><td>${core.faDigits(index + 1)}</td><td>${escapeHtml(row.symbol)}</td><td><span class="score ${scoreClass(row.score)}">${escapeHtml(signed(row.score))}</span></td><td>${escapeHtml(formatValueBillion(row.avg15_trade_value_toman))}</td><td>${escapeHtml(formatValueBillion(row.trade_value_toman))}</td></tr>`).join("");
+    const topMarkup = top.map((row, index) => `<tr><td>${core.faDigits(index + 1)}</td><td>${escapeHtml(row.symbol)}</td><td><span class="score ${scoreClass(row.score)}">${escapeHtml(signed(row.score))}</span></td><td><span class="pct">${escapeHtml(pct(row.last_pct))}</span></td><td><span class="pct">${escapeHtml(formatValueHmt(row.trade_value_toman))}</span></td></tr>`).join("");
     const topElement = $("#topStocks");
     const rankingManaged = topElement && topElement.closest(".table-panel") && topElement.closest(".table-panel").querySelector(".ranking-tools");
     if (topElement && !rankingManaged) topElement.innerHTML = topMarkup || `<tr><td colspan="5">داده‌ای برای نمایش نیست.</td></tr>`;
@@ -166,10 +169,10 @@
     if (leveragedElement) leveragedElement.innerHTML = leveragedMarkup || `<tr><td colspan="5">هنوز snapshot اهرمی ثبت نشده است.</td></tr>`;
     const leaderSymbols = ['وبملت','فملی','فولاد','وتجارت','فزر','خودرو','شستا','شپدیس','فارس','ومعادن','تاپیکو','خساپا','وبصادر','وپارس','نوری','وپاسار','ونوین','کگل','رمپنا','ذوب','وغدیر','فخوز','خگستر','صبا','وساپا','کالا','اخابر','سپید','شسپا','پارسان','تیپیکو','دزاگرس','مبین','کاما','کچاد','دعبید','خبهمن','اروند','دی','خزامیا'];
     const bySymbol = new Map((Array.isArray(data.stocks) ? data.stocks : []).map(row => [row.symbol, row]));
-    const leaders = leaderSymbols.map(symbol => bySymbol.get(symbol) || {symbol, score:null, avg15_trade_value_toman:null, trade_value_toman:null});
+    const leaders = leaderSymbols.map(symbol => bySymbol.get(symbol) || {symbol, score:null, last_pct:null, trade_value_toman:null});
     leaders.sort((a,b) => (numeric(a.score) === null) - (numeric(b.score) === null) || (numeric(b.score) || 0) - (numeric(a.score) || 0) || a.symbol.localeCompare(b.symbol,'fa'));
     const leaderElement = $('#leaderStocks');
-    if (leaderElement) leaderElement.innerHTML = leaders.map((row,index) => `<tr><td>${core.faDigits(index+1)}</td><td>${escapeHtml(row.symbol)}</td><td><span class="score ${scoreClass(row.score)}">${escapeHtml(signed(row.score))}</span></td><td>${escapeHtml(formatValueBillion(row.avg15_trade_value_toman))}</td><td>${escapeHtml(formatValueBillion(row.trade_value_toman))}</td></tr>`).join('');
+    if (leaderElement) leaderElement.innerHTML = leaders.map((row,index) => `<tr><td>${core.faDigits(index+1)}</td><td>${escapeHtml(row.symbol)}</td><td><span class="score ${scoreClass(row.score)}">${escapeHtml(signed(row.score))}</span></td><td>${escapeHtml(pct(row.last_pct))}</td><td>${escapeHtml(formatValueHmt(row.trade_value_toman))}</td></tr>`).join('');
     function sizeLeaders() {
       if (!leaderElement || leaderElement.rows.length < 10) return;
       const wrap = leaderElement.closest('.table-scroll');
