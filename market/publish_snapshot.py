@@ -85,9 +85,20 @@ def build_market(conn: sqlite3.Connection) -> dict:
             stocks.append(dict(row))
             seen.add(row["symbol"])
     top_stocks = stocks[:10]
+    selected_industries = (
+        "خودرو", "بانک", "شیمیایی", "استخراج کانه فلزی",
+        "شرکتهای چند رشته ای", "فلزات اساسی", "فراورده های نفتی",
+        "انبوه سازی، املاک و مستغلات", "سرمایه گذاریها", "محصولات فلزی",
+        "بیمه وصندوق بازنشستگی به جزتامین اجتماعی", "محصولات دارویی",
+        "سیمان", "محصولات غذایی", "زراعت", "کاشی سرامیک",
+        "سایر محصولات کانی غیرفلزی",
+    )
+    placeholders = ",".join("?" for _ in selected_industries)
     industries = [dict(row) for row in conn.execute(
-        "SELECT industry,count,average,median,turnover_toman,net_queue_hmt FROM industry_detail_snapshots WHERE timestamp=? AND count >= 5 ORDER BY median DESC LIMIT 6",
-        (latest,),
+        "SELECT industry,count,average,median,turnover_toman,net_queue_hmt "
+        "FROM industry_detail_snapshots WHERE timestamp=? AND count >= 5 "
+        f"AND industry IN ({placeholders}) ORDER BY median DESC LIMIT 6",
+        (latest, *selected_industries),
     )]
     daily = load_daily_chart_rows(conn)
     return {
