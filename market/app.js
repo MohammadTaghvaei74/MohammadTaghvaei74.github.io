@@ -161,7 +161,7 @@
       if (snapshotEvent) window.dispatchEvent(snapshotEvent);
     }
     const leveraged = Array.isArray(data.leveraged) ? data.leveraged : [];
-    const leveragedMarkup = leveraged.map((row) => `<tr><td>${escapeHtml(row.symbol)}</td><td><span class="score ${scoreClass(row.score)}">${escapeHtml(signed(row.score))}</span></td><td><span class="pct">${escapeHtml(pct(closePct(row)))}</span></td><td>${queueMarkup(row)}</td><td><span class="pct">${escapeHtml(pct(row.last_pct))}</span></td></tr>`).join("");
+    const leveragedMarkup = leveraged.map((row) => `<tr><td>${escapeHtml(row.symbol)}</td><td><span class="score ${scoreClass(row.score)}">${escapeHtml(signed(row.score))}</span></td><td>${queueMarkup(row)}</td><td><span class="pct">${escapeHtml(pct(row.last_pct))}</span></td><td><span class="pct">${escapeHtml(pct(closePct(row)))}</span></td></tr>`).join("");
     const leveragedElement = $("#leveragedStocks");
     if (leveragedElement) leveragedElement.innerHTML = leveragedMarkup || `<tr><td colspan="5">هنوز snapshot اهرمی ثبت نشده است.</td></tr>`;
   }
