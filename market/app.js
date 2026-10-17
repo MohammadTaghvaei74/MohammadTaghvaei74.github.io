@@ -164,6 +164,19 @@
     const leveragedMarkup = leveraged.map((row) => `<tr><td>${escapeHtml(row.symbol)}</td><td><span class="score ${scoreClass(row.score)}">${escapeHtml(signed(row.score))}</span></td><td>${queueMarkup(row)}</td><td><span class="pct">${escapeHtml(pct(row.last_pct))}</span></td><td><span class="pct">${escapeHtml(pct(closePct(row)))}</span></td></tr>`).join("");
     const leveragedElement = $("#leveragedStocks");
     if (leveragedElement) leveragedElement.innerHTML = leveragedMarkup || `<tr><td colspan="5">هنوز snapshot اهرمی ثبت نشده است.</td></tr>`;
+    const leaderSymbols = ['وبملت','فملی','فولاد','وتجارت','فزر','خودرو','شستا','شپدیس','فارس','ومعادن','تاپیکو','خساپا','وبصادر','وپارس','نوری','وپاسار','ونوین','کگل','رمپنا','ذوب','وغدیر','فخوز','خگستر','صبا','وساپا','کالا','اخابر','سپید','شسپا','پارسان','تیپیکو','دزاگرس','مبین','کاما','کچاد','دعبید','خبهمن','اروند','دی','خزامیا'];
+    const bySymbol = new Map((Array.isArray(data.stocks) ? data.stocks : []).map(row => [row.symbol, row]));
+    const leaders = leaderSymbols.map(symbol => bySymbol.get(symbol) || {symbol, score:null, last_pct:null, trade_value_toman:null});
+    leaders.sort((a,b) => (numeric(a.score) === null) - (numeric(b.score) === null) || (numeric(b.score) || 0) - (numeric(a.score) || 0) || a.symbol.localeCompare(b.symbol,'fa'));
+    const leaderElement = $('#leaderStocks');
+    if (leaderElement) leaderElement.innerHTML = leaders.map((row,index) => `<tr><td>${core.faDigits(index+1)}</td><td>${escapeHtml(row.symbol)}</td><td><span class="score ${scoreClass(row.score)}">${escapeHtml(signed(row.score))}</span></td><td>${escapeHtml(pct(row.last_pct))}</td><td>${escapeHtml(formatValueHmt(row.trade_value_toman))}</td></tr>`).join('');
+    function sizeLeaders() {
+      if (!leaderElement || leaderElement.rows.length < 10) return;
+      const wrap = leaderElement.closest('.table-scroll');
+      wrap.style.height = (leaderElement.rows[9].getBoundingClientRect().bottom - wrap.getBoundingClientRect().top + wrap.scrollTop) + 'px';
+    }
+    requestAnimationFrame(sizeLeaders);
+    if (document.fonts) document.fonts.ready.then(sizeLeaders);
   }
 
   function renderIndustries(data) {
