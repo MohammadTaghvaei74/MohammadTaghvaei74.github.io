@@ -22,19 +22,30 @@ def build_candles(conn):
             grouped.setdefault((day, symbol), []).append((timestamp, float(score)))
         for (day, symbol), samples in grouped.items():
             seen.add((day, symbol))
-            # The contract is one score per minute.  A collector retry can
-            # create multiple rows in the same minute; keep that minute's
-            # last chronologically observed score, never count it twice.
-            minute_samples = {}
+            # Build one true minute bar first. Duplicate samples in a minute
+            # are not discarded: the minute keeps first/open, high, low and
+            # last/close. The daily bar is then aggregated from those bars.
+            minute_bars = {}
             for timestamp, score in samples:
-                minute_samples[datetime.fromisoformat(timestamp).strftime('%H:%M')] = (timestamp, score)
-            samples = list(minute_samples.values())
-            samples.sort(key=lambda item: item[0])
-            scores = [s[1] for s in samples]
-            minutes = {datetime.fromisoformat(s[0]).strftime('%H:%M') for s in samples}
-            rows.append(dict(day=day, symbol=symbol, open=scores[0], high=max(scores),
-                             low=min(scores), close=scores[-1], count=len(samples),
-                             first_timestamp=samples[0][0], last_timestamp=samples[-1][0],
+                minute = datetime.fromisoformat(timestamp).strftime('%H:%M')
+                bar = minute_bars.setdefault(minute, {
+                    'open': score, 'high': score, 'low': score, 'close': score,
+                    'first_timestamp': timestamp, 'last_timestamp': timestamp,
+                })
+                bar['high'] = max(bar['high'], score)
+                bar['low'] = min(bar['low'], score)
+                if timestamp < bar['first_timestamp']:
+                    bar['open'], bar['first_timestamp'] = score, timestamp
+                if timestamp >= bar['last_timestamp']:
+                    bar['close'], bar['last_timestamp'] = score, timestamp
+            ordered_minutes = sorted(minute_bars)
+            bars = [minute_bars[minute] for minute in ordered_minutes]
+            minutes = set(ordered_minutes)
+            rows.append(dict(day=day, symbol=symbol, open=bars[0]['open'],
+                             high=max(bar['high'] for bar in bars),
+                             low=min(bar['low'] for bar in bars), close=bars[-1]['close'],
+                             count=len(bars), first_timestamp=bars[0]['first_timestamp'],
+                             last_timestamp=bars[-1]['last_timestamp'],
                              observed_minutes=len(minutes), expected_minutes=len(expected),
                              coverage='complete' if expected.issubset(minutes) else 'partial',
                              source=table))
