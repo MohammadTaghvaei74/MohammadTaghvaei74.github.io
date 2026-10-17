@@ -101,6 +101,26 @@ def build_market(conn: sqlite3.Connection) -> dict:
     # Same ranking basis as Telegram's #صف_خرید_برتر: valid traded stocks
     # with a positive buy queue, ordered by queue value. Missing history stays
     # null; the public UI must never invent a value.
+    complete_days = [row[0] for row in conn.execute(
+        "SELECT day FROM v2_days WHERE complete=1 AND day < ? ORDER BY day DESC LIMIT 15",
+        (latest[:10],),
+    )]
+    avg_by_symbol = {}
+    if complete_days:
+        placeholders = ",".join("?" for _ in complete_days)
+        for row in conn.execute(
+            f"SELECT symbol, AVG(trade_value_toman) FROM ("
+            f"SELECT symbol, trade_value_toman, ROW_NUMBER() OVER ("
+            f"PARTITION BY symbol, trading_date ORDER BY timestamp DESC) AS rn "
+            f"FROM stock_snapshots WHERE valid=1 AND trade_volume>0 "
+            f"AND trading_date IN ({placeholders})) WHERE rn=1 GROUP BY symbol",
+            complete_days,
+        ):
+            avg_by_symbol[row[0]] = row[1]
+    # Attach the prior-15-complete-trading-day average to every displayed stock.
+    # The current snapshot day is deliberately excluded by the query above.
+    for item in stocks:
+        item["avg15_trade_value_toman"] = avg_by_symbol.get(item.get("symbol"))
     queue_rows = build_queue_rows(stocks, datetime.fromisoformat(latest), conn)
     selected_industries = (
         "خودرو", "بانک", "شیمیایی", "استخراج کانه فلزی",
