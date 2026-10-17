@@ -152,10 +152,10 @@
 
   function renderTables(data) {
     const top = Array.isArray(data.top_stocks) ? data.top_stocks : [];
-    const topMarkup = top.map((row, index) => `<tr><td>${core.faDigits(index + 1)}</td><td>${escapeHtml(row.symbol)}</td><td><span class="score ${scoreClass(row.score)}">${escapeHtml(signed(row.score))}</span></td><td><span class="pct">${escapeHtml(formatValueBillion(row.avg15_trade_value_toman))}</span></td><td><span class="pct">${escapeHtml(formatValueBillion(row.trade_value_toman))}</span></td></tr>`).join("");
+    const topMarkup = top.map((row) => `<tr><td>${escapeHtml(row.symbol)}</td><td><span class="score ${scoreClass(row.score)}">${escapeHtml(signed(row.score))}</span></td><td>${queueMarkup(row)}</td></tr>`).join("");
     const topElement = $("#topStocks");
     const rankingManaged = topElement && topElement.closest(".table-panel") && topElement.closest(".table-panel").querySelector(".ranking-tools");
-    if (topElement && !rankingManaged) topElement.innerHTML = topMarkup || `<tr><td colspan="5">داده‌ای برای نمایش نیست.</td></tr>`;
+    if (topElement && !rankingManaged) topElement.innerHTML = topMarkup || `<tr><td colspan="3">داده‌ای برای نمایش نیست.</td></tr>`;
     renderTopBuyQueue(data);
     if (typeof window.dispatchEvent === "function") {
       var snapshotEvent = null;
@@ -164,15 +164,15 @@
       if (snapshotEvent) window.dispatchEvent(snapshotEvent);
     }
     const leveraged = Array.isArray(data.leveraged) ? data.leveraged : [];
-    const leveragedMarkup = leveraged.map((row) => `<tr><td>${escapeHtml(row.symbol)}</td><td><span class="score ${scoreClass(row.score)}">${escapeHtml(signed(row.score))}</span></td><td>${queueMarkup(row)}</td><td><span class="pct">${escapeHtml(pct(row.last_pct))}</span></td><td><span class="pct">${escapeHtml(pct(closePct(row)))}</span></td></tr>`).join("");
+    const leveragedMarkup = leveraged.map((row) => `<tr><td>${escapeHtml(row.symbol)}</td><td><span class="score ${scoreClass(row.score)}">${escapeHtml(signed(row.score))}</span></td><td>${queueMarkup(row)}</td></tr>`).join("");
     const leveragedElement = $("#leveragedStocks");
-    if (leveragedElement) leveragedElement.innerHTML = leveragedMarkup || `<tr><td colspan="5">هنوز snapshot اهرمی ثبت نشده است.</td></tr>`;
+    if (leveragedElement) leveragedElement.innerHTML = leveragedMarkup || `<tr><td colspan="3">هنوز snapshot اهرمی ثبت نشده است.</td></tr>`;
     const leaderSymbols = ['وبملت','فملی','فولاد','وتجارت','فزر','خودرو','شستا','شپدیس','فارس','ومعادن','تاپیکو','خساپا','وبصادر','وپارس','نوری','وپاسار','ونوین','کگل','رمپنا','ذوب','وغدیر','فخوز','خگستر','صبا','وساپا','کالا','اخابر','سپید','شسپا','پارسان','تیپیکو','دزاگرس','مبین','کاما','کچاد','دعبید','خبهمن','اروند','دی','خزامیا'];
     const bySymbol = new Map((Array.isArray(data.stocks) ? data.stocks : []).map(row => [row.symbol, row]));
-    const leaders = leaderSymbols.map(symbol => bySymbol.get(symbol) || {symbol, score:null, last_pct:null, trade_value_toman:null});
+    const leaders = leaderSymbols.map(symbol => bySymbol.get(symbol) || {symbol, score:null, avg15_trade_value_toman:null, trade_value_toman:null});
     leaders.sort((a,b) => (numeric(a.score) === null) - (numeric(b.score) === null) || (numeric(b.score) || 0) - (numeric(a.score) || 0) || a.symbol.localeCompare(b.symbol,'fa'));
     const leaderElement = $('#leaderStocks');
-    if (leaderElement) leaderElement.innerHTML = leaders.map((row,index) => `<tr><td>${core.faDigits(index+1)}</td><td>${escapeHtml(row.symbol)}</td><td><span class="score ${scoreClass(row.score)}">${escapeHtml(signed(row.score))}</span></td><td>${escapeHtml(formatValueBillion(row.avg15_trade_value_toman))}</td><td>${escapeHtml(formatValueBillion(row.trade_value_toman))}</td></tr>`).join('');
+    if (leaderElement) leaderElement.innerHTML = leaders.map((row) => `<tr><td>${escapeHtml(row.symbol)}</td><td><span class="score ${scoreClass(row.score)}">${escapeHtml(signed(row.score))}</span></td><td>${queueMarkup(row)}</td></tr>`).join('');
     function sizeLeaders() {
       if (!leaderElement || leaderElement.rows.length < 10) return;
       const wrap = leaderElement.closest('.table-scroll');
