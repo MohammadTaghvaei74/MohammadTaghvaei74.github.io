@@ -49,3 +49,8 @@ body{background:var(--bg);color:var(--ink);background-image:radial-gradient(circ
 .traded-note small{font-size:10px;color:var(--dim)}
 @media(min-width:721px){.metric-grid{max-width:900px}}
 @media(max-width:720px){.metric-grid{grid-template-columns:1fr 1fr}.queue-values{gap:8px;margin-top:12px}.queue-label{font-size:10px}.queue-metric .metric-value{font-size:24px}.queue-metric .metric-value small{font-size:9px}.traded-note{font-size:10px;margin-top:6px}.traded-note small{font-size:9px}}
+
+/* Slightly larger table numerals for quick scanning. */
+#leaders table td,#top-buy-queue table td,.leveraged-panel table td,.leader-panel table td{font-size:14px}
+#leaders table th,#top-buy-queue table th,.leveraged-panel table th,.leader-panel table th{font-size:12px}
+@media(max-width:720px){#leaders table td,#top-buy-queue table td,.leveraged-panel table td,.leader-panel table td{font-size:13px}}
