@@ -19,9 +19,9 @@
   const text = (selector, value) => { const element = $(selector); if (element) element.textContent = value; };
   const numeric = (value) => core.number(value);
   const formatHmt = (value) => core.formatNumber(value, 2);
-  const formatValueHmt = (value) => {
+  const formatValueBillion = (value) => {
     const parsed = numeric(value);
-    return parsed === null ? "—" : `${formatHmt(parsed / 1e12)} همت`;
+    return parsed === null ? "—" : `${core.formatNumber(parsed / 1e9, 0)} B`;
   };
   const signed = (value, digits = 1) => core.formatSigned(value, digits);
   const pct = (value) => core.formatPercent(value, 2);
@@ -152,7 +152,7 @@
 
   function renderTables(data) {
     const top = Array.isArray(data.top_stocks) ? data.top_stocks : [];
-    const topMarkup = top.map((row, index) => `<tr><td>${core.faDigits(index + 1)}</td><td>${escapeHtml(row.symbol)}</td><td><span class="score ${scoreClass(row.score)}">${escapeHtml(signed(row.score))}</span></td><td><span class="pct">${escapeHtml(pct(row.last_pct))}</span></td><td><span class="pct">${escapeHtml(formatValueHmt(row.trade_value_toman))}</span></td></tr>`).join("");
+    const topMarkup = top.map((row, index) => `<tr><td>${core.faDigits(index + 1)}</td><td>${escapeHtml(row.symbol)}</td><td><span class="score ${scoreClass(row.score)}">${escapeHtml(signed(row.score))}</span></td><td><span class="pct">${escapeHtml(formatValueBillion(row.avg15_trade_value_toman))}</span></td><td><span class="pct">${escapeHtml(formatValueBillion(row.trade_value_toman))}</span></td></tr>`).join("");
     const topElement = $("#topStocks");
     const rankingManaged = topElement && topElement.closest(".table-panel") && topElement.closest(".table-panel").querySelector(".ranking-tools");
     if (topElement && !rankingManaged) topElement.innerHTML = topMarkup || `<tr><td colspan="5">داده‌ای برای نمایش نیست.</td></tr>`;
@@ -172,7 +172,7 @@
     const leaders = leaderSymbols.map(symbol => bySymbol.get(symbol) || {symbol, score:null, last_pct:null, trade_value_toman:null});
     leaders.sort((a,b) => (numeric(a.score) === null) - (numeric(b.score) === null) || (numeric(b.score) || 0) - (numeric(a.score) || 0) || a.symbol.localeCompare(b.symbol,'fa'));
     const leaderElement = $('#leaderStocks');
-    if (leaderElement) leaderElement.innerHTML = leaders.map((row,index) => `<tr><td>${core.faDigits(index+1)}</td><td>${escapeHtml(row.symbol)}</td><td><span class="score ${scoreClass(row.score)}">${escapeHtml(signed(row.score))}</span></td><td>${escapeHtml(pct(row.last_pct))}</td><td>${escapeHtml(formatValueHmt(row.trade_value_toman))}</td></tr>`).join('');
+    if (leaderElement) leaderElement.innerHTML = leaders.map((row,index) => `<tr><td>${core.faDigits(index+1)}</td><td>${escapeHtml(row.symbol)}</td><td><span class="score ${scoreClass(row.score)}">${escapeHtml(signed(row.score))}</span></td><td>${escapeHtml(formatValueBillion(row.avg15_trade_value_toman))}</td><td>${escapeHtml(formatValueBillion(row.trade_value_toman))}</td></tr>`).join('');
     function sizeLeaders() {
       if (!leaderElement || leaderElement.rows.length < 10) return;
       const wrap = leaderElement.closest('.table-scroll');
