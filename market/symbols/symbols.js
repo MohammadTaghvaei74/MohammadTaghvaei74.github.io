@@ -5,7 +5,7 @@ var market=null,archive=null,universe=null,items=[],selected=null;
 var esc=function(v){return C.text(v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});};
 var fmt=C.format;
 function stamp(v){return M.formatDate(v);}
-function load(url){var ac=new AbortController(),timer=setTimeout(function(){ac.abort();},12000);return fetch(url+'?ts='+Date.now(),{cache:'no-store',signal:ac.signal}).then(function(r){if(!r.ok)throw Error('HTTP '+r.status);return r.json();}).then(function(data){clearTimeout(timer);return data;},function(){clearTimeout(timer);return null;});}
+function load(url){return Promise.resolve().then(function(){var Controller=typeof window!=='undefined'&&typeof window.AbortController==='function'?window.AbortController:null,ac=Controller?new Controller():null,timer=ac?setTimeout(function(){ac.abort();},12000):null,opts={cache:'no-store'};if(ac)opts.signal=ac.signal;return fetch(url+'?ts='+Date.now(),opts).then(function(r){if(!r.ok)throw Error('HTTP '+r.status);return r.json();}).then(function(data){if(timer)clearTimeout(timer);return data;},function(){if(timer)clearTimeout(timer);return null;});});}
 function render(){
  var q=C.normalize($('#q').value),key=$('#sort').value;
  var list=items.filter(function(x){return !q||C.normalize(x.symbol+' '+(x.current&&x.current.industry||'')).indexOf(q)>=0;});
@@ -18,7 +18,7 @@ function chart(item){
  var rows=item.history;if(!rows.length)return '<p class="meta">تاریخچه‌ای در دسترس نیست.</p>';
  var series=C.chartSeries(rows),values=[];series.forEach(function(s){values=values.concat(s.values.filter(function(v){return v!==null;}));});
  if(!values.length)return '<p class="meta">مقادیر نمودار ناموجود یا خارج از دامنه‌اند؛ جدول را بررسی کنید.</p>';
- var leverage=Array.isArray(market&&market.leveraged)&&market.leveraged.some(function(r){return r.symbol===item.symbol;});
+ var leverage=Array.isArray(market&&market.leveraged)&&market.leveraged.some(function(r){return r&&r.symbol===item.symbol;});
  var thresholds=C.thresholds([item.current&&item.current.score],leverage),lo=Math.min.apply(Math,[0].concat(values,thresholds))-1,hi=Math.max.apply(Math,[0].concat(values,thresholds))+1;
  var w=800,h=260,p=45,x=function(i){return Math.round(p+i*(w-2*p)/Math.max(1,rows.length-1));},y=function(v){return Math.round(h-p-(v-lo)*(h-2*p)/(hi-lo));};
  var lines=[lo,0,hi].map(function(v){return '<line x1="45" x2="755" y1="'+y(v)+'" y2="'+y(v)+'" stroke="#d8e3db"/><text x="36" y="'+(y(v)+4)+'" text-anchor="end">'+esc(fmt(v,1))+'</text>';}).join('');
