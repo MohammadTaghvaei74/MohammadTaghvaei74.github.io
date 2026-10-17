@@ -3,6 +3,8 @@ from __future__ import annotations
 
 import ast
 import gzip
+import math
+from zoneinfo import ZoneInfo
 import json
 import os
 import re
@@ -14,7 +16,7 @@ from typing import Any, Iterable
 
 SCHEMA_VERSION = 1
 MAX_QUOTE_AGE = 120
-MIN_AVG7 = 15_000_000_000
+MIN_TODAY_VALUE = 15_000_000_000
 
 
 def _iso(value: Any) -> str | None:
@@ -117,21 +119,29 @@ def _history(db_path: os.PathLike[str] | str, symbol: str, before: str):
 def build_snapshot(history_db, contracts: Iterable[dict], underlyings: dict[str, dict], now: datetime) -> dict:
     now = now if now.tzinfo else now.replace(tzinfo=timezone.utc)
     raw = list(contracts)
-    if not Path(history_db).exists(): return _empty("unavailable", "منبع تاریخچه اختیار در دسترس نیست.", now, None)
+    if not raw: return _empty("unavailable", "قرارداد اختیار موجود نیست.", now, None)
     source_at = max((_iso(c.get("quote_timestamp")) for c in raw if c.get("quote_timestamp")), default=None)
     out_contracts, diagnostic_counts = [], {}
     enriched = []
     for c in raw:
         u = underlyings.get(c.get("underlying"), {})
-        avg, days = _history(history_db, c.get("symbol"), now.date().isoformat())
+        try:
+            today_value = float(c.get("trade_value_toman"))
+            if not math.isfinite(today_value) or today_value < 0: today_value = None
+        except (TypeError, ValueError):
+            today_value = None
         reasons = []
-        if days < 7: reasons.append("تاریخچه کامل ۷ روزه موجود نیست")
-        if avg is None or avg <= MIN_AVG7: reasons.append("میانگین ارزش معاملات ۷روزه کافی نیست")
+        if today_value is None or today_value <= MIN_TODAY_VALUE: reasons.append("ارزش معاملات امروز کافی نیست")
+        try:
+            stamp = datetime.fromisoformat(str(c.get("quote_timestamp")).replace("Z", "+00:00"))
+            same_day = stamp.tzinfo is not None and stamp.astimezone(ZoneInfo("Asia/Tehran")).date() == now.astimezone(ZoneInfo("Asia/Tehran")).date()
+        except (ValueError, TypeError): same_day = False
+        if not same_day: reasons.append("ارزش معاملات مربوط به امروز نیست")
         if not _fresh(c.get("quote_timestamp"), now): reasons.append("قیمت سرخط قدیمی یا نامعتبر است")
         if u.get("quote_timestamp") is not None and not _fresh(u.get("quote_timestamp"), now): reasons.append("قیمت پایه قدیمی یا نامعتبر است")
         if float(c.get("ask") or 0) <= 0 or float(c.get("bid") or 0) <= 0: reasons.append("Bid/Ask معتبر نیست")
-        row = {"symbol": c.get("symbol"), "underlying": c.get("underlying"), "leader_rank": u.get("leader_rank"), "expiry": c.get("expiry"), "dte": _dte(c.get("expiry"), now), "strike_toman": c.get("strike"), "ask_toman": c.get("ask"), "bid_toman": c.get("bid"), "trade_value_toman": c.get("trade_value_toman"), "avg7d_toman": avg, "history_days": days, "quote_at": _iso(c.get("quote_timestamp")), "reasons": reasons}
-        out_contracts.append(row); enriched.append((c, u, avg, days, reasons))
+        row = {"symbol": c.get("symbol"), "underlying": c.get("underlying"), "leader_rank": u.get("leader_rank"), "expiry": c.get("expiry"), "dte": _dte(c.get("expiry"), now), "strike_toman": c.get("strike"), "ask_toman": c.get("ask"), "bid_toman": c.get("bid"), "trade_value_toman": c.get("trade_value_toman"), "today_value_toman": today_value, "avg7d_toman": None, "history_days": 0, "quote_at": _iso(c.get("quote_timestamp")), "reasons": reasons}
+        out_contracts.append(row); enriched.append((c, u, today_value, 0, reasons))
         for reason in reasons: diagnostic_counts[reason] = diagnostic_counts.get(reason, 0) + 1
     enriched.sort(key=lambda item: (str(item[0].get("underlying")), str(item[0].get("expiry")), float(item[0].get("strike") or 0)))
     pairs = []
@@ -151,15 +161,15 @@ def build_snapshot(history_db, contracts: Iterable[dict], underlyings: dict[str,
             monthly=(profit/(dte/30))/net if dte and net > 0 else -1
             if monthly < .30: reasons.append("بازده ماهانه‌شده کمتر از ۳۰٪ است")
             eligible = not reasons
-            pairs.append({"underlying": a.get("underlying"), "leader_rank": ua.get("leader_rank"), "underlying_price_toman": s, "expiry": a.get("expiry"), "dte": dte, "long_symbol": a.get("symbol"), "short_symbol": b.get("symbol"), "k1_toman": k1, "k2_toman": k2, "ask_toman": ask, "bid_toman": bid, "gross_debit_toman": gross, "fees_toman": fees, "net_debit_toman": net, "max_loss_toman": net, "max_profit_toman": profit, "break_even_toman": k1+net, "total_return_pct": profit/net*100 if net else None, "monthly_return_pct": monthly*100 if monthly >= 0 else None, "long_avg7d_toman": aa, "short_avg7d_toman": ab, "long_history_days": da, "short_history_days": db, "eligible": eligible, "reasons": reasons, "quote_at": _iso(a.get("quote_timestamp"))})
+            pairs.append({"underlying": a.get("underlying"), "leader_rank": ua.get("leader_rank"), "underlying_price_toman": s, "expiry": a.get("expiry"), "dte": dte, "long_symbol": a.get("symbol"), "short_symbol": b.get("symbol"), "k1_toman": k1, "k2_toman": k2, "ask_toman": ask, "bid_toman": bid, "gross_debit_toman": gross, "fees_toman": fees, "net_debit_toman": net, "max_loss_toman": net, "max_profit_toman": profit, "break_even_toman": k1+net, "total_return_pct": profit/net*100 if net else None, "monthly_return_pct": monthly*100 if monthly >= 0 else None, "long_today_value_toman": aa, "short_today_value_toman": ab, "long_avg7d_toman": None, "short_avg7d_toman": None, "long_history_days": 0, "short_history_days": 0, "eligible": eligible, "reasons": reasons, "quote_at": _iso(a.get("quote_timestamp"))})
     for p in pairs:
         for reason in p["reasons"]: diagnostic_counts[reason] = diagnostic_counts.get(reason, 0) + 1
     diagnostics = [{"label": k, "count": v} for k, v in sorted(diagnostic_counts.items())]
     eligible = [p for p in pairs if p["eligible"]]
     has_stale_quote = any("قدیمی" in r for c in out_contracts for r in c["reasons"])
     status = "ready" if eligible else ("stale" if has_stale_quote else ("insufficient_data" if not raw or any("تاریخچه" in r for c in out_contracts for r in c["reasons"]) else "no_opportunity"))
-    message = "اسنپ‌شات واقعی Bull Call Spread آماده است." if eligible else ("داده آپشن قدیمی است؛ جفتی صادر نمی‌شود." if status == "stale" else ("داده کافی برای بررسی کامل جفت‌ها وجود ندارد." if status == "insufficient_data" else "جفت واجد شرایطی یافت نشد؛ فیلترها تسهیل نشده‌اند."))
-    return {"schema_version": 1, "strategy": "bull_call_spread", "generated_at": now.isoformat(), "source_at": source_at, "source": "TSETMC", "status": status, "message": message, "counts": {"contracts": len(out_contracts), "pairs": len(pairs), "eligible_pairs": len(eligible)}, "pairs": pairs, "contracts": out_contracts, "diagnostics": diagnostics, "risk": _risk_payload()}
+    message = "اسنپ‌شات واقعی Bull Call Spread آماده است." if eligible else ("داده آپشن قدیمی است؛ جفتی صادر نمی‌شود." if status == "stale" else ("داده کافی برای بررسی جفت‌ها وجود ندارد." if status == "insufficient_data" else "جفت واجد شرایطی یافت نشد؛ فیلترها تسهیل نشده‌اند."))
+    return {"schema_version": 1, "strategy": "bull_call_spread", "liquidity_basis": "today_trade_value", "liquidity_threshold_toman": MIN_TODAY_VALUE, "generated_at": now.isoformat(), "source_at": source_at, "source": "TSETMC", "status": status, "message": message, "counts": {"contracts": len(out_contracts), "pairs": len(pairs), "eligible_pairs": len(eligible)}, "pairs": pairs, "contracts": out_contracts, "diagnostics": diagnostics, "risk": _risk_payload()}
 
 
 def atomic_export(path, payload):
@@ -228,7 +238,7 @@ def export_from_scores_db(scores_db, output_path, now=None):
                     depth = depth_by_code.get(fields[0], [])
                     if len(depth) < 8: continue
                     contracts.append({"symbol": fields[2], "underlying": match.group(1), "expiry": match.group(3), "strike": float(match.group(2)) / 10, "ask": float(depth[4] or 0) / 10, "bid": float(depth[5] or 0) / 10, "trade_value_toman": float(fields[10] or 0) / 10, "quote_timestamp": raw["timestamp"]})
-                _record_history(history_db, contracts, raw["timestamp"])
+                # Current-day liquidity does not depend on the history database.
                 # Ordinary-stock v2_days fences do not prove option-session completion.
                 # Never manufacture option history from capture time alone.
                 payload = build_snapshot(history_db, contracts, leaders, now)

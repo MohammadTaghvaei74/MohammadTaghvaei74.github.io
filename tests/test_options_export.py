@@ -24,10 +24,10 @@ def test_partial_history_is_rejected_and_diagnostic_is_real(tmp_path):
         'quote_timestamp': now.isoformat(), 'leader_rank': 1,
     }]
     payload = build_snapshot(db, contracts, {'AAA': {'last_price': 120, 'quote_timestamp': now.isoformat(), 'leader_rank': 1}}, now)
-    assert payload['status'] == 'insufficient_data'
+    assert payload['status'] == 'no_opportunity'
     assert payload['counts']['contracts'] == 1
     assert payload['pairs'] == []
-    assert any(d['label'] == 'تاریخچه کامل ۷ روزه موجود نیست' for d in payload['diagnostics'])
+    assert not any('تاریخچه' in d['label'] for d in payload['diagnostics'])
 
 
 def test_legacy_unverified_history_is_never_accepted(tmp_path):
@@ -37,6 +37,18 @@ def test_legacy_unverified_history_is_never_accepted(tmp_path):
         c.execute('CREATE TABLE option_daily_values(trading_date TEXT,symbol TEXT,value_toman REAL)')
         c.executemany('INSERT INTO option_daily_values VALUES (?,?,?)', [(f'2026-10-{i:02}', 'X', 20e9) for i in range(1, 8)])
     assert _history(db, 'X', '2026-10-09') == (None, 0)
+
+
+def test_today_value_replaces_history_liquidity_filter(tmp_path):
+    db = tmp_path / 'options.sqlite'
+    with sqlite3.connect(db) as c:
+        c.execute('CREATE TABLE option_daily_values(trading_date TEXT,symbol TEXT,value_toman REAL,complete INTEGER)')
+    now = datetime(2026, 10, 3, 10, tzinfo=timezone.utc)
+    contracts = [{"symbol":"ضAAA","underlying":"AAA","expiry":"1405/07/20","strike":100,"ask":12,"bid":11,"trade_value_toman":20_000_000_001,"quote_timestamp":now.isoformat()}, {"symbol":"ضAAB","underlying":"AAA","expiry":"1405/07/20","strike":120,"ask":8,"bid":7,"trade_value_toman":15_000_000_001,"quote_timestamp":now.isoformat()}]
+    p = build_snapshot(db, contracts, {"AAA":{"last_price":110,"quote_timestamp":now.isoformat(),"leader_rank":1}}, now)
+    assert p['contracts'][0]['today_value_toman'] >= 15_000_000_000
+    assert not any('۷روزه' in r or '۷ روزه' in r for r in p['contracts'][0]['reasons'])
+    assert all(x['long_history_days'] == 0 and x['short_history_days'] == 0 for x in p['pairs'])
 
 
 def test_atomic_export_writes_schema_and_replaces_existing_file(tmp_path):
@@ -118,8 +130,20 @@ def test_export_records_verified_snapshot_history(tmp_path, monkeypatch):
         c.execute('INSERT INTO stock_snapshots VALUES (?,?,?,?,?)', (stamp, 'AAA', 1000, 1, 1))
     out = export_from_scores_db(db, tmp_path / 'options.json', datetime(2026, 10, 3, 10, 3, tzinfo=timezone.utc))
     assert out['counts']['contracts'] == 1
-    history = tmp_path / 'options_history.sqlite'
-    with sqlite3.connect(history) as c:
-        assert c.execute('select count(*) from option_daily_values').fetchone()[0] == 1
-        assert c.execute('select complete from option_daily_values').fetchone()[0] == 1
-        assert c.execute('select value_toman from option_daily_values').fetchone()[0] == 20_000_000_000
+    assert not (tmp_path / 'options_history.sqlite').exists()
+
+import pytest
+@pytest.mark.parametrize('value,pass_liquidity', [(15000000001,True),(15000000000,False),(14999999999,False),(None,False),(float('nan'),False),(float('inf'),False),(-1,False)])
+def test_today_strict_threshold_without_history(tmp_path,value,pass_liquidity):
+    now=datetime(2026,10,17,8,tzinfo=timezone.utc)
+    contracts=[dict(symbol='A',underlying='X',expiry='1405/08/06',strike=80,ask=25,bid=24,trade_value_toman=value,quote_timestamp=now.isoformat()),dict(symbol='B',underlying='X',expiry='1405/08/06',strike=100,ask=7,bid=6,trade_value_toman=20e9,quote_timestamp=now.isoformat())]
+    p=build_snapshot(tmp_path/'missing.db',contracts,{'X':dict(last_price=100,leader_rank=1,quote_timestamp=now.isoformat())},now)
+    assert p['pairs'][0]['eligible'] is pass_liquidity
+    assert not any('تاریخچه' in r for r in p['pairs'][0]['reasons'])
+
+def test_yesterday_and_stale_still_rejected(tmp_path):
+    now=datetime(2026,10,17,8,tzinfo=timezone.utc)
+    c=dict(symbol='A',underlying='X',expiry='1405/08/06',strike=80,ask=25,bid=24,trade_value_toman=20e9,quote_timestamp='2026-10-16T08:00:00+00:00')
+    p=build_snapshot(tmp_path/'missing.db',[c],{},now)
+    assert 'ارزش معاملات مربوط به امروز نیست' in p['contracts'][0]['reasons']
+    assert p['status']=='stale'
