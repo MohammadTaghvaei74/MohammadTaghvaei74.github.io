@@ -19,7 +19,7 @@ function chart(item){
  var series=C.chartSeries(rows),values=[];series.forEach(function(s){values=values.concat(s.values.filter(function(v){return v!==null;}));});
  if(!values.length)return '<p class="meta">مقادیر نمودار ناموجود یا خارج از دامنه‌اند؛ جدول را بررسی کنید.</p>';
  var leverage=Array.isArray(market&&market.leveraged)&&market.leveraged.some(function(r){return r.symbol===item.symbol;});
- var thresholds=C.thresholds(values,leverage),lo=Math.min.apply(Math,[0].concat(values,thresholds))-1,hi=Math.max.apply(Math,[0].concat(values,thresholds))+1;
+ var thresholds=C.thresholds([item.current&&item.current.score],leverage),lo=Math.min.apply(Math,[0].concat(values,thresholds))-1,hi=Math.max.apply(Math,[0].concat(values,thresholds))+1;
  var w=800,h=260,p=45,x=function(i){return Math.round(p+i*(w-2*p)/Math.max(1,rows.length-1));},y=function(v){return Math.round(h-p-(v-lo)*(h-2*p)/(hi-lo));};
  var lines=[lo,0,hi].map(function(v){return '<line x1="45" x2="755" y1="'+y(v)+'" y2="'+y(v)+'" stroke="#d8e3db"/><text x="36" y="'+(y(v)+4)+'" text-anchor="end">'+esc(fmt(v,1))+'</text>';}).join('');
  lines+=thresholds.map(function(v){return '<line class="threshold" x1="45" x2="755" y1="'+y(v)+'" y2="'+y(v)+'" stroke="#b46a40" stroke-dasharray="5 5"/><text x="755" y="'+(y(v)-5)+'" text-anchor="end">آستانه '+esc(fmt(v))+'</text>';}).join('');
