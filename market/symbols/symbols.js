@@ -19,7 +19,7 @@ function chart(item){
  if(!rows.length)return '<p class="meta">کندل‌های روزانه برای این نماد هنوز منتشر نشده است.</p>';
  var valid=rows.filter(function(r){
   var o=C.number(r.open),h=C.number(r.high),l=C.number(r.low),c=C.number(r.close);
-  return [o,h,l,c].every(function(n){return n!==null&&Math.abs(n)<=20;})&&h>=Math.max(o,c)&&l<=Math.min(o,c)&&h>=l;
+  return [o,h,l,c].every(function(n){return n!==null;})&&h>=Math.max(o,c)&&l<=Math.min(o,c)&&h>=l;
  });
  if(!valid.length)return '<p class="meta">مقادیر معتبر کندل برای نمودار یافت نشد؛ جدول داده را بررسی کنید.</p>';
  var values=[];valid.forEach(function(r){values.push(r.open,r.high,r.low,r.close);});
