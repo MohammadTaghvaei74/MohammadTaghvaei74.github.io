@@ -111,6 +111,10 @@ def build_market(conn: sqlite3.Connection) -> dict:
             complete_days,
         ):
             avg_by_symbol[row[0]] = row[1]
+    # Attach the prior-15-complete-trading-day average to every displayed stock.
+    # The current snapshot day is deliberately excluded by the query above.
+    for item in stocks:
+        item["avg15_trade_value_toman"] = avg_by_symbol.get(item.get("symbol"))
     queue_rows = []
     for row in stocks:
         queue = row.get("buy_queue_value_toman")

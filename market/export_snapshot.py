@@ -57,6 +57,8 @@ def export(db_path: str, output_path: str) -> None:
             complete_days,
         ):
             avg_by_symbol[row[0]] = row[1]
+    for item in stocks:
+        item["avg15_trade_value_toman"] = avg_by_symbol.get(item.get("symbol"))
     queue_rows = []
     for row in stocks:
         queue = row.get("buy_queue_value_toman")
