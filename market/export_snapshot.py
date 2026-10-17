@@ -49,6 +49,24 @@ def export(db_path: str, output_path: str) -> None:
             stocks.append(dict(row))
             seen.add(row["symbol"])
     top_stocks = stocks[:10]
+    complete_days = [row[0] for row in conn.execute(
+        "SELECT day FROM v2_days WHERE complete=1 AND day < ? ORDER BY day DESC LIMIT 15",
+        (latest[:10],),
+    )] if "v2_days" in {row[0] for row in conn.execute("SELECT name FROM sqlite_master WHERE type='table'")} else []
+    avg_by_symbol = {}
+    if complete_days:
+        placeholders = ",".join("?" for _ in complete_days)
+        for row in conn.execute(
+            f"SELECT symbol, AVG(trade_value_toman) FROM ("
+            f"SELECT symbol, trade_value_toman, ROW_NUMBER() OVER ("
+            f"PARTITION BY symbol, trading_date ORDER BY timestamp DESC) AS rn "
+            f"FROM stock_snapshots WHERE valid=1 AND trade_volume>0 "
+            f"AND trading_date IN ({placeholders})) WHERE rn=1 GROUP BY symbol",
+            complete_days,
+        ):
+            avg_by_symbol[row[0]] = row[1]
+    for item in stocks:
+        item["avg15_trade_value_toman"] = avg_by_symbol.get(item.get("symbol"))
     queue_rows = build_queue_rows(stocks, datetime.fromisoformat(latest), conn)
     industries = [dict(row) for row in conn.execute(
         "SELECT industry,count,average,median,turnover_toman,net_queue_hmt FROM industry_detail_snapshots WHERE timestamp=? ORDER BY median DESC LIMIT 6",
