@@ -21,8 +21,10 @@ from xml.sax.saxutils import escape
 
 if __package__:
     from .export_signals import export as export_signals
+    from .leveraged_snapshots import read_latest as read_leveraged
 else:
     from export_signals import export as export_signals
+    from leveraged_snapshots import read_latest as read_leveraged
 
 PUBLISHED_FILES = (
     "market/data/market.json",
@@ -96,7 +98,7 @@ def build_market(conn: sqlite3.Connection) -> dict:
         "market": market,
         "groups": groups,
         "top_stocks": top_stocks,
-        "leveraged": [],
+        "leveraged": read_leveraged(conn, latest),
         "industries": industries,
         "daily": daily,
         "options": {"status": "connecting", "message": "داده معتبر آپشن بعد از نهایی شدن قرارداد داده اضافه می‌شود."},
