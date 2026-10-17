@@ -143,7 +143,7 @@
     const rows = Array.isArray(data.top_buy_queue) ? data.top_buy_queue : [];
     const element = $("#topBuyQueue");
     if (!element) return;
-    const valueB = (v) => numeric(v) === null ? "—" : escapeHtml(core.formatNumber(numeric(v) / 1000000000, 1));
+    const valueB = (v) => numeric(v) === null ? "—" : escapeHtml(core.formatNumber(numeric(v) / 1000000000, 0));
     const valuePct = (v) => numeric(v) === null ? "—" : escapeHtml(core.formatNumber(v, 0) + "%");
     const valueM = (v) => numeric(v) === null ? "—" : escapeHtml(core.formatNumber(numeric(v) / 1000000, 0));
     const valuePower = (v) => numeric(v) === null ? "—" : escapeHtml(core.formatNumber(v, 1));
