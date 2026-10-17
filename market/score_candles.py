@@ -22,6 +22,14 @@ def build_candles(conn):
             grouped.setdefault((day, symbol), []).append((timestamp, float(score)))
         for (day, symbol), samples in grouped.items():
             seen.add((day, symbol))
+            # The contract is one score per minute.  A collector retry can
+            # create multiple rows in the same minute; keep that minute's
+            # last chronologically observed score, never count it twice.
+            minute_samples = {}
+            for timestamp, score in samples:
+                minute_samples[datetime.fromisoformat(timestamp).strftime('%H:%M')] = (timestamp, score)
+            samples = list(minute_samples.values())
+            samples.sort(key=lambda item: item[0])
             scores = [s[1] for s in samples]
             minutes = {datetime.fromisoformat(s[0]).strftime('%H:%M') for s in samples}
             rows.append(dict(day=day, symbol=symbol, open=scores[0], high=max(scores),
