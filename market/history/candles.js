@@ -3,7 +3,7 @@ let scoreCandles = null;
 const candleFa = (v) => String(v).replace(/[0-9]/g, d => "۰۱۲۳۴۵۶۷۸۹"[d]);
 const candleNum = v => candleFa(Number(v).toFixed(2));
 const candleDate = day => new Date(`${day}T12:00:00Z`).toLocaleDateString("fa-IR", {month:"short", day:"numeric"});
-function showCandleDetails(row) { document.querySelector("#candleDetails").innerHTML=`<b>${candleDate(row.day)}</b><br>باز ${candleNum(row.open)} · بیشینه ${candleNum(row.high)} · کمینه ${candleNum(row.low)} · بسته ${candleNum(row.close)}<br><small>${candleFa(row.count)} نمونه ثبت‌شده · منبع: نمونه ثبت‌شده</small>`; }
+function showCandleDetails(row) { document.querySelector("#candleDetails").innerHTML=`<b>${candleDate(row.day)}</b><br>باز ${candleNum(row.open)} · بیشینه ${candleNum(row.high)} · کمینه ${candleNum(row.low)} · بسته ${candleNum(row.close)}<br><small>${candleFa(row.count)} دقیقه معتبر · اولین نمونه تهران: ${new Date(row.first_timestamp).toLocaleTimeString("fa-IR",{timeZone:"Asia/Tehran"})} · پنجره ۰۹:۱۵ تا ۱۲:۳۰</small>`; }
 function renderScoreCandles(symbol) {
   const svg = document.querySelector("#scoreCandleChart"); if (!svg || !scoreCandles) return;
   const rows = scoreCandles.rows.filter(r => r.symbol === symbol).sort((a,b) => a.day.localeCompare(b.day));
@@ -15,7 +15,7 @@ function renderScoreCandles(symbol) {
   const marks=rows.map((r,i)=>{const up=r.close>=r.open,c=up?"candle-up":"candle-down",xx=x(i);return `<g class="${c}" tabindex="0" role="button" data-candle-index="${i}"><line x1="${xx}" x2="${xx}" y1="${y(r.high)}" y2="${y(r.low)}"/><rect x="${xx-bw/2}" y="${Math.min(y(r.open),y(r.close))}" width="${bw}" height="${Math.max(2,Math.abs(y(r.open)-y(r.close)))}"/><title>${candleDate(r.day)}: ${candleNum(r.open)} / ${candleNum(r.high)} / ${candleNum(r.low)} / ${candleNum(r.close)} · ${r.count} samples</title></g>`}).join("");
   const labels=rows.map((r,i)=>(i % Math.max(1,Math.ceil(rows.length/6)) === 0 || i === rows.length-1) ? `<text x="${x(i)}" y="${H-12}" text-anchor="middle">${candleDate(r.day)}</text>` : "").join("");
   svg.innerHTML=grid+marks+labels;
-  const last=rows[rows.length-1]; document.querySelector("#candleStatus").textContent=`${candleFa(rows.length)} روز کندل · آخرین روز ${candleDate(last.day)} · ${last.coverage === "complete" ? "پوشش کامل" : last.coverage === "partial" ? "پوشش ناقص" : "پوشش تأییدنشده"}`;
+  const last=rows[rows.length-1]; document.querySelector("#candleStatus").textContent=`${candleFa(rows.length)} روز کندل · آخرین روز ${candleDate(last.day)} · ${last.coverage === "complete" ? "پوشش کامل پنجره" : last.coverage === "partial" ? "پوشش ناقص پنجره" : "پوشش تأییدنشده"}`;
   svg.querySelectorAll("[data-candle-index]").forEach(el => { const select=() => showCandleDetails(rows[Number(el.dataset.candleIndex)]); el.addEventListener("click", select); el.addEventListener("keydown", e => { if(e.key === "Enter" || e.key === " ") select(); }); });
   showCandleDetails(last);
 }
