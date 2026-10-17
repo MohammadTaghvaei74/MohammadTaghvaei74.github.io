@@ -74,7 +74,7 @@ def build_market(conn: sqlite3.Connection) -> dict:
     )]
     columns = "symbol,industry,score,last_pct,trade_value_toman,buy_queue_value_toman,sell_queue_value_toman"
     rows = conn.execute(
-        f"SELECT {columns} FROM stock_snapshots WHERE timestamp=? AND valid=1 AND trade_volume>0 ORDER BY score DESC LIMIT 20",
+        f"SELECT {columns} FROM stock_snapshots WHERE timestamp=? AND valid=1 AND trade_volume>0 ORDER BY score DESC, symbol ASC",
         (latest,),
     ).fetchall()
     top_stocks, seen = [], set()
@@ -98,6 +98,7 @@ def build_market(conn: sqlite3.Connection) -> dict:
         "market": market,
         "groups": groups,
         "top_stocks": top_stocks,
+        "stocks": [row for row in stocks if row.get("industry")],
         "leveraged": read_leveraged(conn, latest),
         "industries": industries,
         "daily": daily,

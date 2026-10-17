@@ -26,17 +26,16 @@ def export(db_path: str, output_path: str) -> None:
     )]
     columns = "symbol,industry,score,last_pct,trade_value_toman,buy_queue_value_toman,sell_queue_value_toman"
     rows = conn.execute(
-        f"SELECT {columns} FROM stock_snapshots WHERE timestamp=? AND valid=1 AND trade_volume>0 ORDER BY score DESC LIMIT 20",
+        f"SELECT {columns} FROM stock_snapshots WHERE timestamp=? AND valid=1 AND trade_volume>0 ORDER BY score DESC, symbol ASC",
         (latest,),
     ).fetchall()
-    top_stocks = []
+    stocks = []
     seen = set()
     for row in rows:
         if row["symbol"] not in seen:
-            top_stocks.append(dict(row))
+            stocks.append(dict(row))
             seen.add(row["symbol"])
-        if len(top_stocks) == 10:
-            break
+    top_stocks = stocks[:10]
     industries = [dict(row) for row in conn.execute(
         "SELECT industry,count,average,median,turnover_toman,net_queue_hmt FROM industry_detail_snapshots WHERE timestamp=? ORDER BY median DESC LIMIT 6",
         (latest,),
@@ -51,6 +50,7 @@ def export(db_path: str, output_path: str) -> None:
         "market": market,
         "groups": groups,
         "top_stocks": top_stocks,
+        "stocks": [row for row in stocks if row.get("industry")],
         "leveraged": [],
         "industries": industries,
         "daily": daily,
