@@ -30,12 +30,14 @@ if __package__:
     from .chart_data import load_daily_chart_rows
     from .export_options import export_from_scores_db
     from .score_candles import build_candles
+    from .tsetmc_enrichment import enrich_stocks
 else:
     from export_signals import export as export_signals
     from leveraged_snapshots import read_latest as read_leveraged
     from chart_data import load_daily_chart_rows
     from export_options import export_from_scores_db
     from score_candles import build_candles
+    from tsetmc_enrichment import enrich_stocks
 
 PUBLISHED_FILES = (
     "market/data/market.json",
@@ -106,6 +108,7 @@ def build_market(conn: sqlite3.Connection) -> dict:
         (latest[:10],),
     )]
     avg_by_symbol = {}
+    avg_volume_by_symbol = {}
     if complete_days:
         placeholders = ",".join("?" for _ in complete_days)
         for row in conn.execute(
@@ -117,10 +120,21 @@ def build_market(conn: sqlite3.Connection) -> dict:
             complete_days,
         ):
             avg_by_symbol[row[0]] = row[1]
+        for row in conn.execute(
+            f"SELECT symbol, AVG(trade_volume) FROM ("
+            f"SELECT symbol, trade_volume, ROW_NUMBER() OVER ("
+            f"PARTITION BY symbol, trading_date ORDER BY timestamp DESC) AS rn "
+            f"FROM stock_snapshots WHERE valid=1 AND trade_volume>0 "
+            f"AND trading_date IN ({placeholders})) WHERE rn=1 GROUP BY symbol",
+            complete_days,
+        ):
+            avg_volume_by_symbol[row[0]] = row[1]
     # Attach the prior-15-complete-trading-day average to every displayed stock.
     # The current snapshot day is deliberately excluded by the query above.
     for item in stocks:
         item["avg15_trade_value_toman"] = avg_by_symbol.get(item.get("symbol"))
+        item["avg15_trade_volume"] = avg_volume_by_symbol.get(item.get("symbol"))
+    enrich_stocks(stocks, datetime.fromisoformat(latest))
     queue_rows = build_queue_rows(stocks, datetime.fromisoformat(latest), conn)
     selected_industries = (
         "خودرو", "بانک", "شیمیایی", "استخراج کانه فلزی",
