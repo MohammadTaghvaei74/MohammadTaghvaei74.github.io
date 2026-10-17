@@ -113,7 +113,8 @@ function refresh(){return Promise.all([load('../data/market.json'),load('../hist
  if(!market||!Array.isArray(market.stocks)&&!Array.isArray(market.top_stocks))market=null;
  if(!archive||!Array.isArray(archive.rows))archive=null;
  universe=C.buildUniverse(market,archive);items=Array.from(universe.bySymbol.values());
-  var countEl=$('#count'),stampEl=$('#stamp');if(countEl)countEl.textContent=C.integer(items.length);if(stampEl)stampEl.textContent=stamp(M.sourceTimestamp(market));
+  if(archive){$('#archiveDays').textContent=C.integer(archive.valid_day_count);$('#archiveRows').textContent=C.integer(archive.row_count);$('#archiveLastDay').textContent=archiveDate(archive.generated_at);}
+   var countEl=$('#count'),stampEl=$('#stamp');if(countEl)countEl.textContent=C.integer(items.length);if(stampEl)stampEl.textContent=stamp(M.sourceTimestamp(market));
  var age=Date.now()-Date.parse(M.sourceTimestamp(market)||''),messages=[];
  if(!market)messages.push('دریافت snapshot جاری ناموفق بود؛ داده‌های آرشیوی جای قیمت جاری نیستند.');
  else if(!Number.isFinite(age)||age>24*3600000||age< -300000)messages.push('snapshot قدیمی یا زمان منبع نامعتبر است؛ داده زنده محسوب نمی‌شود.');
