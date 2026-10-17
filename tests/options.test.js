@@ -27,8 +27,10 @@ test('rejected pairs never appear in eligible table; raw contracts still visible
   assert.match(e['#optionsRejected'].innerHTML,/نقدشوندگی ناکافی/);
 });
 test('stale snapshot cannot display ready eligibility and uses source timestamp', async()=>{
-  const e=await run({schema_version:1,status:'ready',generated_at:new Date().toISOString(),source_at:'2026-01-01T09:00:00+03:30',counts:{eligible_pairs:1},pairs:[{underlying:'STALE_PAIR',eligible:true}],contracts:[],diagnostics:[]});
+  const e=await run({schema_version:1,status:'ready',generated_at:new Date().toISOString(),source_at:'2026-01-01T09:00:00+03:30',counts:{pairs:1,eligible_pairs:1},pairs:[{underlying:'STALE_PAIR',eligible:true}],contracts:[],diagnostics:[]});
   assert.match(e['#optionsStatus'].textContent,/قدیمی/);
+  assert.equal(e['#optionsEligibleCount'].textContent,'۰');
+  assert.equal(e['#optionsPairCount'].textContent,'۱');
   assert.doesNotMatch(e['#optionsPairs'].innerHTML,/STALE_PAIR/);
   assert.equal(e['#optionsUpdatedAt'].textContent,core.formatDate('2026-01-01T09:00:00+03:30'));
 });

@@ -83,7 +83,20 @@ def _empty(status: str, message: str, now: datetime, source_at: str | None, cont
     return {"schema_version": SCHEMA_VERSION, "strategy": "bull_call_spread", "generated_at": now.isoformat(),
             "source_at": source_at, "source": "TSETMC", "status": status, "message": message,
             "counts": {"contracts": len(contracts or []), "pairs": 0, "eligible_pairs": 0},
-            "pairs": [], "contracts": contracts or [], "diagnostics": diagnostics or []}
+            "pairs": [], "contracts": contracts or [], "diagnostics": diagnostics or [],
+            "risk": _risk_payload()}
+
+
+def _risk_payload():
+    raw_capital = os.environ.get("OPTION_TOTAL_CAPITAL_TOMAN")
+    try:
+        capital = float(raw_capital) if raw_capital is not None else None
+    except (TypeError, ValueError):
+        capital = None
+    loss = capital * 0.015 if capital is not None and capital > 0 else None
+    return {"max_risk_percent": 1.5, "capital_toman": capital,
+            "max_strategy_loss_toman": loss, "multiplier_verified": False,
+            "max_contracts": None}
 
 
 def _history(db_path: os.PathLike[str] | str, symbol: str, before: str):
@@ -144,7 +157,7 @@ def build_snapshot(history_db, contracts: Iterable[dict], underlyings: dict[str,
     has_stale_quote = any("قدیمی" in r for c in out_contracts for r in c["reasons"])
     status = "ready" if eligible else ("stale" if has_stale_quote else ("insufficient_data" if not raw or any("تاریخچه" in r for c in out_contracts for r in c["reasons"]) else "no_opportunity"))
     message = "اسنپ‌شات واقعی Bull Call Spread آماده است." if eligible else ("داده آپشن قدیمی است؛ جفتی صادر نمی‌شود." if status == "stale" else ("داده کافی برای بررسی کامل جفت‌ها وجود ندارد." if status == "insufficient_data" else "جفت واجد شرایطی یافت نشد؛ فیلترها تسهیل نشده‌اند."))
-    return {"schema_version": 1, "strategy": "bull_call_spread", "generated_at": now.isoformat(), "source_at": source_at, "source": "TSETMC", "status": status, "message": message, "counts": {"contracts": len(out_contracts), "pairs": len(pairs), "eligible_pairs": len(eligible)}, "pairs": pairs, "contracts": out_contracts, "diagnostics": diagnostics}
+    return {"schema_version": 1, "strategy": "bull_call_spread", "generated_at": now.isoformat(), "source_at": source_at, "source": "TSETMC", "status": status, "message": message, "counts": {"contracts": len(out_contracts), "pairs": len(pairs), "eligible_pairs": len(eligible)}, "pairs": pairs, "contracts": out_contracts, "diagnostics": diagnostics, "risk": _risk_payload()}
 
 
 def atomic_export(path, payload):
@@ -171,8 +184,11 @@ def _record_history(path, contracts, source_at):
     _init_history(path)
     try:
         stamp = datetime.fromisoformat(source_at.replace("Z", "+00:00"))
-        utc = stamp.astimezone(timezone.utc)
-        complete = int(utc.hour > 9 or (utc.hour == 9 and utc.minute >= 5))
+        # TSETMC's persisted end-of-session snapshot is around 12:30 Tehran.
+        # Use the source timezone instead of comparing UTC hours; 12:30+03:30
+        # is 09:00 UTC and must still count as a completed trading session.
+        local = stamp
+        complete = int((local.hour, local.minute) >= (12, 30))
         day = stamp.date().isoformat()
     except (AttributeError, ValueError):
         return
@@ -212,6 +228,7 @@ def export_from_scores_db(scores_db, output_path, now=None):
                     depth = depth_by_code.get(fields[0], [])
                     if len(depth) < 8: continue
                     contracts.append({"symbol": fields[2], "underlying": match.group(1), "expiry": match.group(3), "strike": float(match.group(2)) / 10, "ask": float(depth[4] or 0) / 10, "bid": float(depth[5] or 0) / 10, "trade_value_toman": float(fields[10] or 0) / 10, "quote_timestamp": raw["timestamp"]})
+                _record_history(history_db, contracts, raw["timestamp"])
                 # Ordinary-stock v2_days fences do not prove option-session completion.
                 # Never manufacture option history from capture time alone.
                 payload = build_snapshot(scores_db, contracts, leaders, now)
