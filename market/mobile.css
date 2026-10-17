@@ -56,6 +56,9 @@
   .table-title h3 { font-size: 16px; }
   .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
   table { min-width: 480px; font-size: 10px; }
+  .focus-grid .table-scroll { overflow-x: hidden; }
+  .focus-grid table { min-width: 0; width: 100%; table-layout: fixed; }
+  .focus-grid th, .focus-grid td { padding-inline: 6px; }
   th, td { padding: 10px 8px; }
   .table-note { font-size: 9px; padding: 10px 13px; }
   .industries-section .section-heading { margin-bottom: 12px; }
