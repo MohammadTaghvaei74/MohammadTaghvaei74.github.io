@@ -1,11 +1,67 @@
 'use strict';
 (function(){
-const C=window.SymbolCore,$=s=>document.querySelector(s);let market=null,archive=null,signals=null,items=[],hm=new Map(),selected=null;
-const esc=v=>String(v==null?'—':v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const value=(label,v,unit='')=>`<div class="field"><span>${esc(label)}</span><b>${esc(v==null||v===''?'—':v)}${v==null||v===''?'':esc(unit)}</b></div>`;
-const fmt=(v,d=2)=>C.format(v,d), integer=v=>C.integer(v);
-function load(url){return fetch(url+'?ts='+Date.now(),{cache:'no-store'}).then(r=>{if(!r.ok)throw Error(r.status);return r.json()})}
-function render(){const q=C.normalize($('#q').value),key=$('#sort').value;let out=items.filter(x=>!q||C.normalize((x.symbol+' '+(x.current?.industry||''))).includes(q));out.sort((a,b)=>{const av=key==='history'?(hm.get(a.symbol)||[]).length:key==='pct'?C.number(a.current?.last_pct):key==='symbol'?a.symbol:C.number(a.current?.score),bv=key==='history'?(hm.get(b.symbol)||[]).length:key==='pct'?C.number(b.current?.last_pct):key==='symbol'?b.symbol:C.number(b.current?.score);return key==='symbol'?String(av).localeCompare(String(bv),'fa'):(bv??-Infinity)-(av??-Infinity)});$('#shown').textContent=C.digits(out.length.toLocaleString('en-US'))+' نماد';$('#list').innerHTML=out.map(x=>`<button class="row ${x.symbol===selected?'sel':''}" data-symbol="${esc(x.symbol)}"><span><b>${esc(x.symbol)}</b><small>${esc(x.current?.industry||'فقط در آرشیو')}</small></span><strong>${x.current?fmt(x.current.score):C.digits((hm.get(x.symbol)||[]).length)+' روز'}</strong></button>`).join('')||'<p class="empty">نمادی پیدا نشد.</p>';document.querySelectorAll('.row').forEach(x=>x.onclick=()=>select(x.dataset.symbol))}
-function chart(rows){if(!rows.length)return '<p class="muted">سابقه‌ای نیست.</p>';const series=C.chartSeries(rows),vals=series.flatMap(s=>s.values.filter(v=>v!=null)),lo=Math.min(-5,...vals)-1,hi=Math.max(5,...vals)+1,w=800,h=200,p=40,x=i=>p+i*(w-2*p)/Math.max(1,rows.length-1),y=v=>h-p-(v-lo)*(h-2*p)/(hi-lo);return `<svg class="chart" viewBox="0 0 ${w} ${h}"><text x="4" y="16">امتیاز</text><text x="${w-60}" y="${h-5}">تاریخ</text>${series.map((s,j)=>`<polyline class="line${j}" points="${s.values.map((v,i)=>v==null?'':`${x(i)},${y(v)}`).filter(Boolean).join(' ') }"/>`).join('')}</svg><p class="muted">میانگین، میانه و آخرین؛ شکاف‌های واقعی حفظ شده‌اند. مقادیر خارج از ±۲۰ در جدول مانده‌اند.</p>`}
-function select(symbol){selected=symbol;render();const item=items.find(x=>x.symbol===symbol);if(!item){$('#dossier').innerHTML='<div class="empty"><h2>نماد پیدا نشد</h2><p>نماد موجود نیست؛ انتخابی از فهرست انجام دهید.</p></div>';return}try{history.replaceState(null,'','?symbol='+encodeURIComponent(symbol))}catch(e){}const c=item.current,rows=hm.get(symbol)||[], threshold=(c&&Array.isArray(market?.leveraged)&&market.leveraged.some(x=>x&&x.symbol===symbol))?[3,4].filter(t=>C.number(c.last_pct)!=null&&Math.abs(C.number(c.last_pct))>=t).map(t=>`<span class="tag">${C.number(c.last_pct)<0?'−':'+'}${t}٪</span>`).join(' '):'',sig=signals?.items?.filter(x=>C.normalize(x.label||x.symbol||'')===C.normalize(symbol))||[],fields=c?[['امتیاز',fmt(c.score)],['درصد آخرین',fmt(c.last_pct)+'٪'],['قیمت دیروز',fmt(c.yesterday_price)],['قیمت پایانی',fmt(c.close_price)],['قیمت آخرین',fmt(c.last_price)],['ارزش معامله',integer(c.trade_value_toman),' تومان'],['حجم معامله',integer(c.trade_volume)],['صف خرید',integer(c.buy_queue_value_toman),' تومان'],['صف فروش',integer(c.sell_queue_value_toman),' تومان'],['نوع ابزار',c.instrument_type],['صنعت',c.industry],['رتبه در جامعه',item.rank],['امتیاز',fmt(c.score)]]:[];const table=rows.map(r=>{const out=['mean','median','last'].some(k=>{const n=C.number(r[k]);return n!=null&&Math.abs(n)>20});return `<tr><td>${esc(r.day)}</td><td>${integer(r.count)}</td><td>${fmt(r.mean)}</td><td>${fmt(r.median)}</td><td>${fmt(r.last)}</td><td>${out?'خارج از نمودار':'معتبر'}</td></tr>`}).join('');$('#dossier').innerHTML=`<div class="dossier-head"><div><span class="tag">${c?'SNAPSHOT جاری':'فقط آرشیو تاریخی'}</span><h2>${esc(symbol)}</h2><p class="muted">${esc(c?.industry||'در snapshot جاری داده‌ای برای این نماد نیست.')}</p></div><button id="back">بازگشت</button></div><div class="fields">${fields.map(x=>value(...x)).join('')}</div><section class="chartbox"><h3>روند امتیاز</h3>${chart(rows)}</section><section class="tablebox"><h3>تاریخچه کامل</h3><table><thead><tr><th>تاریخ</th><th>تعداد</th><th>میانگین</th><th>میانه</th><th>آخرین</th><th>وضعیت</th></tr></thead><tbody>${table||'<tr><td colspan="6">داده‌ای موجود نیست.</td></tr>'}</tbody></table></section>${sig.length?`<section><h3>سیگنال‌های مرتبط</h3>${sig.map(x=>`<p>${esc(x.text||x.label)}</p>`).join('')}</section>`:''}`;$('#back').onclick=()=>history.length>1?history.back():select(null)}
-$('#q').oninput=render;$('#sort').onchange=render;addEventListener('popstate',()=>select(new URLSearchParams(location.search).get('symbol')));Promise.allSettled([load('../data/market.json'),load('../history/data/history.json'),load('../data/signals.json')]).then(r=>{market=r[0].value;archive=r[1].value;signals=r[2].value;hm=C.indexHistory(archive||{});const uni=C.buildUniverse(market||{},archive||{});items=[...uni.bySymbol.values()];$('#count').textContent=C.digits(items.length.toLocaleString('en-US'));$('#stamp').textContent=market?.generated_at||archive?.generated_at||'زمان منبع نامشخص';render();const wanted=new URLSearchParams(location.search).get('symbol');select(wanted&&uni.bySymbol.has(wanted)?wanted:null)});})();
+var C=window.SymbolCore,M=window.MarketCore,$=function(s){return document.querySelector(s);};
+var market=null,archive=null,universe=null,items=[],selected=null;
+var esc=function(v){return C.text(v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});};
+var fmt=C.format;
+function stamp(v){return M.formatDate(v);}
+function load(url){var ac=new AbortController(),timer=setTimeout(function(){ac.abort();},12000);return fetch(url+'?ts='+Date.now(),{cache:'no-store',signal:ac.signal}).then(function(r){if(!r.ok)throw Error('HTTP '+r.status);return r.json();}).then(function(data){clearTimeout(timer);return data;},function(){clearTimeout(timer);return null;});}
+function render(){
+ var q=C.normalize($('#q').value),key=$('#sort').value;
+ var list=items.filter(function(x){return !q||C.normalize(x.symbol+' '+(x.current&&x.current.industry||'')).indexOf(q)>=0;});
+ list.sort(function(a,b){if(key==='symbol')return a.symbol.localeCompare(b.symbol,'fa');var k=key==='pct'?'last_pct':'score',av=key==='history'?a.history.length:C.number(a.current&&a.current[k]),bv=key==='history'?b.history.length:C.number(b.current&&b.current[k]);if(av===null&&bv===null)return a.symbol.localeCompare(b.symbol,'fa');if(av===null)return 1;if(bv===null)return -1;return bv-av;});
+ $('#shown').textContent=C.integer(list.length)+' نماد';
+ $('#list').innerHTML=list.map(function(x){return '<button type="button" class="row '+(x.symbol===selected?'sel':'')+'" data-symbol="'+esc(x.symbol)+'"><span><b>'+esc(x.symbol)+'</b><small>'+esc(x.current&&x.current.industry||'فقط آرشیو تاریخی')+'</small></span><strong>'+esc(x.current?fmt(x.current.score):C.integer(x.history.length)+' روز')+'</strong></button>';}).join('')||'<p class="empty">نمادی پیدا نشد.</p>';
+ $('#list').querySelectorAll('button').forEach(function(el){el.onclick=function(){select(el.dataset.symbol,true);};});
+}
+function chart(item){
+ var rows=item.history;if(!rows.length)return '<p class="meta">تاریخچه‌ای در دسترس نیست.</p>';
+ var series=C.chartSeries(rows),values=[];series.forEach(function(s){values=values.concat(s.values.filter(function(v){return v!==null;}));});
+ if(!values.length)return '<p class="meta">مقادیر نمودار ناموجود یا خارج از دامنه‌اند؛ جدول را بررسی کنید.</p>';
+ var leverage=Array.isArray(market&&market.leveraged)&&market.leveraged.some(function(r){return r.symbol===item.symbol;});
+ var thresholds=C.thresholds(values,leverage),lo=Math.min.apply(Math,[0].concat(values,thresholds))-1,hi=Math.max.apply(Math,[0].concat(values,thresholds))+1;
+ var w=800,h=260,p=45,x=function(i){return Math.round(p+i*(w-2*p)/Math.max(1,rows.length-1));},y=function(v){return Math.round(h-p-(v-lo)*(h-2*p)/(hi-lo));};
+ var lines=[lo,0,hi].map(function(v){return '<line x1="45" x2="755" y1="'+y(v)+'" y2="'+y(v)+'" stroke="#d8e3db"/><text x="36" y="'+(y(v)+4)+'" text-anchor="end">'+esc(fmt(v,1))+'</text>';}).join('');
+ lines+=thresholds.map(function(v){return '<line class="threshold" x1="45" x2="755" y1="'+y(v)+'" y2="'+y(v)+'" stroke="#b46a40" stroke-dasharray="5 5"/><text x="755" y="'+(y(v)-5)+'" text-anchor="end">آستانه '+esc(fmt(v))+'</text>';}).join('');
+ var colors=['#247d99','#64882b','#c76a3d'];
+ var plots=series.map(function(s,i){return '<path d="'+C.path(s.values,x,y)+'" fill="none" stroke="'+colors[i]+'" stroke-width="2.5"/>'+s.values.map(function(v,j){return v===null?'':'<circle cx="'+x(j)+'" cy="'+y(v)+'" r="2.5" fill="'+colors[i]+'"><title>'+esc(rows[j].day+' : '+fmt(v))+'</title></circle>';}).join('');}).join('');
+ var labels=[0,Math.floor((rows.length-1)/2),rows.length-1].filter(function(v,i,a){return a.indexOf(v)===i;}).map(function(i){return '<text x="'+x(i)+'" y="250" text-anchor="middle">'+esc(rows[i].day)+'</text>';}).join('');
+ return '<svg class="chart" viewBox="0 0 800 260" role="img" aria-label="روند امتیاز '+esc(item.symbol)+'">'+lines+plots+labels+'</svg><p class="meta">آبی: میانگین · سبز: میانه · نارنجی: آخرین امتیاز. مقادیر خارج از ±۲۰ در نمودار رسم نشده‌اند و در جدول حفظ شده‌اند؛ نقاط گمشده به هم متصل نمی‌شوند.</p>';
+}
+function download(data,type,name){var u=URL.createObjectURL(new Blob([data],{type:type})),a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(u);},3000);}
+function select(symbol,push){
+ selected=symbol;var item=universe&&universe.bySymbol.get(symbol);render();
+ if(push)history.pushState(null,'','?symbol='+encodeURIComponent(symbol));
+ if(!item){$('#dossier').innerHTML='<div class="empty"><h2>'+(symbol?'نماد پیدا نشد':'یک نماد را انتخاب کن')+'</h2><p>از فهرست جست‌وجو و انتخاب کنید.</p></div>';return;}
+ var c=item.current,rows=item.history;
+ var fields=c?[
+ ['امتیاز',fmt(c.score)],['رتبه در نمادهای جاری',item.rank===null?'—':C.integer(item.rank)+' / '+C.integer(universe.rankedCount)],['درصد آخرین',C.number(c.last_pct)===null?'—':fmt(c.last_pct)+'٪'],
+ ['قیمت دیروز · ریال',fmt(c.yesterday_price)],['قیمت پایانی · ریال',fmt(c.close_price)],['آخرین قیمت · ریال',fmt(c.last_price)],
+ ['حجم معامله · سهم',C.integer(c.trade_volume)],['ارزش معامله · تومان',C.integer(c.trade_value_toman)],['نوع ابزار',c.instrument_type||'—'],
+ ['حجم صف خرید · سهم',C.integer(c.buy_queue_volume)],['حجم صف فروش · سهم',C.integer(c.sell_queue_volume)],['صنعت',c.industry||'—'],
+ ['ارزش صف خرید · تومان',C.integer(c.buy_queue_value_toman)],['ارزش صف فروش · تومان',C.integer(c.sell_queue_value_toman)],['روز معاملاتی',c.trading_date||'—']
+ ]:[];
+ var table=rows.map(function(r){return '<tr><td>'+esc(r.day)+'</td>'+['count','mean','median','min','max','last'].map(function(k){return '<td><bdi>'+esc(fmt(r[k]))+'</bdi></td>';}).join('')+'<td>'+esc(r.quality==='review'?'نیازمند بررسی':r.quality==='valid'?'معتبر':'نامشخص')+'</td></tr>';}).join('');
+ $('#dossier').innerHTML='<div class="dossier-head"><div><span class="tag">'+(c?'آخرین snapshot':'فقط آرشیو تاریخی')+'</span><h2>'+esc(symbol)+'</h2><p class="meta">'+(c?'زمان منبع: '+esc(stamp(c.timestamp||M.sourceTimestamp(market))):'در snapshot جاری داده‌ای برای این نماد نداریم.')+'</p></div><button class="share" id="copyLink">کپی لینک</button></div><div class="fields">'+fields.map(function(f){return '<div class="field"><span>'+esc(f[0])+'</span><b><bdi>'+esc(f[1])+'</bdi></b></div>';}).join('')+'</div><div class="chartbox"><h3>روند امتیاز در روزهای کامل</h3>'+chart(item)+'</div><div class="export-actions"><button class="share" id="csv">دانلود CSV</button><button class="share" id="json">دانلود JSON</button><a class="share" href="../history/">آرشیو و Excel</a><span class="meta">'+C.integer(rows.length)+' روز موجود؛ نبود سابقه به معنی صفر نیست.</span></div><div class="tablebox"><table><thead><tr><th>تاریخ</th><th>تعداد نمونه</th><th>میانگین</th><th>میانه</th><th>کمینه</th><th>بیشینه</th><th>آخرین</th><th>کیفیت</th></tr></thead><tbody>'+ (table||'<tr><td colspan="8">تاریخچه‌ای در دسترس نیست.</td></tr>')+'</tbody></table></div>';
+ $('#csv').disabled=!rows.length;
+ $('#csv').onclick=function(){var keys=['day','symbol','count','mean','median','min','max','last','quality'];download('\uFEFF'+C.csv([keys].concat(rows.map(function(r){return keys.map(function(k){return r[k];});}))),'text/csv;charset=utf-8',symbol+'-history.csv');};
+ $('#json').onclick=function(){download(JSON.stringify({source_timestamp:M.sourceTimestamp(market),current:c,history:rows},null,2),'application/json',symbol+'.json');};
+ $('#copyLink').onclick=function(){var el=this;if(!navigator.clipboard){el.textContent='کپی پشتیبانی نمی‌شود';return;}navigator.clipboard.writeText(location.href).then(function(){el.textContent='کپی شد';},function(){el.textContent='کپی ناموفق';});};
+}
+$('#q').oninput=render;$('#sort').onchange=render;
+window.addEventListener('popstate',function(){select(new URLSearchParams(location.search).get('symbol'),false);});
+Promise.all([load('../data/market.json'),load('../history/data/history.json')]).then(function(results){
+ market=results[0];archive=results[1];
+ if(!market||!Array.isArray(market.stocks)&&!Array.isArray(market.top_stocks))market=null;
+ if(!archive||!Array.isArray(archive.rows))archive=null;
+ universe=C.buildUniverse(market,archive);items=Array.from(universe.bySymbol.values());
+ $('#count').textContent=C.integer(items.length);$('#stamp').textContent=stamp(M.sourceTimestamp(market));
+ var age=Date.now()-Date.parse(M.sourceTimestamp(market)||''),messages=[];
+ if(!market)messages.push('دریافت snapshot جاری ناموفق بود؛ داده‌های آرشیوی جای قیمت جاری نیستند.');
+ else if(!Number.isFinite(age)||age>24*3600000||age< -300000)messages.push('snapshot قدیمی یا زمان منبع نامعتبر است؛ داده زنده محسوب نمی‌شود.');
+ if(universe.partial)messages.push('فهرست جاری کامل نیست؛ فقط نمادهای موجود در داده نمایش داده می‌شوند.');
+ if(!archive)messages.push('آرشیو در دسترس نیست؛ اطلاعات جاری همچنان قابل مشاهده است.');
+ $('#availability').textContent=messages.length?'داده با محدودیت':'snapshot دریافت شد';$('#notice').hidden=!messages.length;$('#notice').textContent=messages.join(' ');
+ render();var wanted=new URLSearchParams(location.search).get('symbol');select(wanted||null,false);
+}).catch(function(){ $('#availability').textContent='خطا در نمایش داده';$('#notice').hidden=false;$('#notice').textContent='داده قابل پردازش نیست. صفحه را دوباره بارگذاری کنید.';});
+})();
