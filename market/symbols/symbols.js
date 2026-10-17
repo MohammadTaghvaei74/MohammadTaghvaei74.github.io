@@ -93,7 +93,7 @@ function select(symbol,push){
  $('#json').onclick=function(){download(JSON.stringify({source_timestamp:M.sourceTimestamp(market),current:c,history:rows},null,2),'application/json',symbol+'.json');};
  $('#copyLink').onclick=function(){var el=this;if(!navigator.clipboard){el.textContent='کپی پشتیبانی نمی‌شود';return;}navigator.clipboard.writeText(location.href).then(function(){el.textContent='کپی شد';},function(){el.textContent='کپی ناموفق';});};
 }
-$('#q').oninput=render;$('#sort').onchange=render;$('#downloadAllArchive').onclick=function(){location.href='../history/data/market-score-history.xlsx';};
+$('#q').oninput=render;$('#sort').onchange=render;
 window.addEventListener('popstate',function(){select(new URLSearchParams(location.search).get('symbol'),false);});
 function refresh(){return Promise.all([load('../data/market.json'),load('../history/data/history.json'),load('../history/data/score-candles.json')]).then(function(results){
  market=results[0];archive=results[1];candlesArchive=results[2];candleIndex=new Map();
@@ -101,7 +101,6 @@ function refresh(){return Promise.all([load('../data/market.json'),load('../hist
  if(!market||!Array.isArray(market.stocks)&&!Array.isArray(market.top_stocks))market=null;
  if(!archive||!Array.isArray(archive.rows))archive=null;
  universe=C.buildUniverse(market,archive);items=Array.from(universe.bySymbol.values());
-  if(archive){$('#archiveDays').textContent=C.integer(archive.valid_day_count);$('#archiveRows').textContent=C.integer(archive.row_count);$('#archiveLastDay').textContent=archiveDate(archive.generated_at);}
   $('#count').textContent=C.integer(items.length);$('#stamp').textContent=stamp(M.sourceTimestamp(market));
  var age=Date.now()-Date.parse(M.sourceTimestamp(market)||''),messages=[];
  if(!market)messages.push('دریافت snapshot جاری ناموفق بود؛ داده‌های آرشیوی جای قیمت جاری نیستند.');
