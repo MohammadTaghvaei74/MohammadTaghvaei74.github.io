@@ -59,11 +59,18 @@ function validateSnapshot(data) {
   if (!sourceTimestamp(data) || Number.isNaN(new Date(sourceTimestamp(data)).getTime())) throw new Error("timestamp منبع نامعتبر است.");
   return data;
 }
+const SCORE_LIMIT = 20;
+function chartScore(value) {
+  const parsed = number(value);
+  // Scores outside the contract range are corrupt/outlier samples. Keep the
+  // date on the x-axis, but do not let one bad value flatten the whole chart.
+  return parsed !== null && Math.abs(parsed) <= SCORE_LIMIT ? parsed : null;
+}
 function chartSeries(data) {
   const daily = Array.isArray(data && data.daily) ? [...data.daily].reverse() : [];
   return {
-    market: daily.map((row) => number(row.median_score)),
-    average: daily.map((row) => number(row.average_score)),
+    market: daily.map((row) => chartScore(row.median_score)),
+    average: daily.map((row) => chartScore(row.average_score)),
     leaders: null,
   };
 }
