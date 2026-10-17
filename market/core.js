@@ -27,6 +27,14 @@ function formatPercent(value, digits = 2) {
   const parsed = number(value);
   return parsed === null ? "—" : `${formatSigned(parsed, digits)}٪`;
 }
+function closePercent(closePrice, yesterdayPrice) {
+  const close = number(closePrice), yesterday = number(yesterdayPrice);
+  return close === null || yesterday === null || yesterday === 0 ? null : ((close - yesterday) / yesterday) * 100;
+}
+function formatQueueBillion(value) {
+  const parsed = number(value);
+  return parsed === null || parsed <= 0 ? "-" : `${faDigits(Math.round(parsed / 1e9).toLocaleString("fa-IR"))}B`;
+}
 function sourceTimestamp(data) { return data && data.market && data.market.timestamp || data && data.generated_at || null; }
 function formatDate(value) {
   if (!value) return "—";
@@ -75,6 +83,6 @@ function chartSeries(data) {
   };
 }
 
-const api = { TEHRAN_TIME_ZONE, number, faDigits, formatNumber, formatInteger, formatSigned, formatPercent, sourceTimestamp, formatDate, findLeaders, allocation, validateSnapshot, chartSeries };
+const api = { TEHRAN_TIME_ZONE, number, faDigits, formatNumber, formatInteger, formatSigned, formatPercent, closePercent, formatQueueBillion, sourceTimestamp, formatDate, findLeaders, allocation, validateSnapshot, chartSeries };
 if (typeof module !== "undefined") module.exports = api;
 if (typeof window !== "undefined") window.MarketCore = api;

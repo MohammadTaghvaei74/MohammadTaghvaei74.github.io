@@ -26,6 +26,6 @@ def read_latest(conn, latest):
     if not conn.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='leveraged_snapshots'").fetchone():
         return []
     # Never silently display yesterday's rows as today's data.
-    cursor = conn.execute("SELECT timestamp,symbol,industry,score,last_pct,trade_value_toman,buy_queue_value_toman,sell_queue_value_toman FROM leveraged_snapshots WHERE timestamp=(SELECT MAX(timestamp) FROM leveraged_snapshots WHERE timestamp<=? AND trading_date=?) AND valid=1 AND trade_volume>0 ORDER BY score DESC", (latest, latest[:10]))
+    cursor = conn.execute("SELECT timestamp,symbol,industry,yesterday_price,close_price,last_price,score,last_pct,trade_value_toman,buy_queue_value_toman,sell_queue_value_toman FROM leveraged_snapshots WHERE timestamp=(SELECT MAX(timestamp) FROM leveraged_snapshots WHERE timestamp<=? AND trading_date=?) AND valid=1 AND trade_volume>0 ORDER BY score DESC", (latest, latest[:10]))
     names = [x[0] for x in cursor.description]
     return [dict(zip(names, row)) for row in cursor]

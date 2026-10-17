@@ -26,6 +26,7 @@
   const signed = (value, digits = 1) => core.formatSigned(value, digits);
   const pct = (value) => core.formatPercent(value, 2);
   const integer = (value) => core.formatInteger(value);
+  const closePct = (row) => core.closePercent(row.close_price, row.yesterday_price);
 
   function toast(message) {
     const element = $("#toast");
@@ -133,9 +134,9 @@
   function queueMarkup(row) {
     const buy = numeric(row.buy_queue_value_toman);
     const sell = numeric(row.sell_queue_value_toman);
-    if (buy !== null && buy > 0) return `<span class="queue-buy">+${escapeHtml(formatValueHmt(buy))}</span>`;
-    if (sell !== null && sell > 0) return `<span class="queue-sell">−${escapeHtml(formatValueHmt(sell))}</span>`;
-    return `<span class="pct">—</span>`;
+    if (buy !== null && buy > 0) return `<span class="queue-buy">${escapeHtml(core.formatQueueBillion(buy))}</span>`;
+    if (sell !== null && sell > 0) return `<span class="queue-sell">${escapeHtml(core.formatQueueBillion(sell))}</span>`;
+    return `<span class="pct">-</span>`;
   }
 
   function renderTopBuyQueue(data) {
@@ -160,9 +161,9 @@
       if (snapshotEvent) window.dispatchEvent(snapshotEvent);
     }
     const leveraged = Array.isArray(data.leveraged) ? data.leveraged : [];
-    const leveragedMarkup = leveraged.map((row) => `<tr><td>${escapeHtml(row.symbol)}</td><td><span class="score ${scoreClass(row.score)}">${escapeHtml(signed(row.score))}</span></td><td><span class="pct">${escapeHtml(pct(row.last_pct))}</span></td><td>${queueMarkup(row)}</td></tr>`).join("");
+    const leveragedMarkup = leveraged.map((row) => `<tr><td>${escapeHtml(row.symbol)}</td><td><span class="score ${scoreClass(row.score)}">${escapeHtml(signed(row.score))}</span></td><td><span class="pct">${escapeHtml(pct(closePct(row)))}</span></td><td>${queueMarkup(row)}</td><td><span class="pct">${escapeHtml(pct(row.last_pct))}</span></td></tr>`).join("");
     const leveragedElement = $("#leveragedStocks");
-    if (leveragedElement) leveragedElement.innerHTML = leveragedMarkup || `<tr><td colspan="4">هنوز snapshot اهرمی ثبت نشده است.</td></tr>`;
+    if (leveragedElement) leveragedElement.innerHTML = leveragedMarkup || `<tr><td colspan="5">هنوز snapshot اهرمی ثبت نشده است.</td></tr>`;
   }
 
   function renderIndustries(data) {
