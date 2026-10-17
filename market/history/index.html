@@ -10,6 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="../styles.css" />
     <link rel="stylesheet" href="history.css" />
+    <link rel="stylesheet" href="candles.css" />
     <title>آرشیو امتیاز | نبض بازار</title>
   </head>
   <body>
@@ -43,13 +44,14 @@
             <div class="history-chart-panel"><div class="chart-title"><span>روند امتیاز روزانه</span><span class="chart-hint">میانگین / میانه / آخرین مقدار</span></div><div class="history-chart-wrap"><svg id="historyChart" viewBox="0 0 900 280" role="img" aria-label="روند امتیاز روزانه نماد"></svg></div><div class="chart-legend"><span><i class="legend-line mean-line"></i> میانگین</span><span><i class="legend-line median-line"></i> میانه</span><span><i class="legend-line last-line"></i> آخرین مقدار</span></div></div>
             <div class="rows-panel"><div class="rows-heading"><div><h3>داده روزانه</h3><span id="rowQualityNote">—</span></div><button id="copyJson" type="button" class="copy-button">کپی JSON</button></div><div class="table-scroll"><table><thead><tr><th>تاریخ</th><th>تعداد نمونه</th><th>میانگین</th><th>میانه</th><th>کمینه</th><th>بیشینه</th><th>آخرین</th><th>کیفیت</th></tr></thead><tbody id="historyRows"></tbody></table></div></div>
           </div>
-          <aside class="history-aside"><article class="method-card"><span class="section-index">02</span><h3>این داده چطور ساخته شده؟</h3><p>فقط روزهایی وارد آرشیو شده‌اند که در جدول قراردادی سیستم با <b>complete = 1</b> ثبت شده‌اند.</p><ul><li><i>01</i> هر ردیف خلاصه امتیازهای همان نماد در یک روز است.</li><li><i>02</i> میانگین و میانه جداگانه حفظ شده‌اند.</li><li><i>03</i> داده پرت حذف نشده؛ فقط برچسب بررسی گرفته است.</li></ul></article><article class="days-card"><div class="days-card-head"><h3>روزهای موجود</h3><span id="daysCountLabel">—</span></div><div class="days-list" id="daysList"></div></article><div class="disclaimer">اطلاعات برای پژوهش و پایش بازار است و توصیه سرمایه‌گذاری محسوب نمی‌شود.</div></aside>
+          <aside class="history-aside candle-panel"><h3>کندل روزانه امتیاز</h3><p>اولین، بیشترین، کمترین و آخرین امتیاز مشاهده‌شده؛ بدون درون‌یابی.</p><div class="candle-scroll"><svg id="scoreCandleChart" viewBox="0 0 620 340" role="img" aria-label="کندل روزانه امتیاز نماد"></svg></div><p id="candleStatus" role="status">در حال دریافت کندل‌ها…</p><div id="candleDetails"></div><small>سبز: آخرین ≥ اولین · قرمز: آخرین &lt; اولین. پوشش ناقص به معنی روز کامل نیست. داده برای پژوهش است، نه توصیه سرمایه‌گذاری.</small></aside>
         </section>
       </main>
       <footer class="site-footer"><div><span class="brand-mark">mt<span>.</span></span><span>نبض بازار / آرشیو داده</span></div><span>منبع: دیتابیس امتیازهای معتبر</span></footer>
     </div>
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
     <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+    <script src="candles.js" defer></script>
     <script src="history.js" defer></script>
   </body>
 </html>

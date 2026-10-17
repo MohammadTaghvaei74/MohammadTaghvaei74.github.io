@@ -41,6 +41,7 @@ function renderSelected(symbol) {
   $("#selectedMeta").textContent = selectedRows.length ? `${faDigits(selectedRows.length)} روز داده · آخرین روز ${displayFullDay(selectedRows[selectedRows.length - 1].day)}` : "نماد در آرشیو پیدا نشد";
   $("#selectionStatus").textContent = selectedRows.length ? `${faDigits(selectedRows.length)} ردیف آماده دانلود است.` : "نماد دیگری را امتحان کن.";
   renderChart(selectedRows); renderTable(selectedRows);
+  if (window.renderScoreCandles) window.renderScoreCandles(symbol);
 }
 function renderDays() {
   $("#daysCountLabel").textContent = `${faDigits(archive.valid_day_count)} روز`;
@@ -55,7 +56,7 @@ function renderArchive() {
   $("#symbolInput").value = preferredSymbol();
   $("#symbolList").innerHTML = archive.symbols.map((symbol) => `<option value="${symbol}"></option>`).join("");
   renderDays(); renderSelected($("#symbolInput").value);
-}
+ }
 
 function rowsForExport() { return selectedRows.map((row) => ({ "تاریخ": row.day, "نماد": row.symbol, "تعداد نمونه": row.count, "میانگین امتیاز": row.mean, "میانه امتیاز": row.median, "کمینه": row.min, "بیشینه": row.max, "آخرین امتیاز": row.last, "کیفیت": row.quality === "review" ? "review" : "valid" })); }
 function downloadBlob(blob, filename) { const url = URL.createObjectURL(blob); const link = document.createElement("a"); link.href = url; link.download = filename; link.click(); setTimeout(() => URL.revokeObjectURL(url), 1000); }

@@ -24,17 +24,20 @@ if __package__:
     from .leveraged_snapshots import read_latest as read_leveraged
     from .chart_data import load_daily_chart_rows
     from .export_options import export_from_scores_db
+    from .score_candles import build_candles
 else:
     from export_signals import export as export_signals
     from leveraged_snapshots import read_latest as read_leveraged
     from chart_data import load_daily_chart_rows
     from export_options import export_from_scores_db
+    from score_candles import build_candles
 
 PUBLISHED_FILES = (
     "market/data/market.json",
     "market/data/signals.json",
     "market/data/options.json",
     "market/history/data/history.json",
+    "market/history/data/score-candles.json",
     "market/history/data/market-score-history.xlsx",
 )
 
@@ -323,10 +326,12 @@ def main() -> None:
     with connect() as conn:
         market = build_market(conn)
         history = build_history(conn)
+        candles = build_candles(conn)
     signal_payload = export_signals(event_db, SIGNALS_OUT)
     options_payload = export_from_scores_db(DB, OPTIONS_OUT)
     atomic_json(MARKET_OUT, market)
     atomic_json(HISTORY_OUT, history)
+    atomic_json(SITE / "market/history/data/score-candles.json", candles)
     build_xlsx(history)
     changed = git_publish(SITE, list(PUBLISHED_FILES))
     print("PUBLISHED" if changed else "NO_CHANGE", market["generated_at"], history["valid_day_count"], history["row_count"], signal_payload["status"], options_payload["status"], options_payload["counts"])
