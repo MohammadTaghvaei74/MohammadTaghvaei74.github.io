@@ -33,7 +33,7 @@ function closePercent(closePrice, yesterdayPrice) {
 }
 function formatQueueBillion(value) {
   const parsed = number(value);
-  return parsed === null || parsed <= 0 ? "-" : `${faDigits(Math.round(parsed / 1e9).toLocaleString("fa-IR"))}B`;
+  return parsed === null || parsed <= 0 ? "-" : `${faDigits(Math.round(parsed / 1e9).toLocaleString("fa-IR"))} B`;
 }
 function sourceTimestamp(data) { return data && data.market && data.market.timestamp || data && data.generated_at || null; }
 function formatDate(value) {
