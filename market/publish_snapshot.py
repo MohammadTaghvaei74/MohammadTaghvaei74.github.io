@@ -134,6 +134,11 @@ def build_market(conn: sqlite3.Connection) -> dict:
     for item in stocks:
         item["avg15_trade_value_toman"] = avg_by_symbol.get(item.get("symbol"))
         item["avg15_trade_volume"] = avg_volume_by_symbol.get(item.get("symbol"))
+    score_total = len(stocks)
+    for score_rank, item in enumerate(stocks, start=1):
+        item["score_rank"] = score_rank
+        item["score_rank_total"] = score_total
+        item["score_position_pct"] = round(score_rank / score_total * 100) if score_total else None
     enrich_stocks(stocks, datetime.fromisoformat(latest))
     queue_rows = build_queue_rows(stocks, datetime.fromisoformat(latest), conn)
     selected_industries = (
