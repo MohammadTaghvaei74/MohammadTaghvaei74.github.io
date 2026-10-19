@@ -33,7 +33,7 @@ function renderChart(rows) {
 function renderTable(rows) {
   const review = rows.filter((row) => row.quality === "review").length;
   $("#rowQualityNote").textContent = `${faDigits(rows.length)} روز برای این نماد${review ? ` · ${faDigits(review)} مورد نیازمند بررسی` : " · همه در دامنه عادی"}`;
-  $("#historyRows").innerHTML = rows.map((row) => `<tr><td>${displayFullDay(row.day)}</td><td>${integer(row.count)}</td><td class="score">${number(row.mean)}</td><td class="score">${number(row.median)}</td><td class="score low">${number(row.min)}</td><td class="score high">${number(row.max)}</td><td class="score">${number(row.last)}</td><td class="${row.quality === "review" ? "quality-review" : "quality-ok"}">${row.quality === "review" ? "نیازمند بررسی" : "معتبر"}</td></tr>`).join("") || `<tr><td colspan="8">برای این نماد داده‌ای پیدا نشد.</td></tr>`;
+  $("#historyRows").innerHTML = rows.map((row) => `<tr><td data-sort-value="${row.day}">${displayFullDay(row.day)}</td><td>${integer(row.count)}</td><td class="score">${number(row.mean)}</td><td class="score">${number(row.median)}</td><td class="score low">${number(row.min)}</td><td class="score high">${number(row.max)}</td><td class="score">${number(row.last)}</td><td class="${row.quality === "review" ? "quality-review" : "quality-ok"}">${row.quality === "review" ? "نیازمند بررسی" : "معتبر"}</td></tr>`).join("") || `<tr><td colspan="8">برای این نماد داده‌ای پیدا نشد.</td></tr>`;
 }
 function renderSelected(symbol) {
   selectedRows = symbolRows(symbol);

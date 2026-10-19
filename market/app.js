@@ -174,7 +174,7 @@
       const qualified = kind === "buy" ? parsed > 20 : parsed > 40;
       return `<span class="legal-pct ${kind} ${qualified ? "qualified" : ""}">${escapeHtml(core.formatNumber(parsed, 0) + "%")}</span>`;
     };
-    element.innerHTML = rows.map((row, index) => `<tr><td>${core.faDigits(index + 1)}</td><td><a class="ranking-symbol" href="symbols/?symbol=${encodeURIComponent(row.symbol || "")}">${escapeHtml(row.symbol)}</a></td><td><span class="queue-number">${escapeHtml(signed(row.score))}</span></td><td><span class="queue-number">${valueB(row.avg_trade_value_toman ?? row.avg15_trade_value_toman)}</span></td><td><span class="queue-number">${valueB(row.buy_queue_value_toman)}</span></td><td><span class="queue-number">${numeric(row.queue_to_avg ?? row.queue_to_avg15) === null ? "—" : `${escapeHtml(core.formatNumber(row.queue_to_avg ?? row.queue_to_avg15, 0))}×`}</span></td><td><span class="queue-number">${valueM(row.buy_per_capita_toman)}</span></td><td><span class="queue-number">${valuePower(row.buyer_power)}</span></td><td>${legalPct(row.legal_buy_pct, "buy")}</td><td>${legalPct(row.legal_sell_pct, "sell")}</td></tr>`).join("") || `<tr><td colspan="10">صف خرید معتبر برای نمایش نیست.</td></tr>`;
+    element.innerHTML = rows.map((row, index) => `<tr><td>${core.faDigits(index + 1)}</td><td><a class="ranking-symbol" href="symbols/?symbol=${encodeURIComponent(row.symbol || "")}">${escapeHtml(row.symbol)}</a></td><td><span class="queue-number">${escapeHtml(signed(row.score))}</span></td><td><span class="queue-number">${valueB(row.avg_trade_value_toman !== null && row.avg_trade_value_toman !== undefined ? row.avg_trade_value_toman : row.avg15_trade_value_toman)}</span></td><td><span class="queue-number">${valueB(row.buy_queue_value_toman)}</span></td><td><span class="queue-number">${numeric(row.queue_to_avg !== null && row.queue_to_avg !== undefined ? row.queue_to_avg : row.queue_to_avg15) === null ? "—" : `${escapeHtml(core.formatNumber(row.queue_to_avg !== null && row.queue_to_avg !== undefined ? row.queue_to_avg : row.queue_to_avg15, 0))}×`}</span></td><td><span class="queue-number">${valueM(row.buy_per_capita_toman)}</span></td><td><span class="queue-number">${valuePower(row.buyer_power)}</span></td><td>${legalPct(row.legal_buy_pct, "buy")}</td><td>${legalPct(row.legal_sell_pct, "sell")}</td></tr>`).join("") || `<tr><td colspan="10">صف خرید معتبر برای نمایش نیست.</td></tr>`;
   }
 
   function renderTables(data) {
@@ -206,7 +206,8 @@
       const wrap = leaderElement.closest('.table-scroll');
       wrap.style.height = (leaderElement.rows[9].getBoundingClientRect().bottom - wrap.getBoundingClientRect().top + wrap.scrollTop) + 'px';
     }
-    requestAnimationFrame(sizeLeaders);
+    const schedule = typeof requestAnimationFrame === "function" ? requestAnimationFrame : (callback) => window.setTimeout(callback, 0);
+    schedule(sizeLeaders);
     if (document.fonts) document.fonts.ready.then(sizeLeaders);
   }
 

@@ -76,7 +76,7 @@ test('dashboard renders missing leaders/options and preserves falsy text rather 
   assert.deepEqual(errors, []);
   assert.equal(elements.get('#signalLeaders').textContent, '—');
   assert.ok(elements.get('#optionsMessage').textContent.length > 0);
-  const symbols = Array.from(elements.get('#topStocks').innerHTML.matchAll(/<tr><td>[^<]*<\/td><td>(.*?)<\/td>/g), match => match[1]);
+  const symbols = Array.from(elements.get('#topStocks').innerHTML.matchAll(/<tr><td>(.*?)<\/td><td><span[\s\S]*?<\/span>/g), match => match[1]);
   assert.deepEqual(symbols, ['0', 'false', '', '—', '—']);
 });
 

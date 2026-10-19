@@ -89,3 +89,11 @@ td{font-size:15px}
 .queue-leaders-table .legal-pct { color: #000 !important; }
 .queue-leaders-table .legal-pct.buy.qualified { color: #008000 !important; font-weight: 700; }
 .queue-leaders-table .legal-pct.sell.qualified { color: #d00000 !important; font-weight: 700; }
+
+
+/* Shared three-state sorting: default -> descending -> ascending -> default. */
+th[role="button"]{cursor:pointer;user-select:none;white-space:nowrap;transition:color .15s ease,background .15s ease}
+th[role="button"]:hover,th[role="button"]:focus-visible{color:var(--ink);background:var(--surface-2)}
+th[role="button"]:after{content:"↕";display:inline-block;margin-inline-start:6px;color:var(--dim);font-size:.82em;opacity:.65}
+th[role="button"][aria-sort="ascending"]:after{content:"↑";color:var(--blue);opacity:1}
+th[role="button"][aria-sort="descending"]:after{content:"↓";color:var(--blue);opacity:1}
