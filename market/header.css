@@ -130,3 +130,24 @@
   .topbar + main, .top + main { scroll-margin-top: 62px; }
 }
 @media (prefers-reduced-motion: reduce) { .market-header .main-nav a::after, .topbar .main-nav a::after, .top .nav a::after { transition: none; } }
+
+
+/* SORENA WATCH brand mark: option 4, a mountain/trend signal. */
+.sorena-logo-mark {
+  display: inline-flex;
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  background: #102b30;
+  color: #e97845;
+}
+.sorena-logo-mark svg { width: 31px; height: 31px; overflow: visible; }
+.sorena-logo-mark path:first-child { fill: none; stroke: currentColor; stroke-width: 3.6; stroke-linecap: round; stroke-linejoin: round; }
+.sorena-logo-mark path:last-child { fill: none; stroke: #d8f58c; stroke-width: 2.4; stroke-linecap: round; }
+@media (max-width: 720px) {
+  .sorena-logo-mark { width: 35px; height: 35px; flex-basis: 35px; border-radius: 10px; }
+  .sorena-logo-mark svg { width: 26px; height: 26px; }
+}

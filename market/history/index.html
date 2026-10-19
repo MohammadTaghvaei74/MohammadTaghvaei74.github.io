@@ -11,12 +11,15 @@
     <link rel="stylesheet" href="../styles.css" />
     <link rel="stylesheet" href="history.css" />
     <link rel="stylesheet" href="candles.css" />
-    <title>آرشیو امتیاز | نبض بازار</title>
+    <title>SORENA WATCH | داشبورد داده‌محور بازار</title>
   </head>
   <body>
     <div class="shell history-shell">
       <header class="topbar">
-        <a class="brand" href="../" aria-label="بازگشت به نبض بازار"><span class="brand-mark">mt<span>.</span></span><span class="brand-copy"><b>نبض بازار</b><small>MARKET PULSE / DATA DESK</small></span></a>
+        <a class="brand" href="/market/" aria-label="سورنا واچ، صفحه اصلی">
+          <span class="sorena-logo-mark" aria-hidden="true"><svg viewBox="0 0 48 48" role="img"><path d="M5 36 15 20l8 8L34 10l9 26Z"/><path d="M7 40h34"/></svg></span>
+          <span class="brand-copy"><b>SORENA WATCH</b><small>MARKET INTELLIGENCE / DATA DESK</small></span>
+        </a>
         <nav class="main-nav" aria-label="ناوبری اصلی"><a href="../">نمای کلی</a><a href="../signals/">سیگنال‌ها</a><a class="active" aria-current="page" href="./">آرشیو امتیاز</a><a href="../symbols/">کاوش نماد و تاریخچه</a><a href="../industries/">صنایع و سهام</a></nav>
         <div class="topbar-actions"><span class="market-state"><i></i> آرشیو تأییدشده</span><a class="refresh-button back-button" href="../symbols/" aria-label="بازگشت به نماد و آرشیو">↗</a></div>
       </header>
@@ -47,7 +50,7 @@
           <aside class="history-aside candle-panel"><h3>کندل روزانه امتیاز</h3><p>فقط نمونه‌های معتبر از ۰۹:۱۵ تا ۱۲:۳۰ تهران؛ اولین نمونه، بیشینه، کمینه و آخرین نمونه بدون درون‌یابی.</p><div class="candle-scroll"><svg id="scoreCandleChart" viewBox="0 0 620 340" role="img" aria-label="کندل روزانه امتیاز نماد"></svg></div><p id="candleStatus" role="status">در حال دریافت کندل‌ها…</p><div id="candleDetails"></div><small>سبز: آخرین ≥ اولین · قرمز: آخرین &lt; اولین. پوشش ناقص پنجره به معنی روز معاملاتی کامل نیست. داده برای پژوهش است، نه توصیه سرمایه‌گذاری.</small></aside>
         </section>
       </main>
-      <footer class="site-footer"><div><span class="brand-mark">mt<span>.</span></span><span>نبض بازار / آرشیو داده</span></div><span>منبع: دیتابیس امتیازهای معتبر</span></footer>
+      <footer class="site-footer"><div><span class="sorena-logo-mark" aria-hidden="true"><svg viewBox="0 0 48 48"><path d="M5 36 15 20l8 8L34 10l9 26Z"/><path d="M7 40h34"/></svg></span><span>نبض بازار / آرشیو داده</span></div><span>منبع: دیتابیس امتیازهای معتبر</span></footer>
     </div>
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
     <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
