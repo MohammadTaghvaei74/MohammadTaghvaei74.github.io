@@ -164,17 +164,17 @@
     const rows = Array.isArray(data.top_buy_queue) ? data.top_buy_queue : [];
     const element = $("#topBuyQueue");
     if (!element) return;
-    const valueB = (v) => numeric(v) === null ? "—" : escapeHtml(core.formatBillionToman(v));
+    const valueB = (v) => numeric(v) === null ? "—" : escapeHtml(core.formatNumber(numeric(v) / 1000000000, 0));
     const valuePct = (v) => numeric(v) === null ? "—" : escapeHtml(core.formatNumber(v, 0) + "%");
-    const valueM = (v) => numeric(v) === null ? "—" : escapeHtml(core.formatMillionToman(v));
-    const valuePower = (v) => numeric(v) === null ? "—" : escapeHtml(core.formatNumber(v, 1));
+    const valueM = (v) => numeric(v) === null ? "—" : escapeHtml(core.formatNumber(numeric(v) / 1000000, 0));
+    const valuePower = (v) => numeric(v) === null ? "—" : escapeHtml(core.formatNumber(v, 0));
     const legalPct = (v, kind) => {
       const parsed = numeric(v);
       if (parsed === null) return `<span class="legal-pct">—</span>`;
       const qualified = kind === "buy" ? parsed > 20 : parsed > 40;
       return `<span class="legal-pct ${kind} ${qualified ? "qualified" : ""}">${escapeHtml(core.formatNumber(parsed, 0) + "%")}</span>`;
     };
-    element.innerHTML = rows.map((row, index) => `<tr><td>${core.faDigits(index + 1)}</td><td><a class="ranking-symbol" href="symbols/?symbol=${encodeURIComponent(row.symbol || "")}">${escapeHtml(row.symbol)}</a></td><td><span class="queue-number">${escapeHtml(signed(row.score))}</span></td><td><span class="queue-number">${valueB(row.avg_trade_value_toman ?? row.avg15_trade_value_toman)}</span></td><td><span class="queue-number">${valueB(row.buy_queue_value_toman)}</span></td><td><span class="queue-number">${numeric(row.queue_to_avg ?? row.queue_to_avg15) === null ? "—" : `${escapeHtml(core.formatNumber(row.queue_to_avg ?? row.queue_to_avg15, 1))}×`}</span></td><td><span class="queue-number">${valueM(row.buy_per_capita_toman)}</span></td><td><span class="queue-number">${valuePower(row.buyer_power)}</span></td><td>${legalPct(row.legal_buy_pct, "buy")}</td><td>${legalPct(row.legal_sell_pct, "sell")}</td></tr>`).join("") || `<tr><td colspan="10">صف خرید معتبر برای نمایش نیست.</td></tr>`;
+    element.innerHTML = rows.map((row, index) => `<tr><td>${core.faDigits(index + 1)}</td><td><a class="ranking-symbol" href="symbols/?symbol=${encodeURIComponent(row.symbol || "")}">${escapeHtml(row.symbol)}</a></td><td><span class="queue-number">${escapeHtml(signed(row.score))}</span></td><td><span class="queue-number">${valueB(row.avg_trade_value_toman ?? row.avg15_trade_value_toman)}</span></td><td><span class="queue-number">${valueB(row.buy_queue_value_toman)}</span></td><td><span class="queue-number">${numeric(row.queue_to_avg ?? row.queue_to_avg15) === null ? "—" : `${escapeHtml(core.formatNumber(row.queue_to_avg ?? row.queue_to_avg15, 0))}×`}</span></td><td><span class="queue-number">${valueM(row.buy_per_capita_toman)}</span></td><td><span class="queue-number">${valuePower(row.buyer_power)}</span></td><td>${legalPct(row.legal_buy_pct, "buy")}</td><td>${legalPct(row.legal_sell_pct, "sell")}</td></tr>`).join("") || `<tr><td colspan="10">صف خرید معتبر برای نمایش نیست.</td></tr>`;
   }
 
   function renderTables(data) {
