@@ -80,7 +80,9 @@
     const marker = $("#allocationMarker");
     if (marker) {
       marker.hidden = allocation.gap === null;
-      marker.style.left = allocation.gap === null ? "50%" : `${Math.max(5, Math.min(95, 50 + allocation.gap * 12))}%`;
+      // In RTL layout the visual order is هم‌وزن (left) → لیدرها (right).
+      // A positive market-vs-leaders gap means stronger هم‌وزن, so move left.
+      marker.style.left = allocation.gap === null ? "50%" : `${Math.max(5, Math.min(95, 50 - allocation.gap * 12))}%`;
     }
     setStatus(freshnessLabel(data), sourceAge(core.sourceTimestamp(data)) > 24 * 60 * 60 * 1000 ? "stale" : "normal");
   }

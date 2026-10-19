@@ -34,6 +34,11 @@ test('allocation uses exact server thresholds and never recommends a signal', ()
   }
 });
 
+test('allocation labels match the two slider ends', () => {
+  assert.equal(core.allocation(2, 0.9).label, 'تمایل قوی به هم‌وزن');
+  assert.equal(core.allocation(0, 1.5).label, 'تمایل قوی به لیدرها');
+});
+
 test('snapshot validation requires arrays and uses market source timestamp', () => {
   const valid = { schema_version: 1, source: 'x', generated_at: 'not-used', market: { timestamp: '2026-10-14T12:30:00+03:30' }, groups: [], top_stocks: [], leveraged: [], industries: [], daily: [] };
   assert.equal(core.validateSnapshot(valid), valid);
