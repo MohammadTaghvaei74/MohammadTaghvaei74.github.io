@@ -139,6 +139,10 @@
 .chart-rest { stroke: var(--blue); stroke-dasharray: 2 5; }
 .leaders-line { background: var(--orange); }
 .rest-line { background: var(--blue); }
+.market-line { background: #388268; }
+.legend-leaders { color: var(--orange); }
+.legend-rest { color: var(--blue); }
+.legend-market { color: #388268; }
 .mobile-title { display: none; }
 @media (max-width: 720px) {
   .hero-block h1 { font-size: 23px; line-height: 1.4; letter-spacing: -.5px; }

@@ -42,3 +42,19 @@ def test_both_exporters_compute_three_raw_medians_with_unequal_cohort_sizes(tmp_
     assert row['score_snapshot_timestamp'] == '2026-10-14T12:00:00+03:30'
     assert (row['leader_score_count'], row['rest_score_count'], row['market_score_count']) == (2, 3, 5)
     conn.close()
+
+
+def test_intraday_chart_excludes_prior_days_and_pre_open_samples(tmp_path):
+    db = tmp_path / 'scores.db'
+    conn = make_scores_db(db)
+    seed_market(conn, '2026-10-19')
+    add_scores(conn, '2026-10-18', [('فولاد', 99, 1, 1)], time='12:00:00')
+    add_scores(conn, '2026-10-19', [('فولاد', 4, 1, 1), ('A', 2, 1, 1)], time='09:10:00')
+    add_scores(conn, '2026-10-19', [('فولاد', 3, 1, 1), ('A', 1, 1, 1)], time='09:15:00')
+    add_scores(conn, '2026-10-19', [('فولاد', 5, 1, 1), ('A', 3, 1, 1)], time='10:00:00')
+    conn.commit()
+    rows = publish_snapshot.load_intraday_chart_rows(conn, '2026-10-19')
+    assert [row['time'] for row in rows] == ['09:15', '10:00']
+    assert rows[0]['median_score'] == 2
+    assert rows[1]['median_score'] == 4
+    conn.close()

@@ -64,10 +64,10 @@
           <article class="panel pulse-panel">
             <div class="panel-heading">
               <div><span class="section-index">01</span><h2>نبض بازار</h2></div>
-              <span class="panel-note">روند میانه امتیاز روزانه</span>
+              <span class="panel-note">تغییرات امتیاز از شروع امروز</span>
             </div>
             <div class="chart-wrap"><svg id="marketChart" viewBox="0 0 760 265" role="img" aria-label="روند میانه امتیاز بازار"></svg></div>
-            <div class="chart-legend"><span><i class="legend-line leaders-line"></i> میانه لیدرها</span><span><i class="legend-line rest-line"></i> میانه بقیه بازار</span><span><i class="legend-line market-line"></i> میانه کل بازار</span><span class="chart-caption">امتیاز، نه سیگنال خرید · میانه‌ها از snapshot معتبر پایان هر روز محاسبه شده‌اند.</span></div>
+            <div class="chart-legend"><span class="legend-leaders"><i class="legend-line leaders-line"></i> میانه لیدرها</span><span class="legend-rest"><i class="legend-line rest-line"></i> میانه بقیه بازار</span><span class="legend-market"><i class="legend-line market-line"></i> میانه کل بازار</span><span class="chart-caption">فقط snapshotهای معتبر امروز، از ۰۹:۱۵ تا آخرین داده · روزهای قبل نمایش داده نمی‌شوند.</span></div>
           </article>
           <aside class="panel signal-panel">
             <div class="panel-heading"><div><span class="section-index">02</span><h2>مقایسه تخصیص</h2></div><span class="tiny-label">بازار / لیدر</span></div>
@@ -101,7 +101,14 @@
 
         <section class="content-section industries-section" id="industries">
           <div class="section-heading"><div><span class="section-index">05</span><h2>نقشه صنایع</h2></div><p>مرتب‌سازی بر اساس میانه امتیاز · <a href="industries/">مشاهده همه صنایع و سهام هر صنعت ←</a></p></div>
-          <div class="industry-grid" id="industriesGrid"></div>
+          <article class="table-panel industry-table-panel">
+            <div class="table-scroll industry-table-scroll">
+              <table class="industry-table" aria-label="رتبه‌بندی صنایع بر اساس میانه صنعت">
+                <thead><tr><th>رتبه صنعت</th><th>اسم صنعت</th><th>تعداد سهامی که توش هست</th><th>میانه صنعت</th></tr></thead>
+                <tbody id="industriesGrid"></tbody>
+              </table>
+            </div>
+          </article>
         </section>
 
         <section class="options-section" id="options">

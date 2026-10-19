@@ -27,14 +27,14 @@ from xml.sax.saxutils import escape
 if __package__:
     from .export_signals import export as export_signals
     from .leveraged_snapshots import read_latest as read_leveraged
-    from .chart_data import load_daily_chart_rows
+    from .chart_data import load_daily_chart_rows, load_intraday_chart_rows
     from .export_options import export_from_scores_db
     from .score_candles import build_candles
     from .tsetmc_enrichment import enrich_stocks
 else:
     from export_signals import export as export_signals
     from leveraged_snapshots import read_latest as read_leveraged
-    from chart_data import load_daily_chart_rows
+    from chart_data import load_daily_chart_rows, load_intraday_chart_rows
     from export_options import export_from_scores_db
     from score_candles import build_candles
     from tsetmc_enrichment import enrich_stocks
@@ -152,6 +152,7 @@ def build_market(conn: sqlite3.Connection) -> dict:
         (latest, *selected_industries),
     )]
     daily = load_daily_chart_rows(conn)
+    intraday = load_intraday_chart_rows(conn, latest[:10])
     return {
         "schema_version": 1,
         "source": "scores_history.db",
@@ -164,6 +165,7 @@ def build_market(conn: sqlite3.Connection) -> dict:
         "leveraged": read_leveraged(conn, latest),
         "industries": industries,
         "daily": daily,
+        "intraday": intraday,
         "options": {"status": "connecting", "message": "داده معتبر آپشن بعد از نهایی شدن قرارداد داده اضافه می‌شود."},
     }
 

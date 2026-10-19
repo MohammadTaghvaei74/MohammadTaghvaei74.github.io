@@ -68,4 +68,38 @@ def load_daily_chart_rows(conn: sqlite3.Connection, limit: int = 7) -> list[dict
     return daily_median_fields(conn, rows)
 
 
-__all__ = ["LEADER_SYMBOLS", "daily_median_fields", "load_daily_chart_rows"]
+def load_intraday_chart_rows(conn: sqlite3.Connection, trading_date: str, start_time: str = "09:15") -> list[dict[str, Any]]:
+    """Return only today's score movement, grouped by observed snapshot time.
+
+    The chart must not mix finalized prior days with the live session. A point is
+    emitted only when it has valid, traded rows with a score; missing cohorts stay
+    null rather than being filled from another timestamp.
+    """
+    rows = conn.execute(
+        """SELECT timestamp, symbol, score FROM stock_snapshots
+           WHERE trading_date=? AND valid=1 AND trade_volume>0 AND score IS NOT NULL
+             AND substr(timestamp, 12, 5) >= ?
+           ORDER BY timestamp, symbol""",
+        (trading_date, start_time),
+    ).fetchall()
+    grouped: dict[str, list[tuple[str, float]]] = {}
+    for timestamp, symbol, score in rows:
+        grouped.setdefault(str(timestamp), []).append((str(symbol), float(score)))
+    result = []
+    for timestamp, values in grouped.items():
+        leaders = [score for symbol, score in values if symbol in LEADER_SYMBOLS]
+        rest = [score for symbol, score in values if symbol not in LEADER_SYMBOLS]
+        result.append({
+            "timestamp": timestamp,
+            "time": timestamp[11:16],
+            "leader_median_score": _median(leaders),
+            "rest_median_score": _median(rest),
+            "median_score": _median([score for _, score in values]),
+            "leader_score_count": len(leaders),
+            "rest_score_count": len(rest),
+            "market_score_count": len(values),
+        })
+    return result
+
+
+__all__ = ["LEADER_SYMBOLS", "daily_median_fields", "load_daily_chart_rows", "load_intraday_chart_rows"]

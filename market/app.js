@@ -100,12 +100,17 @@
   function renderChart(data) {
     const svg = $("#marketChart");
     if (!svg) return;
-    const days = [...(Array.isArray(data.daily) ? data.daily : [])].reverse();
-    const series = core.chartSeries(data);
+    const points = Array.isArray(data.intraday) ? data.intraday : [];
+    const days = points;
+    const series = {
+      leaders: points.map((row) => row.leader_median_score),
+      rest: points.map((row) => row.rest_median_score),
+      market: points.map((row) => row.median_score),
+    };
     const actualValues = [series.leaders, series.rest, series.market].flat().map(numeric).filter((value) => value !== null);
     const width = 760, height = 265, pad = { top: 18, right: 14, bottom: 32, left: 38 };
     if (!actualValues.length) {
-      svg.innerHTML = `<text class="chart-empty" x="380" y="130" text-anchor="middle">داده تاریخی بازار موجود نیست.</text>`;
+      svg.innerHTML = `<text class="chart-empty" x="380" y="130" text-anchor="middle">دادهٔ امروز از ۰۹:۱۵ هنوز موجود نیست.</text>`;
       return;
     }
     const min = Math.min(-3, ...actualValues) - .4;
@@ -119,7 +124,7 @@
     // Do not bridge missing samples with a filled area.
     const areaPath = marketPath && series.market.every((value) => value !== null) ? `${marketPath} L ${x(days.length - 1)},${zeroY} L ${x(0)},${zeroY} Z` : "";
     const grid = [-3, 0, 3].map((tick) => `<line class="${tick === 0 ? "chart-zero" : "chart-grid-line"}" x1="${pad.left}" x2="${width - pad.right}" y1="${y(tick)}" y2="${y(tick)}"/><text class="chart-label" x="${pad.left - 9}" y="${y(tick) + 4}" text-anchor="end">${core.faDigits(tick)}</text>`).join("");
-    const labels = days.map((day, index) => `<text class="chart-label" x="${x(index)}" y="${height - 8}" text-anchor="middle">${escapeHtml(core.faDigits(String(day.trading_date || "").slice(5)))}</text>`).join("");
+    const labels = days.map((point, index) => `<text class="chart-label" x="${x(index)}" y="${height - 8}" text-anchor="middle">${escapeHtml(core.faDigits(String(point.time || "").slice(0, 5)))}</text>`).join("");
     const leadersMarkup = leadersPath ? `<path class="chart-path chart-leaders" d="${leadersPath}"/>` : "";
     const restMarkup = restPath ? `<path class="chart-path chart-rest" d="${restPath}"/>` : "";
     svg.innerHTML = `<defs><linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b8df55" stop-opacity=".25"/><stop offset="1" stop-color="#b8df55" stop-opacity="0"/></linearGradient></defs>${grid}${labels}${areaPath ? `<path class="chart-area" d="${areaPath}"/>` : ""}${leadersMarkup}${restMarkup}<path class="chart-path chart-market" d="${marketPath}"/>`;
@@ -189,17 +194,13 @@
 
   function renderIndustries(data) {
     const rows = Array.isArray(data.industries) ? data.industries : [];
-    const values = rows.map((row) => numeric(row.median)).filter((value) => value !== null);
-    const max = Math.max(...values.map(Math.abs), 1);
     const markup = rows.map((row, index) => {
       const score = numeric(row.median);
       const positive = score === null || score >= 0;
-      const color = positive ? "var(--lime-2)" : "var(--red)";
-      const scale = score === null ? .12 : Math.max(.12, Math.abs(score) / max);
-      return `<article class="industry-card" style="--bar-color:${color};--bar-scale:${scale}"><div class="industry-head"><span class="industry-name">${escapeHtml(row.industry || "بدون صنعت")}</span><span class="industry-rank">${core.faDigits(index + 1)} / ${core.faDigits(rows.length)}</span></div><div class="industry-score ${positive ? "" : "negative"}">${escapeHtml(signed(score))}</div><div class="industry-detail"><span>${escapeHtml(integer(row.count))} نماد</span><span>خالص صف: ${escapeHtml(signed(row.net_queue_hmt, 2))} همت</span></div></article>`;
+      return `<tr><td class="industry-rank-cell">${core.faDigits(index + 1)}</td><td class="industry-name-cell">${escapeHtml(row.industry || "بدون صنعت")}</td><td>${escapeHtml(integer(row.count))}</td><td><span class="industry-median ${positive ? "" : "negative"}">${escapeHtml(signed(score))}</span></td></tr>`;
     }).join("");
     const element = $("#industriesGrid");
-    if (element) element.innerHTML = markup || `<div class="industry-card">داده صنعت هنوز آماده نیست.</div>`;
+    if (element) element.innerHTML = markup || `<tr><td colspan="4" class="industry-empty">داده صنعت هنوز آماده نیست.</td></tr>`;
   }
 
   const optionsNumber = (value, digits = 0) => { const parsed = numeric(value); return parsed === null ? "—" : core.faDigits(parsed.toLocaleString("fa-IR", { maximumFractionDigits: digits, minimumFractionDigits: digits })); };
