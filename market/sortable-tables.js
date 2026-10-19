@@ -62,6 +62,7 @@
     var ordered = state.direction === "none" ? state.defaultOrder.slice() : rows.slice().sort(function (a, b) { return compareRows(a, b, state.column, state.direction); });
     var body = table.tBodies[0];
     state.applying = true;
+    state.ignoreNextMutation = true;
     ordered.forEach(function (row) { body.appendChild(row); });
     setRank(table, ordered, state);
     Array.prototype.forEach.call(table.tHead.rows[0].cells, function (header) {
@@ -76,7 +77,7 @@
     if (tableStates.has(table)) return;
     var headers = table.tHead && table.tHead.rows[0] ? Array.prototype.slice.call(table.tHead.rows[0].cells) : [];
     if (!headers.length || !table.tBodies.length) return;
-    var state = { column: -1, direction: "none", defaultOrder: rowsOf(table), applying: false };
+    var state = { column: -1, direction: "none", defaultOrder: rowsOf(table), applying: false, ignoreNextMutation: false };
     state.defaultOrder.forEach(function (row, index) { row._defaultIndex = index; });
     tableStates.set(table, state);
     headers.forEach(function (header, index) {
@@ -99,6 +100,7 @@
     var body = table.tBodies[0];
     new MutationObserver(function () {
       if (state.applying) return;
+      if (state.ignoreNextMutation) { state.ignoreNextMutation = false; return; }
       var current = rowsOf(table);
       if (state.direction === "none") {
         state.defaultOrder = current;
