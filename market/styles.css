@@ -18,6 +18,20 @@ body{background-color:#061116;background-image:radial-gradient(circle at 12% 18%
 .section-heading h2,.panel h2,.table-title h3{font-weight:650}.options-section{position:relative;overflow:hidden}.options-section:before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent 0 49%,rgba(127,216,239,.045) 50%,transparent 51%);pointer-events:none}.options-copy,.options-visual{position:relative;z-index:1}
 @media(max-width:720px){.topbar{position:relative}.hero-block:after{display:none}.hero-block h1{letter-spacing:-2px}.metric-card:hover,.panel:hover,.table-panel:hover,.industry-card:hover{transform:none}}
 
+/* Industry ranking: compact data table instead of decorative cards. */
+.industry-table-panel{overflow:hidden;border-radius:16px;background:#fff;box-shadow:0 16px 35px rgba(38,73,60,.09)}
+.industry-table-scroll{overflow-x:auto}
+.industry-table{width:100%;min-width:620px;border-collapse:collapse;color:#173b3f;background:#fff;font-size:12px}
+.industry-table thead th{padding:14px 18px;background:#173b3f;color:#f5faef;font-weight:700;text-align:right;white-space:nowrap}
+.industry-table tbody td{padding:14px 18px;border-bottom:1px solid #e2ebe5;text-align:right;vertical-align:middle}
+.industry-table tbody tr:last-child td{border-bottom:0}
+.industry-table tbody tr:hover{background:#f5f8f2}
+.industry-rank-cell{width:130px;color:#607571;font-weight:800;text-align:center!important}
+.industry-name-cell{font-weight:700;min-width:260px}
+.industry-median{color:#388268;font-weight:800;direction:ltr;unicode-bidi:isolate;display:inline-block}
+.industry-median.negative{color:#c6535b}
+.industry-empty{text-align:center!important;color:#607571;padding:24px!important}
+
 /* V2 visual direction: a warmer editorial data desk, visibly distinct from the
    original dark-green wireframe while keeping the same data contract. */
 :root{--bg:#f4f6ef;--surface:#ffffff;--surface-2:#eef4ea;--surface-3:#e5eee2;--ink:#102b30;--muted:#5e7472;--dim:#82938f;--line:#d6e1d9;--lime:#b8df55;--lime-2:#9bc93f;--orange:#e97845;--blue:#3b9fba;--red:#d85c68;--green:#33966b}
