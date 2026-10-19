@@ -54,3 +54,17 @@ th{font-size:14px;font-weight:600}
 td{font-size:15px}
 .section-heading p,.table-note,.panel-note,.source-time{font-size:14px}
 @media(max-width:720px){body{font-size:15px}.main-nav{font-size:13px}.market-state{font-size:13px}th{font-size:13px}td{font-size:14px}}
+
+/* Queue table numeric presentation: all numeric values black; legal columns are conditional. */
+.queue-leaders-table td .queue-number,
+.queue-leaders-table td .queue-number *,
+.queue-leaders-table td:first-child,
+.queue-leaders-table td:nth-child(3),
+.queue-leaders-table td:nth-child(4),
+.queue-leaders-table td:nth-child(5),
+.queue-leaders-table td:nth-child(6),
+.queue-leaders-table td:nth-child(7),
+.queue-leaders-table td:nth-child(8) { color: #000 !important; }
+.queue-leaders-table .legal-pct { color: #000 !important; }
+.queue-leaders-table .legal-pct.buy.qualified { color: #008000 !important; font-weight: 700; }
+.queue-leaders-table .legal-pct.sell.qualified { color: #d00000 !important; font-weight: 700; }

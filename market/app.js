@@ -146,7 +146,13 @@
     const valuePct = (v) => numeric(v) === null ? "—" : escapeHtml(core.formatNumber(v, 0) + "%");
     const valueM = (v) => numeric(v) === null ? "—" : escapeHtml(core.formatMillionToman(v));
     const valuePower = (v) => numeric(v) === null ? "—" : escapeHtml(core.formatNumber(v, 1));
-    element.innerHTML = rows.map((row, index) => `<tr><td>${core.faDigits(index + 1)}</td><td><a class="ranking-symbol" href="symbols/?symbol=${encodeURIComponent(row.symbol || "")}">${escapeHtml(row.symbol)}</a></td><td><span class="score ${scoreClass(row.score)}">${escapeHtml(signed(row.score))}</span></td><td>${valueB(row.avg_trade_value_toman ?? row.avg15_trade_value_toman)}</td><td><span class="queue-buy">${valueB(row.buy_queue_value_toman)}</span></td><td>${numeric(row.queue_to_avg ?? row.queue_to_avg15) === null ? "—" : `${escapeHtml(core.formatNumber(row.queue_to_avg ?? row.queue_to_avg15, 1))}×`}</td><td>${valueM(row.buy_per_capita_toman)}</td><td>${valuePower(row.buyer_power)}</td><td>${valuePct(row.legal_buy_pct)}</td><td>${valuePct(row.legal_sell_pct)}</td></tr>`).join("") || `<tr><td colspan="10">صف خرید معتبر برای نمایش نیست.</td></tr>`;
+    const legalPct = (v, kind) => {
+      const parsed = numeric(v);
+      if (parsed === null) return `<span class="legal-pct">—</span>`;
+      const qualified = kind === "buy" ? parsed > 20 : parsed > 40;
+      return `<span class="legal-pct ${kind} ${qualified ? "qualified" : ""}">${escapeHtml(core.formatNumber(parsed, 0) + "%")}</span>`;
+    };
+    element.innerHTML = rows.map((row, index) => `<tr><td>${core.faDigits(index + 1)}</td><td><a class="ranking-symbol" href="symbols/?symbol=${encodeURIComponent(row.symbol || "")}">${escapeHtml(row.symbol)}</a></td><td><span class="queue-number">${escapeHtml(signed(row.score))}</span></td><td><span class="queue-number">${valueB(row.avg_trade_value_toman ?? row.avg15_trade_value_toman)}</span></td><td><span class="queue-number">${valueB(row.buy_queue_value_toman)}</span></td><td><span class="queue-number">${numeric(row.queue_to_avg ?? row.queue_to_avg15) === null ? "—" : `${escapeHtml(core.formatNumber(row.queue_to_avg ?? row.queue_to_avg15, 1))}×`}</span></td><td><span class="queue-number">${valueM(row.buy_per_capita_toman)}</span></td><td><span class="queue-number">${valuePower(row.buyer_power)}</span></td><td>${legalPct(row.legal_buy_pct, "buy")}</td><td>${legalPct(row.legal_sell_pct, "sell")}</td></tr>`).join("") || `<tr><td colspan="10">صف خرید معتبر برای نمایش نیست.</td></tr>`;
   }
 
   function renderTables(data) {
