@@ -109,11 +109,23 @@
   }
 
   function pathFor(values, x, y) {
+    const points = values.map((value, index) => numeric(value) === null ? null : {x: x(index), y: y(value)});
     let path = "";
-    values.forEach((value, index) => {
-      if (numeric(value) === null) return;
-      const command = index > 0 && numeric(values[index - 1]) !== null ? "L" : "M";
-      path += `${command}${x(index).toFixed(1)},${y(value).toFixed(1)} `;
+    points.forEach((point, index) => {
+      if (!point) return;
+      const previous = points[index - 1];
+      const next = points[index + 1];
+      if (!previous) {
+        path += `M${point.x.toFixed(1)},${point.y.toFixed(1)} `;
+        return;
+      }
+      const before = points[index - 2] || previous;
+      const after = next || point;
+      const cp1x = previous.x + (point.x - before.x) / 6;
+      const cp1y = previous.y + (point.y - before.y) / 6;
+      const cp2x = point.x - (after.x - previous.x) / 6;
+      const cp2y = point.y - (after.y - previous.y) / 6;
+      path += `C${cp1x.toFixed(1)},${cp1y.toFixed(1)} ${cp2x.toFixed(1)},${cp2y.toFixed(1)} ${point.x.toFixed(1)},${point.y.toFixed(1)} `;
     });
     return path.trim();
   }
@@ -205,18 +217,32 @@
     const step = plotWidth / Math.max(days.length - 1, 1);
     const hitArea = `<rect class="chart-hit-area" x="${pad.left}" y="${pad.top}" width="${plotWidth}" height="${height - pad.top - pad.bottom}" tabindex="0" aria-label="نقاط نمودار امتیاز"/>`;
     svg.innerHTML = `<defs><linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b8df55" stop-opacity=".25"/><stop offset="1" stop-color="#b8df55" stop-opacity="0"/></linearGradient></defs>${grid}${labels}${areaPath ? `<path class="chart-area" d="${areaPath}"/>` : ""}${leadersMarkup}<path class="chart-path chart-market" d="${marketPath}"/><line class="chart-crosshair" x1="${x(0)}" x2="${x(0)}" y1="${pad.top}" y2="${height - pad.bottom}"/>${hitArea}`;
+    const chartWrap = svg.parentElement;
+    let tooltip = chartWrap && chartWrap.querySelector(".chart-tooltip-html");
+    if (!tooltip && chartWrap) {
+      tooltip = document.createElement("div");
+      tooltip.className = "chart-tooltip-html";
+      tooltip.hidden = true;
+      chartWrap.appendChild(tooltip);
+    }
     let lastTooltipIndex = -1;
     const showTooltip = (index) => {
       if (index === lastTooltipIndex) return;
       lastTooltipIndex = index;
       const crosshair = svg.querySelector(".chart-crosshair");
       if (crosshair) { crosshair.setAttribute("x1", x(index)); crosshair.setAttribute("x2", x(index)); }
-      const current = svg.querySelector(".chart-tooltip");
-      const nextMarkup = chartTooltipMarkup(index, days, series, x, y);
-      if (current) {
-        const next = document.createRange().createContextualFragment(nextMarkup).firstElementChild;
-        current.replaceWith(next);
-      } else if (crosshair) crosshair.insertAdjacentHTML("afterend", nextMarkup);
+      if (tooltip) {
+        const point = days[index] || {};
+        const market = numeric(series.market[index]);
+        const leaders = numeric(series.leaders[index]);
+        tooltip.innerHTML = `<strong>ساعت ${core.faDigits(String(point.time || "—").slice(0, 5))}</strong><span class="market-value">کل بازار: ${market === null ? "—" : escapeHtml(signed(market, 2))}</span><span class="leader-value">لیدرها: ${leaders === null ? "—" : escapeHtml(signed(leaders, 2))}</span>`;
+        const box = svg.getBoundingClientRect();
+        const wrapBox = chartWrap.getBoundingClientRect();
+        tooltip.hidden = false;
+        tooltip.style.left = `${(x(index) / width) * box.width + (box.left - wrapBox.left)}px`;
+        const anchor = market === null ? (leaders === null ? 0 : leaders) : market;
+        tooltip.style.top = `${(y(anchor) / height) * box.height + (box.top - wrapBox.top)}px`;
+      }
     };
     const hitAreaElement = svg.querySelector(".chart-hit-area");
     const moveTooltip = (event) => {

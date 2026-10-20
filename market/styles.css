@@ -15,7 +15,7 @@
 .chart-tooltip.active{opacity:1}
 .chart-tooltip rect{fill:#07131a;stroke:#fff;stroke-width:1;filter:drop-shadow(0 4px 8px rgba(0,0,0,.3))}
 .chart-tooltip-title,.chart-tooltip-value{fill:#fff;font:600 12px var(--fa)}
-.chart-tooltip-value{font-weight:500}
+.chart-tooltip-value{font-weight:500}.chart-wrap{position:relative}.chart-tooltip-html{position:absolute;z-index:5;transform:translate(14px,-50%);pointer-events:none;min-width:190px;padding:10px 13px;border:1px solid #fff;border-radius:8px;background:#07131a;color:#fff;box-shadow:0 4px 12px rgba(0,0,0,.22);font:600 12px var(--fa);direction:rtl;text-align:right;white-space:nowrap}.chart-tooltip-html[hidden]{display:none}.chart-tooltip-html strong,.chart-tooltip-html span{display:block}.chart-tooltip-html strong{margin-bottom:4px}.chart-tooltip-html .market-value{color:#d8f58c}.chart-tooltip-html .leader-value{color:#ffae73}
 .leader-panel .table-scroll{overflow-y:auto;height:500px!important;max-height:500px;scrollbar-width:thin;scrollbar-color:var(--blue) var(--surface-2)}
 .leader-panel .table-scroll::-webkit-scrollbar{width:7px}
 .leader-panel .table-scroll::-webkit-scrollbar-track{background:var(--surface-2)}
