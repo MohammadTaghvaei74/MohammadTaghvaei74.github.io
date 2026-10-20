@@ -468,7 +468,12 @@ def main() -> None:
         intraday_symbols = build_intraday_symbols(conn, market["generated_at"][:10])
         if write_symbol_history is not None:
             source_rows = market.get("comprehensive_stocks") or market.get("stocks", [])
-            write_symbol_history(conn, (row.get("symbol") for row in source_rows), SYMBOL_HISTORY_DIR / "history")
+            symbols = {row.get("symbol") for row in source_rows if row.get("symbol")}
+            try:
+                symbols.update(row[0] for row in conn.execute("SELECT DISTINCT symbol FROM history WHERE symbol IS NOT NULL"))
+            except sqlite3.OperationalError:
+                pass
+            write_symbol_history(conn, symbols, SYMBOL_HISTORY_DIR / "history")
     signal_payload = export_signals(event_db, SIGNALS_OUT)
     options_payload = export_from_scores_db(DB, OPTIONS_OUT)
     atomic_json(MARKET_OUT, market)
