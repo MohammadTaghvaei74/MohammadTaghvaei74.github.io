@@ -107,3 +107,24 @@ th[role="button"]:hover,th[role="button"]:focus-visible{color:var(--ink);backgro
 th[role="button"]:after{content:"↕";display:inline-block;margin-inline-start:6px;color:var(--dim);font-size:.82em;opacity:.65}
 th[role="button"][aria-sort="ascending"]:after{content:"↑";color:var(--blue);opacity:1}
 th[role="button"][aria-sort="descending"]:after{content:"↓";color:var(--blue);opacity:1}
+
+
+/* Compact score comparison: queue data and the two-score slider share the top row. */
+@media (min-width: 721px) {
+  .metric-grid { grid-template-columns: minmax(0, 1fr) minmax(360px, .72fr); max-width: none; }
+  .compact-signal-panel { min-height: 168px; padding: 24px; display: flex; flex-direction: column; justify-content: center; }
+  .compact-signal-panel .allocation-bar { margin: 0 0 18px; }
+  .compact-signal-panel .signal-list { margin-top: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; border-top: 0; }
+  .compact-signal-panel .signal-list div { padding: 0; border-bottom: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 3px; }
+  .compact-signal-panel .signal-list b { font-size: 20px; }
+  .dashboard-grid { grid-template-columns: minmax(0, 1fr); }
+  .pulse-panel { padding: 24px 30px 28px; }
+  .pulse-panel .chart-wrap { height: 300px; margin-top: 18px; }
+}
+@media (max-width: 720px) {
+  .compact-signal-panel { min-height: 0; padding: 15px 13px; }
+  .compact-signal-panel .allocation-bar { margin-bottom: 14px; }
+  .compact-signal-panel .signal-list { margin-top: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; border-top: 0; }
+  .compact-signal-panel .signal-list div { padding: 0; border-bottom: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 2px; }
+  .compact-signal-panel .signal-list b { font-size: 17px; }
+}

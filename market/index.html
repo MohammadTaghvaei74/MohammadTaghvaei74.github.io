@@ -54,7 +54,15 @@
             </div>
             <div class="metric-foot"><span>در snapshot فعلی</span><span class="trend neutral">تقاضا / عرضه</span></div>
           </article>
-        </section>
+
+          <aside class="panel signal-panel compact-signal-panel" aria-label="مقایسه امتیاز بازار و لیدرها">
+            <div class="allocation-bar"><span class="allocation-leaders">لیدرها</span><div class="allocation-track"><i id="allocationMarker"></i></div><span class="allocation-broad">هم‌وزن</span></div>
+            <div class="signal-list">
+              <div><span>امتیاز کل منهای لیدر</span><b id="signalMarket">—</b></div>
+              <div><span>امتیاز لیدرها</span><b id="signalLeaders">—</b></div>
+            </div>
+          </aside>
+</section>
         <p class="traded-note"><span class="metric-icon">#</span> سهام معامله‌شده: <b id="tradedCount">—</b> <small>نماد · نمونه معتبر بازار</small></p>
 
         <section class="dashboard-grid">
@@ -66,17 +74,7 @@
             <div class="chart-wrap"><svg id="marketChart" viewBox="0 0 760 300" role="img" aria-label="روند میانه امتیاز بازار"></svg></div>
             <div class="chart-legend"><span class="legend-leaders"><i class="legend-line leaders-line"></i> میانه لیدرها</span><span class="legend-rest"><i class="legend-line rest-line"></i> میانه بقیه بازار</span><span class="legend-market"><i class="legend-line market-line"></i> میانه کل بازار</span></div>
           </article>
-          <aside class="panel signal-panel">
-            <div class="panel-heading"><div><span class="section-index">02</span><h2>مقایسه تخصیص</h2></div><span class="tiny-label">بازار / لیدر</span></div>
-            <div class="allocation-copy"><strong id="allocationLabel">در حال محاسبه</strong><span id="allocationGap">فاصله میانه‌ها: —</span></div>
-            <div class="allocation-bar"><span class="allocation-leaders">لیدرها</span><div class="allocation-track"><i id="allocationMarker"></i></div><span class="allocation-broad">هم‌وزن</span></div>
-            <div class="signal-list">
-              <div><span>میانه کل بازار</span><b id="signalMarket">—</b></div>
-              <div><span>میانه لیدرها</span><b id="signalLeaders">—</b></div>
-              <div><span>خالص صف‌ها</span><b id="signalNet">—</b></div>
-            </div>
-            <div class="signal-foot"><span class="status-dot green"></span> مدل بر پایه میانه است؛ میانگین و میانه جایگزین هم نیستند.</div>
-          </aside>
+
         </section>
 
         <section class="content-section" id="leaders">

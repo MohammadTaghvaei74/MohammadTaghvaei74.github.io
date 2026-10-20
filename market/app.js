@@ -85,9 +85,8 @@
     text("#buyValue", formatHmt(buy));
     text("#sellValue", formatHmt(sell));
     text("#tradedCount", integer(market.count));
-    text("#signalMarket", signed(marketMedian));
+    text("#signalMarket", signed(allocation.gap));
     text("#signalLeaders", signed(leaderMedian));
-    text("#signalNet", signed(net, 2));
     text("#updatedAt", core.formatDate(core.sourceTimestamp(data)));
     text("#sourceStatus", `منبع: ${data.source || "نامشخص"} · زمان منبع: ${core.formatDate(core.sourceTimestamp(data))}`);
     text("#marketMood", marketMedian === null ? "داده موجود نیست" : marketMedian > 2 ? "مثبت و پرقدرت" : marketMedian > 0 ? "مثبت اما متعادل" : marketMedian < -2 ? "فشار عرضه" : "خنثی / نوسانی");
