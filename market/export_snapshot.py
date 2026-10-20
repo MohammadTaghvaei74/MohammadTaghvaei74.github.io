@@ -22,9 +22,11 @@ except ImportError:
 try:
     from .tsetmc_enrichment import enrich_stocks
     from .comprehensive_table import build_comprehensive_rows
+    from .industry_table import build_industry_table
 except ImportError:
     from tsetmc_enrichment import enrich_stocks
     from comprehensive_table import build_comprehensive_rows
+    from industry_table import build_industry_table
 
 
 def export(db_path: str, output_path: str) -> None:
@@ -43,9 +45,20 @@ def export(db_path: str, output_path: str) -> None:
     )]
     available = {row[1] for row in conn.execute("PRAGMA table_info(stock_snapshots)")}
     wanted = "symbol,instrument,industry,instrument_type,trading_date,timestamp,yesterday_price,close_price,last_price,last_pct,trade_volume,trade_value_toman,buy_queue_volume,sell_queue_volume,buy_queue_value_toman,sell_queue_value_toman,score".split(",")
-    columns = ",".join(column for column in wanted if column in available)
+    daily_columns = {row[1] for row in conn.execute("PRAGMA table_info(daily_stock_summary)")}
+    has_industry_fallback = {"trading_date", "symbol", "industry"}.issubset(daily_columns)
+    select_parts = [
+        "COALESCE(s.industry, d.industry) AS industry" if column == "industry" and has_industry_fallback else f"s.{column}"
+        for column in wanted if column in available
+    ]
+    from_clause = (
+        "stock_snapshots s LEFT JOIN daily_stock_summary d "
+        "ON d.trading_date=s.trading_date AND d.symbol=s.symbol"
+        if has_industry_fallback else "stock_snapshots s"
+    )
     rows = conn.execute(
-        f"SELECT {columns} FROM stock_snapshots WHERE timestamp=? AND valid=1 AND trade_volume>0 ORDER BY score DESC, symbol ASC",
+        f"SELECT {','.join(select_parts)} FROM {from_clause} "
+        "WHERE s.timestamp=? AND s.valid=1 AND s.trade_volume>0 ORDER BY s.score DESC, s.symbol ASC",
         (latest,),
     ).fetchall()
     stocks = []
@@ -54,6 +67,19 @@ def export(db_path: str, output_path: str) -> None:
         if row["symbol"] not in seen:
             stocks.append(dict(row))
             seen.add(row["symbol"])
+    try:
+        industry_by_symbol = {
+            row["symbol"]: row["industry"]
+            for row in conn.execute(
+                "SELECT symbol,industry FROM daily_stock_summary WHERE trading_date=? AND industry IS NOT NULL",
+                (latest[:10],),
+            )
+        }
+    except sqlite3.OperationalError:
+        industry_by_symbol = {}
+    for item in stocks:
+        if not item.get("industry"):
+            item["industry"] = industry_by_symbol.get(item.get("symbol"))
     top_stocks = stocks[:10]
     complete_days = [row[0] for row in conn.execute(
         "SELECT day FROM v2_days WHERE complete=1 AND day < ? ORDER BY day DESC LIMIT 15",
@@ -92,6 +118,7 @@ def export(db_path: str, output_path: str) -> None:
     enrich_stocks(stocks, datetime.fromisoformat(latest))
     queue_rows = build_queue_rows(stocks, datetime.fromisoformat(latest), conn)
     comprehensive_stocks, comprehensive_meta = build_comprehensive_rows(stocks, latest, conn)
+    industry_table = build_industry_table(stocks, latest, conn)
     industries = [dict(row) for row in conn.execute(
         "SELECT industry,count,average,median,turnover_toman,net_queue_hmt FROM industry_detail_snapshots WHERE timestamp=? ORDER BY median DESC LIMIT 6",
         (latest,),
@@ -109,6 +136,7 @@ def export(db_path: str, output_path: str) -> None:
         "stocks": [row for row in stocks if row.get("industry")],
         "comprehensive_stocks": comprehensive_stocks,
         "comprehensive_meta": comprehensive_meta,
+        "industry_table": industry_table,
         "leveraged": [],
         "industries": industries,
         "daily": daily,

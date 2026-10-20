@@ -27,7 +27,7 @@
     const parsed = num(value);
     return parsed == null ? "—" : digits(parsed.toLocaleString("fa-IR", {maximumFractionDigits: digitsCount, minimumFractionDigits: digitsCount}));
   };
-  const formatBillion = (value) => { const parsed = num(value); return parsed == null ? "—" : `${digits((parsed / 1e9).toLocaleString("fa-IR", {maximumFractionDigits: 1}))} میلیارد`; };
+  const formatBillion = (value) => { const parsed = num(value); return parsed == null ? "—" : digits(Math.round(parsed / 1e9).toLocaleString("fa-IR")); };
   const formatMillion = (value) => { const parsed = num(value); return parsed == null ? "—" : `${digits((parsed / 1e6).toLocaleString("fa-IR", {maximumFractionDigits: 1}))} میلیون`; };
   const signedPct = (value) => { const parsed = num(value); return parsed == null ? "—" : `${parsed > 0 ? "+" : parsed < 0 ? "−" : ""}${format(Math.abs(parsed), 2)}٪`; };
   const signedScore = (value) => { const parsed = num(value); return parsed == null ? "—" : `${parsed > 0 ? "+" : parsed < 0 ? "−" : ""}${format(Math.abs(parsed), 2)}`; };

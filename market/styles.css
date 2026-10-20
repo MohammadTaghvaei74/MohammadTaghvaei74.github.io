@@ -44,8 +44,8 @@ body{background-color:#061116;background-image:radial-gradient(circle at 12% 18%
 .industry-name-cell{font-weight:700;min-width:180px;cursor:pointer}
 .industry-name-cell a{color:#173b3f;font-weight:700}
 .industry-table tbody td:nth-child(n+3){white-space:nowrap}
-.industry-median{color:#388268;font-weight:800;direction:ltr;unicode-bidi:isolate;display:inline-block}
-.industry-median.negative{color:#c6535b}
+.industry-median{color:#000;font-weight:800;direction:ltr;unicode-bidi:isolate;display:inline-block}
+.industry-median.negative{color:#000}
 .industry-empty{text-align:center!important;color:#607571;padding:24px!important}
 
 /* V2 visual direction: a warmer editorial data desk, visibly distinct from the

@@ -11,7 +11,7 @@
   const score = (value) => { const n = num(value); return n === null ? '—' : C.format(n, 1); };
   const integer = (value) => num(value) === null ? '—' : C.integer(value);
   const money = (value, divisor, suffix, digits = 1) => { const n = num(value); return n === null ? '—' : C.format(n / divisor, digits) + suffix; };
-  const billion = (value) => money(value, 1e9, ' B');
+  const billion = (value) => money(value, 1e9, ' B', 0);
   const million = (value) => money(value, 1e6, ' M');
   const hmt = (value) => money(value, 1e12, ' همت');
   const signed = (value, digits = 1) => { const n = num(value); return n === null ? '—' : (n > 0 ? '+' : n < 0 ? '−' : '') + C.format(Math.abs(n), digits); };
