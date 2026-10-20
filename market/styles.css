@@ -32,6 +32,10 @@ body{background-color:#061116;background-image:radial-gradient(circle at 12% 18%
 .section-heading h2,.panel h2,.table-title h3{font-weight:650}.options-section{position:relative;overflow:hidden}.options-section:before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent 0 49%,rgba(127,216,239,.045) 50%,transparent 51%);pointer-events:none}.options-copy,.options-visual{position:relative;z-index:1}
 @media(max-width:720px){.topbar{position:relative}.hero-block:after{display:none}.hero-block h1{letter-spacing:-2px}.metric-card:hover,.panel:hover,.table-panel:hover,.industry-card:hover{transform:none}}
 
+/* Keep dense numeric tables compact and readable across the dashboard. */
+.table-scroll table th,.table-scroll table td{padding-inline:8px}
+.table-scroll table td,.table-scroll table td *{color:#000!important}
+
 /* Industry ranking: compact data table instead of decorative cards. */
 .industry-table-panel{overflow:hidden;border-radius:16px;background:#fff;box-shadow:0 16px 35px rgba(38,73,60,.09)}
 .industry-table-scroll{overflow-x:auto}
