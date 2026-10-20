@@ -223,9 +223,9 @@
       if (snapshotEvent) window.dispatchEvent(snapshotEvent);
     }
     const leveraged = Array.isArray(data.leveraged) ? data.leveraged : [];
-    const leveragedMarkup = leveraged.map((row) => `<tr><td>${escapeHtml(row.symbol)}</td><td><span class="score ${scoreClass(row.score)}">${escapeHtml(signed(row.score))}</span></td><td>${marketPositionMarkup(row, ranking)}</td><td>${queueMarkup(row)}</td></tr>`).join("");
+    const leveragedMarkup = leveraged.map((row) => `<tr><td>${escapeHtml(row.symbol)}</td><td><span class="score ${scoreClass(row.score)}">${escapeHtml(signed(row.score))}</span></td><td>${queueMarkup(row)}</td></tr>`).join("");
     const leveragedElement = $("#leveragedStocks");
-    if (leveragedElement) leveragedElement.innerHTML = leveragedMarkup || `<tr><td colspan="4">هنوز snapshot اهرمی ثبت نشده است.</td></tr>`;
+    if (leveragedElement) leveragedElement.innerHTML = leveragedMarkup || `<tr><td colspan="3">هنوز snapshot اهرمی ثبت نشده است.</td></tr>`;
     const leaderSymbols = ['وبملت','فملی','فولاد','وتجارت','فزر','خودرو','شستا','شپدیس','فارس','ومعادن','تاپیکو','خساپا','وبصادر','وپارس','نوری','وپاسار','ونوین','کگل','رمپنا','ذوب','وغدیر','فخوز','خگستر','صبا','وساپا','کالا','اخابر','سپید','شسپا','پارسان','تیپیکو','دزاگرس','مبین','کاما','کچاد','دعبید','خبهمن','اروند','دی','خزامیا'];
     const bySymbol = new Map((Array.isArray(data.stocks) ? data.stocks : []).map(row => [row.symbol, row]));
     const leaders = leaderSymbols.map(symbol => bySymbol.get(symbol) || {symbol, score:null, avg15_trade_value_toman:null, trade_value_toman:null});
