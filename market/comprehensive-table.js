@@ -33,14 +33,17 @@
   const signedScore = (value) => { const parsed = num(value); return parsed == null ? "—" : `${parsed > 0 ? "+" : parsed < 0 ? "−" : ""}${format(Math.abs(parsed), 2)}`; };
   const cellValue = (row, key) => key === "symbol" ? String(row[key] || "") : num(row[key]);
 
-  function parseFilter(value) {
-    const raw = String(value || "").replace(/[۰-۹]/g, (d) => String(fa.indexOf(d))).replace(/[٠-٩]/g, (d) => String(ar.indexOf(d))).trim().toLowerCase();
-    if (!raw) return null;
-    const range = raw.match(/^\s*([+-]?[\d.]+)\s*(?:\.\.|-|تا)\s*([+-]?[\d.]+)\s*$/);
-    if (range) return {op: "range", a: num(range[1]), b: num(range[2])};
-    const comparison = raw.match(/^\s*(>=|<=|>|<|=)?\s*([+-]?[\d.]+)\s*(b|bn|m|میلیارد|میلیون|همت)?\s*$/);
-    if (comparison) return {op: comparison[1] || "=", value: num(`${comparison[2]}${comparison[3] || ""}`)};
-    return {op: "text", value: raw};
+  function normalizeFilterValue(value) {
+    return String(value || "").replace(/[۰-۹]/g, (d) => String(fa.indexOf(d))).replace(/[٠-٩]/g, (d) => String(ar.indexOf(d))).trim().toLowerCase();
+  }
+  function parseFilter(operator, value) {
+    const raw = normalizeFilterValue(value);
+    if (!raw || !operator) return null;
+    return {op: operator, value: num(raw)};
+  }
+  function parseTextFilter(value) {
+    const raw = normalizeFilterValue(value);
+    return raw ? {op: "text", value: raw} : null;
   }
   function matches(row, key, parsed) {
     if (!parsed) return true;
@@ -54,7 +57,7 @@
     if (parsed.op === "<=") return value <= parsed.value;
     return value === parsed.value;
   }
-  function filteredRows() { return rows.filter((row) => columns.every((key) => matches(row, key, parseFilter(filters[key])))); }
+  function filteredRows() { return rows.filter((row) => columns.every((key) => { const state = filters[key] || {}; return matches(row, key, key === "symbol" ? parseTextFilter(state.value) : parseFilter(state.operator, state.value)); })); }
   function compare(a, b) {
     const av = cellValue(a, sortKey), bv = cellValue(b, sortKey);
     if (av == null && bv == null) return a._defaultIndex - b._defaultIndex;
@@ -69,13 +72,13 @@
     return result;
   }
   function metricCell(value, type, sortValue) {
-    const label = type === "billion" ? formatBillion(value) : type === "million" ? formatMillion(value) : type === "pct" ? signedPct(value) : type === "score" ? signedScore(value) : format(value, type === "power" ? 2 : 1);
+    const label = type === "billion" ? formatBillion(value) : type === "million0" ? (num(value) == null ? "—" : `${digits(Math.round(num(value) / 1e6).toLocaleString("fa-IR"))} میلیون`) : type === "pct1" ? signedPct(value, 1) : type === "pct0" ? signedPct(value, 0) : type === "score" ? signedScore(value) : format(value, type === "power" ? 1 : 1);
     return `<td data-sort-value="${sortValue == null ? "" : esc(sortValue)}"><bdi>${esc(label)}</bdi></td>`;
   }
   function render() {
     const display = displayedRows();
     lastRendered = display;
-    body.innerHTML = display.map((row) => `<tr><td class="comprehensive-symbol"><a href="symbols/?symbol=${encodeURIComponent(row.symbol || "")}">${esc(row.symbol)}</a></td>${metricCell(row.score, "score", row.score)}${metricCell(row.score_10d_total, "score", row.score_10d_total)}${metricCell(row.avg_trade_value_toman, "billion", row.avg_trade_value_toman)}${metricCell(row.last_close_diff_pct, "pct", row.last_close_diff_pct)}${metricCell(row.queue_value_toman, "billion", row.queue_value_toman)}${metricCell(row.buy_per_capita_toman, "million", row.buy_per_capita_toman)}${metricCell(row.buyer_power, "power", row.buyer_power)}${metricCell(row.legal_buy_pct, "pct", row.legal_buy_pct)}${metricCell(row.legal_sell_pct, "pct", row.legal_sell_pct)}</tr>`).join("") || `<tr><td colspan="10" class="comprehensive-empty">با این فیلتر داده‌ای پیدا نشد.</td></tr>`;
+    body.innerHTML = display.map((row) => `<tr><td class="comprehensive-symbol"><a href="symbols/?symbol=${encodeURIComponent(row.symbol || "")}">${esc(row.symbol)}</a></td>${metricCell(row.score, "score", row.score)}${metricCell(row.score_10d_total, "score", row.score_10d_total)}${metricCell(row.avg_trade_value_toman, "billion", row.avg_trade_value_toman)}${metricCell(row.last_close_diff_pct, "pct1", row.last_close_diff_pct)}${metricCell(row.queue_value_toman, "billion", row.queue_value_toman)}${metricCell(row.buy_per_capita_toman, "million0", row.buy_per_capita_toman)}${metricCell(row.buyer_power, "power", row.buyer_power)}${metricCell(row.legal_buy_pct, "pct0", row.legal_buy_pct)}${metricCell(row.legal_sell_pct, "pct0", row.legal_sell_pct)}</tr>`).join("") || `<tr><td colspan="10" class="comprehensive-empty">با این فیلتر داده‌ای پیدا نشد.</td></tr>`;
     const count = document.querySelector("#comprehensiveCount"); if (count) count.textContent = `${digits(display.length.toLocaleString("fa-IR"))} نماد از ${digits(rows.length.toLocaleString("fa-IR"))}`;
     table.querySelectorAll("thead tr:first-child th").forEach((header) => { const active = header.dataset.sortKey === sortKey && sortDirection !== "none"; header.setAttribute("aria-sort", active ? (sortDirection === "asc" ? "ascending" : "descending") : "none"); header.dataset.sortState = active ? sortDirection : "none"; });
   }
@@ -92,9 +95,10 @@
     const headers = Object.keys(exportRows[0]); const html = `<html><meta charset="utf-8"><table><tr>${headers.map((h) => `<th>${esc(h)}</th>`).join("")}</tr>${exportRows.map((r) => `<tr>${headers.map((h) => `<td>${esc(r[h])}</td>`).join("")}</tr>`).join("")}</table></html>`; const blob = new Blob(["\ufeff", html], {type: "application/vnd.ms-excel"}); const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = "جدول-جامع-بازار.xls"; link.click(); setTimeout(() => URL.revokeObjectURL(link.href), 1000);
   }
   table.querySelectorAll("thead tr:first-child th").forEach((header) => { header.tabIndex = 0; header.setAttribute("role", "button"); header.setAttribute("aria-sort", "none"); header.title = "کلیک: نزولی · دوباره: صعودی · سوم: پیش‌فرض"; header.addEventListener("click", () => sortBy(header.dataset.sortKey)); header.addEventListener("keydown", (event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); sortBy(header.dataset.sortKey); } }); });
-  table.querySelectorAll(".column-filter").forEach((input) => input.addEventListener("input", () => { filters[input.dataset.filterKey] = input.value; render(); }));
+  table.querySelectorAll(".column-filter").forEach((input) => input.addEventListener("input", () => { const key = input.dataset.filterKey; filters[key] = filters[key] || {}; filters[key].value = input.value; render(); }));
+  table.querySelectorAll(".filter-operator").forEach((select) => select.addEventListener("change", () => { const key = select.dataset.filterKey; filters[key] = filters[key] || {}; filters[key].operator = select.value; render(); }));
   const clearButton = document.querySelector("#clearComprehensiveFilters");
-  if (clearButton) clearButton.addEventListener("click", () => { table.querySelectorAll(".column-filter").forEach((input) => { input.value = ""; filters[input.dataset.filterKey] = ""; }); render(); });
+  if (clearButton) clearButton.addEventListener("click", () => { table.querySelectorAll(".column-filter").forEach((input) => { input.value = ""; }); table.querySelectorAll(".filter-operator").forEach((select) => { select.value = ""; }); Object.keys(filters).forEach((key) => { filters[key] = {operator: "", value: ""}; }); render(); });
   const downloadButton = document.querySelector("#downloadComprehensiveXlsx");
   if (downloadButton) downloadButton.addEventListener("click", downloadXlsx);
   window.addEventListener("market:snapshot", (event) => { const detail = event && event.detail ? event.detail : {}; rows = Array.isArray(detail.comprehensive_stocks) ? detail.comprehensive_stocks : []; defaultOrder = rows.slice(); rows.forEach((row, index) => { row._defaultIndex = index; }); const meta = detail.comprehensive_meta || {}; const coverage = document.querySelector("#comprehensiveCoverage"); if (coverage) coverage.textContent = `${digits((meta.days || []).length)} روز کامل · ${digits(meta.complete_symbol_count || 0)} نماد با پوشش کامل ${digits(meta.expected_samples || 0)} نمونه · نزدیک‌ترین نمونه در بازه ±۵ دقیقه پذیرفته شده است.`; render(); });

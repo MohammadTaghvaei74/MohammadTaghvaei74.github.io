@@ -237,7 +237,7 @@
       if (index === lastTooltipIndex) return;
       lastTooltipIndex = index;
       const crosshair = svg.querySelector(".chart-crosshair");
-      if (crosshair) { crosshair.setAttribute("x1", x(index)); crosshair.setAttribute("x2", x(index)); crosshair.setAttribute("opacity", "1"); }
+      if (crosshair) { crosshair.setAttribute("x1", x(index)); crosshair.setAttribute("x2", x(index)); crosshair.setAttribute("opacity", "1"); crosshair.style.opacity = "1"; }
       if (tooltip) {
         const point = days[index] || {};
         const market = numeric(series.market[index]);
