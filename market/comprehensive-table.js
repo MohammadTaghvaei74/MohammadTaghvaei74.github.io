@@ -29,17 +29,19 @@
   };
   const formatBillion = (value) => { const parsed = num(value); return parsed == null ? "—" : digits(Math.round(parsed / 1e9).toLocaleString("fa-IR")); };
   const formatMillion = (value) => { const parsed = num(value); return parsed == null ? "—" : `${digits((parsed / 1e6).toLocaleString("fa-IR", {maximumFractionDigits: 1}))} میلیون`; };
-  const signedPct = (value) => { const parsed = num(value); return parsed == null ? "—" : `${parsed > 0 ? "+" : parsed < 0 ? "−" : ""}${format(Math.abs(parsed), 2)}٪`; };
-  const signedScore = (value) => { const parsed = num(value); return parsed == null ? "—" : `${parsed > 0 ? "+" : parsed < 0 ? "−" : ""}${format(Math.abs(parsed), 2)}`; };
+  const signedPct = (value, fractionDigits) => { const parsed = num(value); return parsed == null ? "—" : `${parsed > 0 ? "+" : parsed < 0 ? "−" : ""}${format(Math.abs(parsed), fractionDigits)}٪`; };
+  const signedScore = (value) => { const parsed = num(value); return parsed == null ? "—" : `${parsed > 0 ? "+" : parsed < 0 ? "−" : ""}${format(Math.abs(parsed), 1)}`; };
   const cellValue = (row, key) => key === "symbol" ? String(row[key] || "") : num(row[key]);
 
   function normalizeFilterValue(value) {
     return String(value || "").replace(/[۰-۹]/g, (d) => String(fa.indexOf(d))).replace(/[٠-٩]/g, (d) => String(ar.indexOf(d))).trim().toLowerCase();
   }
-  function parseFilter(operator, value) {
+  function parseFilter(operator, value, key) {
     const raw = normalizeFilterValue(value);
     if (!raw || !operator) return null;
-    return {op: operator, value: num(raw)};
+    const unitMultiplier = key === "avg_trade_value_toman" || key === "queue_value_toman" ? 1e9 : key === "buy_per_capita_toman" ? 1e6 : 1;
+    const parsed = num(raw);
+    return {op: operator, value: parsed == null ? null : parsed * unitMultiplier};
   }
   function parseTextFilter(value) {
     const raw = normalizeFilterValue(value);
@@ -57,7 +59,7 @@
     if (parsed.op === "<=") return value <= parsed.value;
     return value === parsed.value;
   }
-  function filteredRows() { return rows.filter((row) => columns.every((key) => { const state = filters[key] || {}; return matches(row, key, key === "symbol" ? parseTextFilter(state.value) : parseFilter(state.operator, state.value)); })); }
+  function filteredRows() { return rows.filter((row) => columns.every((key) => { const state = filters[key] || {}; return matches(row, key, key === "symbol" ? parseTextFilter(state.value) : parseFilter(state.operator, state.value, key)); })); }
   function compare(a, b) {
     const av = cellValue(a, sortKey), bv = cellValue(b, sortKey);
     if (av == null && bv == null) return a._defaultIndex - b._defaultIndex;

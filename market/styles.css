@@ -118,6 +118,10 @@ th[role="button"]:after{content:"↕";display:inline-block;margin-inline-start:6
 th[role="button"][aria-sort="ascending"]:after{content:"↑";color:var(--blue);opacity:1}
 th[role="button"][aria-sort="descending"]:after{content:"↓";color:var(--blue);opacity:1}
 
+/* Table headers stay high-contrast across every market view. */
+.table-scroll table thead th{color:#000!important;background:#e8f1eb}
+.table-scroll table thead th[role="button"]:after{color:#000!important}
+
 
 /* Compact score comparison: queue data and the two-score slider share the top row. */
 @media (min-width: 721px) {
