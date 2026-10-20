@@ -6,6 +6,7 @@ medians or from the aggregate market row.
 """
 from __future__ import annotations
 
+import math
 import statistics
 import sqlite3
 from datetime import datetime, timedelta
@@ -117,4 +118,72 @@ def load_intraday_chart_rows(conn: sqlite3.Connection, trading_date: str, start_
     return result
 
 
-__all__ = ["LEADER_SYMBOLS", "daily_median_fields", "load_daily_chart_rows", "load_intraday_chart_rows"]
+def load_intraday_symbol_rows(
+    conn: sqlite3.Connection,
+    trading_date: str,
+    start_time: str = "09:15",
+    end_time: str = "12:30",
+) -> dict[str, list[dict[str, Any]]]:
+    """Build observed minute points for every current symbol.
+
+    The last observation in a minute supplies the score and close. Price
+    high/low are taken only from observed rows; missing minutes remain absent.
+    No interpolation or fabricated zero is allowed.
+    """
+    rows = conn.execute(
+        """SELECT timestamp, symbol, score, last_price, close_price,
+                  yesterday_price, trade_volume, trade_value_toman
+           FROM stock_snapshots
+           WHERE trading_date=? AND valid=1 AND score IS NOT NULL
+             AND trade_volume>0 AND substr(timestamp, 12, 5) BETWEEN ? AND ?
+           ORDER BY symbol, timestamp""",
+        (trading_date, start_time, end_time),
+    ).fetchall()
+    grouped: dict[tuple[str, str], dict[str, Any]] = {}
+    for timestamp, symbol, score, last_price, close_price, yesterday, volume, value in rows:
+        try:
+            score_value = float(score)
+        except (TypeError, ValueError, OverflowError):
+            continue
+        if not math.isfinite(score_value):
+            continue
+        symbol_text = str(symbol)
+        minute = str(timestamp)[11:16]
+        price = last_price if last_price is not None else close_price
+        try:
+            price_value = float(price) if price is not None else None
+        except (TypeError, ValueError, OverflowError):
+            price_value = None
+        if price_value is not None and not math.isfinite(price_value):
+            price_value = None
+        key = (symbol_text, minute)
+        bar = grouped.get(key)
+        if bar is None:
+            grouped[key] = {
+                "symbol": symbol_text, "time": minute, "timestamp": str(timestamp),
+                "score": score_value, "price_open": price_value,
+                "price_high": price_value, "price_low": price_value,
+                "price_close": price_value, "yesterday_price": yesterday,
+                "trade_volume": volume, "trade_value_toman": value,
+            }
+            continue
+        if price_value is not None:
+            if bar["price_open"] is None:
+                bar["price_open"] = price_value
+            bar["price_high"] = price_value if bar["price_high"] is None else max(bar["price_high"], price_value)
+            bar["price_low"] = price_value if bar["price_low"] is None else min(bar["price_low"], price_value)
+            bar["price_close"] = price_value
+        bar["score"] = score_value
+        bar["timestamp"] = str(timestamp)
+        bar["trade_volume"] = volume
+        bar["trade_value_toman"] = value
+    result: dict[str, list[dict[str, Any]]] = {}
+    for (symbol, _minute), bar in sorted(grouped.items(), key=lambda item: item[0]):
+        result.setdefault(symbol, []).append(bar)
+    return result
+
+
+__all__ = [
+    "LEADER_SYMBOLS", "daily_median_fields", "load_daily_chart_rows",
+    "load_intraday_chart_rows", "load_intraday_symbol_rows",
+]

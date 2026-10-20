@@ -33,6 +33,7 @@ if __package__:
     from .score_candles import build_candles
     from .tsetmc_enrichment import enrich_stocks
     from .comprehensive_table import build_comprehensive_rows
+    from .industry_table import build_industry_table
     from .symbol_history import write_symbol_history
 else:
     from export_signals import export as export_signals
@@ -42,6 +43,7 @@ else:
     from score_candles import build_candles
     from tsetmc_enrichment import enrich_stocks
     from comprehensive_table import build_comprehensive_rows
+    from industry_table import build_industry_table
     from symbol_history import write_symbol_history
 
 PUBLISHED_FILES = (
@@ -130,9 +132,20 @@ def build_market(conn: sqlite3.Connection) -> dict:
     )]
     available = {row[1] for row in conn.execute("PRAGMA table_info(stock_snapshots)")}
     wanted = "symbol,instrument,industry,instrument_type,trading_date,timestamp,yesterday_price,close_price,last_price,last_pct,trade_volume,trade_value_toman,buy_queue_volume,sell_queue_volume,buy_queue_value_toman,sell_queue_value_toman,score".split(",")
-    columns = ",".join(column for column in wanted if column in available)
+    daily_columns = {row[1] for row in conn.execute("PRAGMA table_info(daily_stock_summary)")}
+    has_industry_fallback = {"trading_date", "symbol", "industry"}.issubset(daily_columns)
+    select_parts = [
+        "COALESCE(s.industry, d.industry) AS industry" if column == "industry" and has_industry_fallback else f"s.{column}"
+        for column in wanted if column in available
+    ]
+    from_clause = (
+        "stock_snapshots s LEFT JOIN daily_stock_summary d "
+        "ON d.trading_date=s.trading_date AND d.symbol=s.symbol"
+        if has_industry_fallback else "stock_snapshots s"
+    )
     rows = conn.execute(
-        f"SELECT {columns} FROM stock_snapshots WHERE timestamp=? AND valid=1 AND trade_volume>0 ORDER BY score DESC, symbol ASC",
+        f"SELECT {','.join(select_parts)} FROM {from_clause} "
+        "WHERE s.timestamp=? AND s.valid=1 AND s.trade_volume>0 ORDER BY s.score DESC, s.symbol ASC",
         (latest,),
     ).fetchall()
     stocks, seen = [], set()
@@ -140,6 +153,22 @@ def build_market(conn: sqlite3.Connection) -> dict:
         if row["symbol"] not in seen:
             stocks.append(dict(row))
             seen.add(row["symbol"])
+    # The live stock feed may not carry industry labels. Recover the validated
+    # symbol-to-industry mapping from the finalized daily summary for today.
+    try:
+        industry_by_symbol = {
+            row["symbol"]: row["industry"]
+            for row in conn.execute(
+                "SELECT symbol,industry FROM daily_stock_summary "
+                "WHERE trading_date=? AND industry IS NOT NULL",
+                (latest[:10],),
+            )
+        }
+    except sqlite3.OperationalError:
+        industry_by_symbol = {}
+    for item in stocks:
+        if not item.get("industry"):
+            item["industry"] = industry_by_symbol.get(item.get("symbol"))
     top_stocks = stocks[:10]
     # Same ranking basis as Telegram's #صف_خرید_برتر: valid traded stocks
     # with a positive buy queue, ordered by queue value. Missing history stays
@@ -183,6 +212,7 @@ def build_market(conn: sqlite3.Connection) -> dict:
     enrich_stocks(stocks, datetime.fromisoformat(latest))
     queue_rows = build_queue_rows(stocks, datetime.fromisoformat(latest), conn)
     comprehensive_stocks, comprehensive_meta = build_comprehensive_rows(stocks, latest, conn)
+    industry_table = build_industry_table(stocks, latest, conn)
     selected_industries = (
         "خودرو", "بانک", "شیمیایی", "استخراج کانه فلزی",
         "شرکتهای چند رشته ای", "فلزات اساسی", "فراورده های نفتی",
@@ -211,6 +241,7 @@ def build_market(conn: sqlite3.Connection) -> dict:
         "stocks": stocks,
         "comprehensive_stocks": comprehensive_stocks,
         "comprehensive_meta": comprehensive_meta,
+        "industry_table": industry_table,
         "leveraged": read_leveraged(conn, latest),
         "industries": industries,
         "daily": daily,

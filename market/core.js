@@ -37,7 +37,7 @@ function formatBillion(value, suffix = " B", digits = 1) {
   return parsed === null ? "—" : `${formatNumber(parsed / 1e9, digits)}${suffix}`;
 }
 function formatMillionToman(value) { return formatMillion(value, " M", 1); }
-function formatBillionToman(value) { return formatBillion(value, " B", 1); }
+function formatBillionToman(value) { return formatBillion(value, " B", 0); }
 function closePercent(closePrice, yesterdayPrice) {
   const close = number(closePrice), yesterday = number(yesterdayPrice);
   return close === null || yesterday === null || yesterday === 0 ? null : ((close - yesterday) / yesterday) * 100;

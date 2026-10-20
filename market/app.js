@@ -19,7 +19,7 @@
   const text = (selector, value) => { const element = $(selector); if (element) element.textContent = value; };
   const numeric = (value) => core.number(value);
   const formatHmt = (value) => core.formatNumber(value, 1);
-  const formatValueBillion = (value) => core.formatBillionToman(value);
+  const formatValueBillion = (value) => { const parsed = numeric(value); return parsed === null ? "—" : core.faDigits(Math.round(parsed / 1e9).toLocaleString("fa-IR")); };
   const signed = (value, digits = 1) => core.formatSigned(value, digits);
   const pct = (value) => core.formatPercent(value, 2);
   const integer = (value) => core.formatInteger(value);
@@ -225,6 +225,11 @@
     return parsed === null ? "missing" : parsed >= 0 ? "high" : "low";
   }
 
+  function symbolLink(symbol, className = "ranking-symbol") {
+    const value = symbol || "";
+    return `<a class="${className}" href="symbols/?symbol=${encodeURIComponent(value)}">${escapeHtml(value)}</a>`;
+  }
+
   function queueMarkup(row) {
     const buy = numeric(row.buy_queue_value_toman);
     const sell = numeric(row.sell_queue_value_toman);
@@ -253,7 +258,7 @@
   function renderTables(data) {
     const top = Array.isArray(data.top_stocks) ? data.top_stocks : [];
     const ranking = [...(Array.isArray(data.stocks) ? data.stocks : [])].filter((row) => numeric(row.score) !== null).sort((a, b) => numeric(b.score) - numeric(a.score) || String(a.symbol || "").localeCompare(String(b.symbol || ""), "fa"));
-    const topMarkup = top.map((row) => `<tr><td>${escapeHtml(row.symbol)}</td><td><span class="score ${scoreClass(row.score)}">${escapeHtml(signed(row.score))}</span></td><td>${marketPositionMarkup(row, ranking)}</td><td>${queueMarkup(row)}</td></tr>`).join("");
+    const topMarkup = top.map((row) => `<tr><td>${symbolLink(row.symbol)}</td><td><span class="score ${scoreClass(row.score)}">${escapeHtml(signed(row.score))}</span></td><td>${marketPositionMarkup(row, ranking)}</td><td>${queueMarkup(row)}</td></tr>`).join("");
     const topElement = $("#topStocks");
     const rankingManaged = topElement && topElement.closest(".table-panel") && topElement.closest(".table-panel").querySelector(".ranking-tools");
     if (topElement && !rankingManaged) topElement.innerHTML = topMarkup || `<tr><td colspan="4">داده‌ای برای نمایش نیست.</td></tr>`;
@@ -265,7 +270,7 @@
       if (snapshotEvent) window.dispatchEvent(snapshotEvent);
     }
     const leveraged = Array.isArray(data.leveraged) ? data.leveraged : [];
-    const leveragedMarkup = leveraged.map((row) => `<tr><td>${escapeHtml(row.symbol)}</td><td><span class="score ${scoreClass(row.score)}">${escapeHtml(signed(row.score))}</span></td><td>${queueMarkup(row)}</td></tr>`).join("");
+    const leveragedMarkup = leveraged.map((row) => `<tr><td>${symbolLink(row.symbol)}</td><td><span class="score ${scoreClass(row.score)}">${escapeHtml(signed(row.score))}</span></td><td>${queueMarkup(row)}</td></tr>`).join("");
     const leveragedElement = $("#leveragedStocks");
     if (leveragedElement) leveragedElement.innerHTML = leveragedMarkup || `<tr><td colspan="3">هنوز snapshot اهرمی ثبت نشده است.</td></tr>`;
     const leaderSymbols = ['وبملت','فملی','فولاد','وتجارت','فزر','خودرو','شستا','شپدیس','فارس','ومعادن','تاپیکو','خساپا','وبصادر','وپارس','نوری','وپاسار','ونوین','کگل','رمپنا','ذوب','وغدیر','فخوز','خگستر','صبا','وساپا','کالا','اخابر','سپید','شسپا','پارسان','تیپیکو','دزاگرس','مبین','کاما','کچاد','دعبید','خبهمن','اروند','دی','خزامیا'];
@@ -273,7 +278,7 @@
     const leaders = leaderSymbols.map(symbol => bySymbol.get(symbol) || {symbol, score:null, avg15_trade_value_toman:null, trade_value_toman:null});
     leaders.sort((a,b) => (numeric(a.score) === null) - (numeric(b.score) === null) || (numeric(b.score) || 0) - (numeric(a.score) || 0) || a.symbol.localeCompare(b.symbol,'fa'));
     const leaderElement = $('#leaderStocks');
-    if (leaderElement) leaderElement.innerHTML = leaders.map((row) => `<tr><td>${escapeHtml(row.symbol)}</td><td><span class="score ${scoreClass(row.score)}">${escapeHtml(signed(row.score))}</span></td><td>${marketPositionMarkup(row, ranking)}</td><td>${queueMarkup(row)}</td></tr>`).join('');
+    if (leaderElement) leaderElement.innerHTML = leaders.map((row) => `<tr><td>${symbolLink(row.symbol)}</td><td><span class="score ${scoreClass(row.score)}">${escapeHtml(signed(row.score))}</span></td><td>${marketPositionMarkup(row, ranking)}</td><td>${queueMarkup(row)}</td></tr>`).join('');
     function sizeLeaders() {
       if (!leaderElement || leaderElement.rows.length < 10) return;
       const wrap = leaderElement.closest('.table-scroll');
@@ -293,16 +298,17 @@
       if (!groups.has(name)) groups.set(name, []);
       groups.get(name).push(stock);
     });
-    const sourceRows = Array.isArray(data.industries) ? data.industries : [];
+    const sourceRows = Array.isArray(data.industry_table) && data.industry_table.length ? data.industry_table : (Array.isArray(data.industries) ? data.industries : []);
     const rows = sourceRows.map((row) => {
       const members = groups.get(String(row.industry || "").trim()) || [];
       const diffs = members.map(lastCloseDiffPct).filter((value) => value !== null);
       const turnover = members.reduce((sum, stock) => sum + (numeric(stock.trade_value_toman) || 0), 0);
-      const avgDiff = diffs.length ? diffs.reduce((sum, value) => sum + value, 0) / diffs.length : null;
-      return { ...row, count: members.length || row.count, turnover_toman: turnover || numeric(row.turnover_toman), avg_last_close_diff_pct: avgDiff };
+      const avgDiff = diffs.length ? diffs.reduce((sum, value) => sum + value, 0) / diffs.length : numeric(row.avg_last_close_diff_pct);
+      const rowScore = numeric(row.median !== undefined ? row.median : row.median_score);
+      return { ...row, count: members.length || row.count || row.stock_count, median: rowScore, turnover_toman: turnover || numeric(row.turnover_toman || row.trade_value_toman), avg_last_close_diff_pct: avgDiff };
     });
     const markup = rows.map((row) => {
-      const score = numeric(row.median);
+      const score = numeric(row.median !== undefined ? row.median : row.median_score);
       const positive = score === null || score >= 0;
       const industry = String(row.industry || "بدون صنعت");
       return `<tr><td class="industry-name-cell"><a href="industries/?industry=${encodeURIComponent(industry)}" aria-label="مشاهده سهام صنعت ${escapeHtml(industry)}">${escapeHtml(industry)}</a></td><td>${escapeHtml(integer(row.count))}</td><td><span class="industry-median ${positive ? "" : "negative"}">${escapeHtml(signed(score))}</span></td><td data-sort-value="${numeric(row.turnover_toman) === null ? "" : row.turnover_toman}">${escapeHtml(formatValueBillion(row.turnover_toman))}</td><td data-sort-value="${numeric(row.avg_last_close_diff_pct) === null ? "" : row.avg_last_close_diff_pct}">${escapeHtml(pct(row.avg_last_close_diff_pct))}</td></tr>`;
