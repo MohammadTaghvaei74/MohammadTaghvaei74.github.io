@@ -195,7 +195,10 @@
     // Do not bridge missing samples with a filled area.
     const areaPath = marketPath && series.market.every((value) => value !== null) ? `${marketPath} L ${x(days.length - 1)},${zeroY} L ${x(0)},${zeroY} Z` : "";
     const grid = [-3, -2, -1, 0, 1, 2, 3].map((tick) => `<line class="${tick === 0 ? "chart-zero" : "chart-grid-line"}" x1="${pad.left}" x2="${width - pad.right}" y1="${y(tick)}" y2="${y(tick)}"/><text class="chart-label" x="${pad.left - 11}" y="${y(tick) + 5}" text-anchor="end">${core.faDigits(tick)}</text>`).join("");
-    const labels = days.map((point, index) => index % 15 === 0 || index === days.length - 1 ? `<text class="chart-label" x="${x(index)}" y="${height - 8}" text-anchor="middle">${escapeHtml(core.faDigits(String(point.time || "").slice(0, 5)))}</text>` : "").join("");
+    const labels = days.map((point, index) => {
+      const time = String(point.time || "").slice(0, 5);
+      return /:(00|15|30|45)$/.test(time) || index === days.length - 1 ? `<text class="chart-label" x="${x(index)}" y="${height - 8}" text-anchor="middle">${escapeHtml(core.faDigits(time))}</text>` : "";
+    }).join("");
     const leadersMarkup = leadersPath ? `<path class="chart-path chart-leaders" d="${leadersPath}"/>` : "";
 
     const plotWidth = width - pad.left - pad.right;
@@ -211,8 +214,8 @@
       const current = svg.querySelector(".chart-tooltip");
       const nextMarkup = chartTooltipMarkup(index, days, series, x, y);
       if (current) {
-        current.innerHTML = nextMarkup.replace(/^<g[^>]*>/, "").replace(/<\/g>$/, "");
-        current.setAttribute("data-tooltip-index", String(index));
+        const next = document.createRange().createContextualFragment(nextMarkup).firstElementChild;
+        current.replaceWith(next);
       } else if (crosshair) crosshair.insertAdjacentHTML("afterend", nextMarkup);
     };
     const hitAreaElement = svg.querySelector(".chart-hit-area");
