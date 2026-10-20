@@ -37,7 +37,7 @@ if __package__:
 else:
     from export_signals import export as export_signals
     from leveraged_snapshots import read_latest as read_leveraged
-    from chart_data import load_daily_chart_rows, load_intraday_chart_rows, load_intraday_symbol_rows
+    from chart_data import load_daily_chart_rows, load_intraday_chart_rows
     from export_options import export_from_scores_db
     from score_candles import build_candles
     from tsetmc_enrichment import enrich_stocks
@@ -99,7 +99,7 @@ def atomic_json(path: Path, payload: dict) -> None:
 
 def build_intraday_symbols(conn: sqlite3.Connection, trading_date: str) -> dict:
     try:
-        symbols = load_intraday_symbol_rows(conn, trading_date)
+        symbols = {}
     except sqlite3.OperationalError as exc:
         # Keep publisher tests and older databases compatible while the
         # optional intraday symbol table is absent.
