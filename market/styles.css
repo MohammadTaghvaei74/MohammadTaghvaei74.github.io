@@ -45,8 +45,8 @@ body{background-color:#061116;background-image:radial-gradient(circle at 12% 18%
 .industry-table tbody td{padding:11px 6px;border-bottom:1px solid #e2ebe5;text-align:right;vertical-align:middle;color:#000}.industry-table tbody td:nth-last-child(-n+2){padding-inline:4px}
 .industry-table tbody tr:last-child td{border-bottom:0}
 .industry-table tbody tr:hover{background:#f5f8f2}
-.industry-name-cell{font-weight:700;min-width:180px;cursor:pointer}
-.industry-name-cell a{color:#173b3f;font-weight:700}
+.industry-name-cell{font-weight:700;min-width:180px;cursor:pointer;font-size:13.5px}
+.industry-name-cell a{color:#173b3f;font-weight:700;font-size:13.5px}
 .industry-table tbody td:nth-child(n+3){white-space:nowrap}
 .industry-median{color:#000;font-weight:800;direction:ltr;unicode-bidi:isolate;display:inline-block}
 .industry-median.negative{color:#000}

@@ -21,7 +21,7 @@
   const formatHmt = (value) => core.formatNumber(value, 1);
   const formatValueBillion = (value) => { const parsed = numeric(value); return parsed === null ? "—" : core.faDigits(Math.round(parsed / 1e9).toLocaleString("fa-IR")); };
   const signed = (value, digits = 1) => core.formatSigned(value, digits);
-  const pct = (value) => core.formatPercent(value, 2);
+  const pct = (value) => core.formatPercent(value, 1);
   const integer = (value) => core.formatInteger(value);
   const closePct = (row) => core.closePercent(row.close_price, row.yesterday_price);
   const lastCloseDiffPct = (row) => {
