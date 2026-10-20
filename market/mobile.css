@@ -135,8 +135,8 @@
 
 .chart-path { stroke: #388268; fill: none; }
 .chart-market { stroke: #388268; }
-.chart-leaders { stroke: var(--orange); stroke-dasharray: 6 6; }
-.chart-rest { stroke: var(--blue); stroke-dasharray: 2 5; }
+.chart-leaders { stroke: var(--orange); stroke-dasharray: none; }
+.chart-rest { stroke: var(--blue); stroke-dasharray: none; }
 .leaders-line { background: var(--orange); }
 .rest-line { background: var(--blue); }
 .market-line { background: #388268; }

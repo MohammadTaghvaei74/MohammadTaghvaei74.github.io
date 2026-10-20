@@ -2,9 +2,13 @@
 
 /* 40-symbol leader list: show ten rows, scroll the remaining rows inside the card. */
 .focus-grid{grid-template-columns:1fr 1fr}
+@media(min-width:721px){
+  .shell{width:min(1560px,calc(100% - 48px))}
+  .dashboard-grid{grid-template-columns:1fr}
+}
 .pulse-panel .panel-note:empty{display:none}
-.chart-hit{fill:transparent;stroke:transparent;cursor:crosshair}
-.chart-hit:focus{outline:none;stroke:var(--lime);stroke-width:1;stroke-opacity:.55}
+.chart-hit-area{fill:transparent;stroke:none;cursor:crosshair}
+.chart-hit-area:focus{outline:none;stroke:var(--lime);stroke-width:1;stroke-opacity:.55}
 .chart-crosshair{stroke:var(--lime);stroke-width:1;stroke-dasharray:4 4;opacity:.65}
 .chart-label{font-size:13px}
 .chart-tooltip{opacity:0;pointer-events:none;transition:opacity .12s ease}

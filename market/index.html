@@ -14,6 +14,7 @@
     <link rel="stylesheet" href="header.css?v=shared-header-1" />
     <link rel="stylesheet" href="mobile.css?v=compact-focus-1" />
     <link rel="stylesheet" href="ranking.css?v=compact-focus-3" />
+    <link rel="stylesheet" href="comprehensive-table.css?v=master-table-1" />
     <link rel="stylesheet" href="options.css" />
     <title>SORENA WATCH | داشبورد داده‌محور بازار</title>
   </head>
@@ -30,6 +31,7 @@
           <a href="history/">آرشیو امتیاز</a>
           <a href="symbols/">کاوش نماد و تاریخچه</a>
           <a href="industries/">صنایع و سهام</a>
+          <a href="options/">آپشن</a>
         </nav>
                     <div class="topbar-actions">
           <span class="market-state"><i></i><span id="marketState">داده زنده</span></span>
@@ -58,7 +60,7 @@
           <aside class="panel signal-panel compact-signal-panel" aria-label="مقایسه امتیاز بازار و لیدرها">
             <div class="allocation-bar"><span class="allocation-leaders">لیدرها</span><div class="allocation-track"><i id="allocationMarker"></i></div><span class="allocation-broad">هم‌وزن</span></div>
             <div class="signal-list">
-              <div><span>هم‌وزن</span><b id="signalMarket">—</b></div>
+              <div><span>امتیاز کل بازار</span><b id="signalMarket">—</b></div>
               <div><span>امتیاز لیدرها</span><b id="signalLeaders">—</b></div>
             </div>
           </aside>
@@ -68,11 +70,11 @@
         <section class="dashboard-grid">
           <article class="panel pulse-panel">
             <div class="panel-heading">
-              <div><span class="section-index">01</span><h2>SORENA WATCH</h2></div>
+              <div><span class="section-index">01</span><h2>نمودار امتیاز کل بازار</h2></div>
               <span class="panel-note" aria-hidden="true"></span>
             </div>
             <div class="chart-wrap"><svg id="marketChart" viewBox="0 0 760 300" role="img" aria-label="روند میانه امتیاز بازار"></svg></div>
-            <div class="chart-legend"><span class="legend-leaders"><i class="legend-line leaders-line"></i> میانه لیدرها</span><span class="legend-rest"><i class="legend-line rest-line"></i> میانه بقیه بازار</span><span class="legend-market"><i class="legend-line market-line"></i> میانه کل بازار</span></div>
+            <div class="chart-legend"><span class="legend-leaders"><i class="legend-line leaders-line"></i> میانه لیدرها</span><span class="legend-market"><i class="legend-line market-line"></i> میانه کل بازار</span></div>
           </article>
 
         </section>
@@ -85,11 +87,27 @@
           </div>
         </section>
 
-        <section class="content-section queue-leaders-section" id="top-buy-queue">
-          <div class="section-heading"><div><span class="section-index">04</span><h2>صف خریدهای برتر</h2></div><p>همان رتبه‌بندی صف خرید تلگرام؛ مرتب‌سازی بر اساس ارزش صف خرید. داده ناموجود با «—» نمایش داده می‌شود.</p></div>
-          <article class="table-panel queue-leaders-panel">
-            <div class="table-title"><div><span class="category-tag orange">TOP BUY QUEUE</span><h3>صف خریدهای برتر</h3></div><span class="count-label">۱۰ نماد</span></div>
-            <div class="table-scroll"><table class="queue-leaders-table"><thead><tr><th data-rank-column>رتبه</th><th>سهم</th><th>امتیاز</th><th>میانگین ارزش</th><th>صف B</th><th>صف / میانگین ارزش</th><th>سرانه M</th><th>قدرت</th><th>خ حقوقی</th><th>ف حقوقی</th></tr></thead><tbody id="topBuyQueue"></tbody></table></div>
+        <section class="content-section comprehensive-section" id="comprehensive-table">
+          <div class="section-heading"><div><span class="section-index">04</span><h2>جدول جامع بازار</h2></div><p>یک نمای واحد برای مقایسه نمادها؛ امتیاز تاریخی از ۳ نمونه نزدیک به ساعت‌های ۱۰، ۱۱ و ۱۲ در ۱۰ روز کامل اخیر جمع شده است.</p></div>
+          <article class="table-panel comprehensive-panel">
+            <div class="table-title comprehensive-title">
+              <div><span class="category-tag orange">MASTER MARKET TABLE</span><h3>همه نیازهای بازار در یک جدول</h3><small id="comprehensiveCoverage">داده ناموجود با «—» نمایش داده می‌شود.</small></div>
+              <div class="comprehensive-actions"><span class="count-label" id="comprehensiveCount">—</span><button class="download-button primary" id="downloadComprehensiveXlsx" type="button">↓ دانلود Excel</button><button class="download-button" id="clearComprehensiveFilters" type="button">پاک‌کردن فیلترها</button></div>
+            </div>
+            <div class="comprehensive-help">روی عنوان هر ستون کلیک کن: کلیک اول نزولی، کلیک دوم صعودی، کلیک سوم حالت پیش‌فرض. فیلتر عددی را با عملگرهایی مثل <b>&gt;=۱۰</b>، <b>&lt;۵</b> یا <b>۱۰..۲۰</b> وارد کن.</div>
+            <div class="table-scroll comprehensive-scroll">
+              <table id="comprehensiveTable" class="comprehensive-table" aria-label="جدول جامع نمادهای بازار">
+                <thead>
+                  <tr class="comprehensive-header-row">
+                    <th data-sort-key="symbol">نماد</th><th data-sort-key="score">امتیاز</th><th data-sort-key="score_10d_total">مجموع امتیاز ۱۰ روز اخیر</th><th data-sort-key="avg_trade_value_toman">میانگین ارزش</th><th data-sort-key="last_close_diff_pct">اختلاف آخرین و پایانی</th><th data-sort-key="queue_value_toman">صف</th><th data-sort-key="buy_per_capita_toman">سرانه خرید</th><th data-sort-key="buyer_power">قدرت</th><th data-sort-key="legal_buy_pct">خ حقوقی</th><th data-sort-key="legal_sell_pct">ف حقوقی</th>
+                  </tr>
+                  <tr class="comprehensive-filter-row" aria-label="فیلترهای جدول">
+                    <th><input class="column-filter" data-filter-key="symbol" type="search" placeholder="نماد" aria-label="فیلتر نماد"></th><th><input class="column-filter" data-filter-key="score" inputmode="decimal" placeholder="مثلاً >=۱۰" aria-label="فیلتر امتیاز"></th><th><input class="column-filter" data-filter-key="score_10d_total" inputmode="decimal" placeholder="مثلاً >=۱۰۰" aria-label="فیلتر مجموع ۱۰ روزه"></th><th><input class="column-filter" data-filter-key="avg_trade_value_toman" inputmode="decimal" placeholder="مثلاً >=۱۵B" aria-label="فیلتر میانگین ارزش"></th><th><input class="column-filter" data-filter-key="last_close_diff_pct" inputmode="decimal" placeholder="مثلاً >۰" aria-label="فیلتر اختلاف آخرین و پایانی"></th><th><input class="column-filter" data-filter-key="queue_value_toman" inputmode="decimal" placeholder="مثلاً >۰" aria-label="فیلتر صف"></th><th><input class="column-filter" data-filter-key="buy_per_capita_toman" inputmode="decimal" placeholder="مثلاً >=۱M" aria-label="فیلتر سرانه خرید"></th><th><input class="column-filter" data-filter-key="buyer_power" inputmode="decimal" placeholder="مثلاً >=۲" aria-label="فیلتر قدرت"></th><th><input class="column-filter" data-filter-key="legal_buy_pct" inputmode="decimal" placeholder="مثلاً >=۲۰" aria-label="فیلتر خ حقوقی"></th><th><input class="column-filter" data-filter-key="legal_sell_pct" inputmode="decimal" placeholder="مثلاً >=۲۰" aria-label="فیلتر ف حقوقی"></th>
+                  </tr>
+                </thead>
+                <tbody id="comprehensiveRows"></tbody>
+              </table>
+            </div>
           </article>
         </section>
 
@@ -105,11 +123,7 @@
           </article>
         </section>
 
-        <section class="options-section" id="options">
-          <div class="options-copy"><span class="section-index">06</span><span class="category-tag blue">OPTIONS DESK · BULL CALL SPREAD</span><h2>اتاق آپشن<br /><em id="optionsStatus">در حال دریافت داده.</em></h2><p id="optionsMessage">داده فقط از snapshot معتبر و خواندنی آپشن نمایش داده می‌شود؛ سیگنال تست، قیمت Last به‌جای Bid/Ask و داده ناقص وارد محاسبه نمی‌شود.</p><div class="options-points"><span><i>01</i> رتبه لیدر ۱ تا ۱۰</span><span><i>02</i> DTE پنج تا بیست روز</span><span><i>03</i> بازده ماهانه حداقل ۳۰٪</span></div></div>
-          <div class="options-visual"><div class="orbit orbit-one"></div><div class="orbit orbit-two"></div><div class="option-core"><span>OPT</span><b id="optionsPairCount">—</b><small>BULL CALL<br />SPREAD</small></div><div class="floating-token token-a">IV</div><div class="floating-token token-b">Δ</div><div class="floating-token token-c">Bid / Ask</div></div>
-          <div class="options-data" aria-live="polite"><div class="options-summary"><span>منبع: <b id="optionsSource">—</b></span><span>آخرین داده: <b id="optionsUpdatedAt">—</b></span><span>جفت واجد شرایط: <b id="optionsEligibleCount">—</b></span></div><div class="options-table-wrap"><table class="options-table"><thead><tr><th>پایه / رتبه</th><th>سررسید</th><th>Strikeها</th><th>Ask خرید / Bid فروش</th><th>Debit</th><th>سود / زیان</th><th>بازده ماهانه</th></tr></thead><tbody id="optionsPairs"><tr><td colspan="7">در حال دریافت snapshot آپشن…</td></tr></tbody></table></div><div class="options-rejected" id="optionsRejected"></div><div class="options-contracts" id="optionsContracts"></div><div class="options-diagnostics" id="optionsDiagnostics"></div></div>
-        </section>
+
       </main>
 
       <footer class="site-footer"><div><span class="sorena-logo-mark" aria-hidden="true"><svg viewBox="0 0 48 48"><path d="M5 36 15 20l8 8L34 10l9 26Z"/><path d="M7 40h34"/></svg></span><span>SORENA WATCH / ساخته‌شده برای تصمیم‌های دقیق‌تر</span></div><span>داده نمایشی و تحلیلی است؛ توصیه سرمایه‌گذاری نیست.</span></footer>
@@ -119,11 +133,14 @@
       <a href="signals/"><span aria-hidden="true">⌁</span><b>سیگنال‌ها</b></a>
       <a href="symbols/"><span aria-hidden="true">⌕</span><b>نماد</b></a>
             <a href="industries/"><span aria-hidden="true">▦</span><b>صنایع</b></a>
-    </nav>
+            <a href="options/"><span aria-hidden="true">◈</span><b>آپشن</b></a>
+            </nav>
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
     <script src="core.js?v=compact-focus-1" defer></script>
     <script src="app.js?v=intraday-score-chart-2" defer></script>
-        <script src="ranking.js?v=compact-focus-2" defer></script>
+    <script src="ranking.js?v=compact-focus-2" defer></script>
     <script src="sortable-tables.js?v=three-state-2" defer></script>
+    <script src="comprehensive-table.js?v=master-table-1" defer></script>
   </body>
 </html>

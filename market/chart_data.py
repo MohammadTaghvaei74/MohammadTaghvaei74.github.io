@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import statistics
 import sqlite3
+from datetime import datetime, timedelta
 from typing import Any
 
 # Keep this list aligned with bourse-alert/main.py's production LEADERS contract.
@@ -68,8 +69,8 @@ def load_daily_chart_rows(conn: sqlite3.Connection, limit: int = 7) -> list[dict
     return daily_median_fields(conn, rows)
 
 
-def load_intraday_chart_rows(conn: sqlite3.Connection, trading_date: str, start_time: str = "09:15") -> list[dict[str, Any]]:
-    """Return only today's score movement, grouped by observed snapshot time.
+def load_intraday_chart_rows(conn: sqlite3.Connection, trading_date: str, start_time: str = "09:05") -> list[dict[str, Any]]:
+    """Return today's score movement, aggregated to one point per minute.
 
     The chart must not mix finalized prior days with the live session. A point is
     emitted only when it has valid, traded rows with a score; missing cohorts stay
@@ -82,16 +83,29 @@ def load_intraday_chart_rows(conn: sqlite3.Connection, trading_date: str, start_
            ORDER BY timestamp, symbol""",
         (trading_date, start_time),
     ).fetchall()
-    grouped: dict[str, list[tuple[str, float]]] = {}
+    grouped: dict[str, dict[str, tuple[str, float]]] = {}
     for timestamp, symbol, score in rows:
-        grouped.setdefault(str(timestamp), []).append((str(symbol), float(score)))
+        minute = str(timestamp)[:16]
+        grouped.setdefault(minute, {})[str(symbol)] = (str(timestamp), float(score))
+    if not grouped:
+        return []
+    first = datetime.strptime(f"{trading_date} {start_time}", "%Y-%m-%d %H:%M")
+    last = datetime.strptime(max(grouped), "%Y-%m-%dT%H:%M")
     result = []
-    for timestamp, values in grouped.items():
-        leaders = [score for symbol, score in values if symbol in LEADER_SYMBOLS]
-        rest = [score for symbol, score in values if symbol not in LEADER_SYMBOLS]
+    current_rows: dict[str, tuple[str, float]] | None = None
+    minute = first
+    while minute <= last:
+        minute_key = minute.strftime("%Y-%m-%dT%H:%M")
+        if minute_key in grouped:
+            current_rows = grouped[minute_key]
+        symbol_rows = current_rows or {}
+        values = list(symbol_rows.values())
+        timestamp = max((row[0] for row in values), default=f"{minute_key}:00")
+        leaders = [score for symbol, (_, score) in symbol_rows.items() if symbol in LEADER_SYMBOLS]
+        rest = [score for symbol, (_, score) in symbol_rows.items() if symbol not in LEADER_SYMBOLS]
         result.append({
             "timestamp": timestamp,
-            "time": timestamp[11:16],
+            "time": minute.strftime("%H:%M"),
             "leader_median_score": _median(leaders),
             "rest_median_score": _median(rest),
             "median_score": _median([score for _, score in values]),
@@ -99,6 +113,7 @@ def load_intraday_chart_rows(conn: sqlite3.Connection, trading_date: str, start_
             "rest_score_count": len(rest),
             "market_score_count": len(values),
         })
+        minute += timedelta(minutes=1)
     return result
 
 
