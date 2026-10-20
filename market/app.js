@@ -135,10 +135,31 @@
     return `<g class="chart-tooltip active" data-tooltip-index="${index}" role="status"><rect x="${tooltipX}" y="${tooltipY}" width="${tooltipWidth}" height="${tooltipHeight}" rx="8" fill="#07131a" stroke="#ffffff"/><text class="chart-tooltip-title" fill="#ffffff" x="${tooltipX + tooltipWidth - 12}" y="${tooltipY + 20}" text-anchor="end">ساعت ${time}</text>${rows}</g>`;
   }
 
+  function densifyIntraday(points, startTime = "09:05") {
+    const valid = points.filter((point) => point && /^\d{2}:\d{2}$/.test(String(point.time || ""))).sort((a, b) => String(a.time).localeCompare(String(b.time)));
+    if (!valid.length) return [];
+    const toMinutes = (time) => Number(String(time).slice(0, 2)) * 60 + Number(String(time).slice(3, 5));
+    const fromMinutes = toMinutes(startTime);
+    const lastMinute = toMinutes(valid[valid.length - 1].time);
+    const byMinute = new Map(valid.map((point) => [toMinutes(point.time), point]));
+    const result = [];
+    let latest = null;
+    for (let minute = fromMinutes; minute <= lastMinute; minute += 1) {
+      const source = byMinute.get(minute);
+      if (source) latest = source;
+      if (!latest) {
+        result.push({time: `${String(Math.floor(minute / 60)).padStart(2, "0")}:${String(minute % 60).padStart(2, "0")}`, median_score: null, leader_median_score: null});
+        continue;
+      }
+      result.push({...latest, time: `${String(Math.floor(minute / 60)).padStart(2, "0")}:${String(minute % 60).padStart(2, "0")}`});
+    }
+    return result;
+  }
+
   function renderChart(data) {
     const svg = $("#marketChart");
     if (!svg) return;
-    const points = Array.isArray(data.intraday) ? data.intraday : [];
+    const points = densifyIntraday(Array.isArray(data.intraday) ? data.intraday : []);
     const days = points;
     const series = {
       leaders: points.map((row) => row.leader_median_score),
@@ -146,7 +167,7 @@
       market: points.map((row) => row.median_score),
     };
     const actualValues = [series.leaders, series.market].flat().map(numeric).filter((value) => value !== null);
-    const width = 760, height = 300, pad = { top: 18, right: 14, bottom: 38, left: 48 };
+    const width = 1200, height = 300, pad = { top: 18, right: 24, bottom: 38, left: 62 };
     if (!actualValues.length) {
       svg.innerHTML = `<text class="chart-empty" x="380" y="145" text-anchor="middle">دادهٔ امروز از ۰۹:۰۵ هنوز موجود نیست.</text>`;
       return;
@@ -176,8 +197,15 @@
       const crosshair = svg.querySelector(".chart-crosshair");
       if (crosshair) { crosshair.setAttribute("x1", x(index)); crosshair.setAttribute("x2", x(index)); }
       const current = svg.querySelector(".chart-tooltip");
-      if (current) current.outerHTML = chartTooltipMarkup(index, days, series, x, y);
-      else if (crosshair) crosshair.insertAdjacentHTML("afterend", chartTooltipMarkup(index, days, series, x, y));
+      const nextMarkup = chartTooltipMarkup(index, days, series, x, y);
+      if (current) {
+        const next = document.createRange().createContextualFragment(nextMarkup).firstElementChild;
+        current.replaceChildren(...next.children);
+        for (const attribute of ["x", "y", "width", "height", "data-tooltip-index"]) {
+          if (next.hasAttribute(attribute)) current.setAttribute(attribute, next.getAttribute(attribute));
+        }
+        current.setAttribute("data-tooltip-index", String(index));
+      } else if (crosshair) crosshair.insertAdjacentHTML("afterend", nextMarkup);
     };
     const hitAreaElement = svg.querySelector(".chart-hit-area");
     const moveTooltip = (event) => {
