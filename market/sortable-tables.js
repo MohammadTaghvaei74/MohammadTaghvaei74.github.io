@@ -74,6 +74,7 @@
   }
 
   function setup(table) {
+    if (table.dataset && table.dataset.customSort === "true") return;
     if (tableStates.has(table)) return;
     var headers = table.tHead && table.tHead.rows[0] ? Array.prototype.slice.call(table.tHead.rows[0].cells) : [];
     if (!headers.length || !table.tBodies.length) return;

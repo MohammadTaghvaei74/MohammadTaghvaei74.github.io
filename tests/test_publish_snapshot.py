@@ -83,6 +83,7 @@ def test_main_uses_event_exporter_and_explicit_environment(tmp_path, monkeypatch
     monkeypatch.setenv('BOURSE_DB', str(tmp_path / 'scores.db'))
     monkeypatch.setenv('EVENT_DB', str(tmp_path / 'events.db'))
     monkeypatch.setenv('SITE_REPO', str(tmp_path / 'site'))
+    monkeypatch.setattr(publisher, 'is_publish_window', lambda: True)
 
     monkeypatch.setattr(publisher, 'build_market', lambda conn: {'generated_at': 't'})
     monkeypatch.setattr(publisher, 'build_history', lambda conn: {'valid_day_count': 0, 'valid_days': [], 'symbols': [], 'row_count': 0, 'rows': []})

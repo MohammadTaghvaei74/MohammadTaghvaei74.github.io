@@ -28,17 +28,21 @@ from xml.sax.saxutils import escape
 if __package__:
     from .export_signals import export as export_signals
     from .leveraged_snapshots import read_latest as read_leveraged
-    from .chart_data import load_daily_chart_rows, load_intraday_chart_rows
+    from .chart_data import load_daily_chart_rows, load_intraday_chart_rows, load_intraday_symbol_rows
     from .export_options import export_from_scores_db
     from .score_candles import build_candles
     from .tsetmc_enrichment import enrich_stocks
+    from .comprehensive_table import build_comprehensive_rows
+    from .symbol_history import write_symbol_history
 else:
     from export_signals import export as export_signals
     from leveraged_snapshots import read_latest as read_leveraged
-    from chart_data import load_daily_chart_rows, load_intraday_chart_rows
+    from chart_data import load_daily_chart_rows, load_intraday_chart_rows, load_intraday_symbol_rows
     from export_options import export_from_scores_db
     from score_candles import build_candles
     from tsetmc_enrichment import enrich_stocks
+    from comprehensive_table import build_comprehensive_rows
+    from symbol_history import write_symbol_history
 
 PUBLISHED_FILES = (
     "market/data/market.json",
@@ -47,6 +51,9 @@ PUBLISHED_FILES = (
     "market/history/data/history.json",
     "market/history/data/score-candles.json",
     "market/history/data/market-score-history.xlsx",
+    "market/symbols/data/intraday.json",
+    "market/symbols/data/history-manifest.json",
+    "market/symbols/data/history",
 )
 
 DB = Path(os.environ.get("BOURSE_DB", "/root/bourse-alert/scores_history.db"))
@@ -54,6 +61,8 @@ SITE = Path(os.environ.get("SITE_REPO", "/root/bourse-site"))
 MARKET_OUT = SITE / "market/data/market.json"
 HISTORY_OUT = SITE / "market/history/data/history.json"
 XLSX_OUT = SITE / "market/history/data/market-score-history.xlsx"
+INTRADAY_SYMBOLS_OUT = SITE / "market/symbols/data/intraday.json"
+SYMBOL_HISTORY_DIR = SITE / "market/symbols/data"
 TEHRAN = ZoneInfo("Asia/Tehran")
 
 
@@ -86,6 +95,17 @@ def atomic_json(path: Path, payload: dict) -> None:
     finally:
         if os.path.exists(name):
             os.unlink(name)
+
+
+def build_intraday_symbols(conn: sqlite3.Connection, trading_date: str) -> dict:
+    return {
+        "schema_version": 1,
+        "source": "scores_history.db / valid stock_snapshots",
+        "trading_date": trading_date,
+        "window_start": "09:15",
+        "window_end": "12:30",
+        "symbols": load_intraday_symbol_rows(conn, trading_date),
+    }
 
 
 def build_market(conn: sqlite3.Connection) -> dict:
@@ -154,6 +174,7 @@ def build_market(conn: sqlite3.Connection) -> dict:
         item["score_position_pct"] = round(score_rank / score_total * 100) if score_total else None
     enrich_stocks(stocks, datetime.fromisoformat(latest))
     queue_rows = build_queue_rows(stocks, datetime.fromisoformat(latest), conn)
+    comprehensive_stocks, comprehensive_meta = build_comprehensive_rows(stocks, latest, conn)
     selected_industries = (
         "خودرو", "بانک", "شیمیایی", "استخراج کانه فلزی",
         "شرکتهای چند رشته ای", "فلزات اساسی", "فراورده های نفتی",
@@ -180,6 +201,8 @@ def build_market(conn: sqlite3.Connection) -> dict:
         "top_stocks": top_stocks,
         "top_buy_queue": queue_rows[:10],
         "stocks": [row for row in stocks if row.get("industry")],
+        "comprehensive_stocks": comprehensive_stocks,
+        "comprehensive_meta": comprehensive_meta,
         "leveraged": read_leveraged(conn, latest),
         "industries": industries,
         "daily": daily,
@@ -388,7 +411,7 @@ def main() -> None:
     if not is_publish_window():
         print("SKIP_OUTSIDE_MARKET_WINDOW")
         return
-    global DB, SITE, MARKET_OUT, HISTORY_OUT, XLSX_OUT
+    global DB, SITE, MARKET_OUT, HISTORY_OUT, XLSX_OUT, INTRADAY_SYMBOLS_OUT, SYMBOL_HISTORY_DIR
     DB = Path(os.environ.get("BOURSE_DB", str(DB)))
     event_db = Path(os.environ.get("EVENT_DB", "/root/bourse-alert/event_live.db"))
     SITE = Path(os.environ.get("SITE_REPO", str(SITE)))
@@ -396,6 +419,8 @@ def main() -> None:
     SIGNALS_OUT = SITE / "market/data/signals.json"
     HISTORY_OUT = SITE / "market/history/data/history.json"
     XLSX_OUT = SITE / "market/history/data/market-score-history.xlsx"
+    INTRADAY_SYMBOLS_OUT = SITE / "market/symbols/data/intraday.json"
+    SYMBOL_HISTORY_DIR = SITE / "market/symbols/data"
     OPTIONS_OUT = SITE / "market/data/options.json"
     with connect() as conn:
         market = build_market(conn)

@@ -21,8 +21,10 @@ except ImportError:
     from chart_data import load_daily_chart_rows, load_intraday_chart_rows
 try:
     from .tsetmc_enrichment import enrich_stocks
+    from .comprehensive_table import build_comprehensive_rows
 except ImportError:
     from tsetmc_enrichment import enrich_stocks
+    from comprehensive_table import build_comprehensive_rows
 
 
 def export(db_path: str, output_path: str) -> None:
@@ -89,6 +91,7 @@ def export(db_path: str, output_path: str) -> None:
         item["score_position_pct"] = round(score_rank / score_total * 100) if score_total else None
     enrich_stocks(stocks, datetime.fromisoformat(latest))
     queue_rows = build_queue_rows(stocks, datetime.fromisoformat(latest), conn)
+    comprehensive_stocks, comprehensive_meta = build_comprehensive_rows(stocks, latest, conn)
     industries = [dict(row) for row in conn.execute(
         "SELECT industry,count,average,median,turnover_toman,net_queue_hmt FROM industry_detail_snapshots WHERE timestamp=? ORDER BY median DESC LIMIT 6",
         (latest,),
@@ -104,6 +107,8 @@ def export(db_path: str, output_path: str) -> None:
         "top_stocks": top_stocks,
         "top_buy_queue": queue_rows[:10],
         "stocks": [row for row in stocks if row.get("industry")],
+        "comprehensive_stocks": comprehensive_stocks,
+        "comprehensive_meta": comprehensive_meta,
         "leveraged": [],
         "industries": industries,
         "daily": daily,
