@@ -7,6 +7,7 @@ import os
 import sqlite3
 import tempfile
 from datetime import datetime, timedelta, timezone
+from zoneinfo import ZoneInfo
 from pathlib import Path
 from typing import Any
 
@@ -132,7 +133,11 @@ def build_payload(db_path: str | os.PathLike[str]) -> dict[str, Any]:
         return _empty(f"signal feed unavailable: {exc.__class__.__name__}")
 
     parsed = []
+    today = datetime.now(ZoneInfo("Asia/Tehran")).date()
     for row in rows:
+        stamped = _timestamp(row["timestamp"])
+        if stamped is None or stamped.astimezone(ZoneInfo("Asia/Tehran")).date() != today:
+            continue
         item = _parse_sent(row, row["delivery_provider_message_id"])
         if item is not None:
             parsed.append(item)
