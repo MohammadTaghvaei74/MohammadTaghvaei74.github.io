@@ -54,6 +54,7 @@ PUBLISHED_FILES = (
     "market/history/data/score-candles.json",
     "market/history/data/market-score-history.xlsx",
     "market/symbols/data/intraday.json",
+    "market/symbols/data/intraday.json",
     "market/symbols/data/history-manifest.json",
     "market/symbols/data/history",
 )
