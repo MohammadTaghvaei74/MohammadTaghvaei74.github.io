@@ -104,5 +104,5 @@
       const wanted=new URLSearchParams(location.search).get('symbol'); select(wanted || (items[0] ? items[0].symbol : null)); $('#availability').textContent='داده سهم آماده است';
     }).catch(() => { $('#availability').textContent='دریافت داده ناموفق بود'; $('#list').innerHTML='<p class="empty">داده سهم در دسترس نیست.</p>'; });
   }
-  $('#q').oninput=renderList; $('#sort').onchange=renderList; $('#refresh').onclick=refresh; window.addEventListener('popstate',()=>select(new URLSearchParams(location.search).get('symbol'))); refresh();
+  $('#q').oninput=renderList; $('#sort').onchange=renderList; $('#refresh').onclick=refresh; const archiveDownload=$('#downloadAllArchive'); if(archiveDownload) archiveDownload.onclick=()=>{ location.href='../history/data/market-score-history.xlsx'; }; window.addEventListener('popstate',()=>select(new URLSearchParams(location.search).get('symbol'))); refresh();
 })();
