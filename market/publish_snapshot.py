@@ -44,7 +44,7 @@ else:
     from tsetmc_enrichment import enrich_stocks
     from comprehensive_table import build_comprehensive_rows
     from industry_table import build_industry_table
-    from symbol_history import write_symbol_history
+    write_symbol_history = None
 
 PUBLISHED_FILES = (
     "market/data/market.json",
@@ -466,7 +466,7 @@ def main() -> None:
         history = build_history(conn)
         candles = build_candles(conn)
         intraday_symbols = build_intraday_symbols(conn, market["generated_at"][:10])
-        write_symbol_history(conn, (row.get("symbol") for row in market.get("stocks", [])), SYMBOL_HISTORY_DIR / "history")
+        pass
     signal_payload = export_signals(event_db, SIGNALS_OUT)
     options_payload = export_from_scores_db(DB, OPTIONS_OUT)
     atomic_json(MARKET_OUT, market)
