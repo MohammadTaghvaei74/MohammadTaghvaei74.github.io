@@ -9,8 +9,8 @@
 .chart-label{font-size:13px}
 .chart-tooltip{opacity:0;pointer-events:none;transition:opacity .12s ease}
 .chart-tooltip.active{opacity:1}
-.chart-tooltip rect{fill:#07131a;stroke:var(--lime);stroke-width:1;filter:drop-shadow(0 4px 8px rgba(0,0,0,.3))}
-.chart-tooltip-title,.chart-tooltip-value{fill:var(--ink);font:600 11px var(--fa)}
+.chart-tooltip rect{fill:#07131a;stroke:#fff;stroke-width:1;filter:drop-shadow(0 4px 8px rgba(0,0,0,.3))}
+.chart-tooltip-title,.chart-tooltip-value{fill:#fff;font:600 12px var(--fa)}
 .chart-tooltip-value{font-weight:500}
 .leader-panel .table-scroll{overflow-y:auto;height:500px!important;max-height:500px;scrollbar-width:thin;scrollbar-color:var(--blue) var(--surface-2)}
 .leader-panel .table-scroll::-webkit-scrollbar{width:7px}
