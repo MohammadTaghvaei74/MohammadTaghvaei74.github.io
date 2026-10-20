@@ -148,7 +148,13 @@
   }
 
   function densifyIntraday(points, startTime = "09:05") {
-    const valid = points.filter((point) => point && /^\d{2}:\d{2}$/.test(String(point.time || ""))).sort((a, b) => String(a.time).localeCompare(String(b.time)));
+    const candidates = points.filter((point) => point && /^\d{2}:\d{2}$/.test(String(point.time || ""))).sort((a, b) => String(a.time).localeCompare(String(b.time)));
+    const observedByTimestamp = new Map();
+    candidates.forEach((point) => {
+      const sourceKey = point.timestamp ? String(point.timestamp).slice(0, 16) : String(point.time);
+      if (!observedByTimestamp.has(sourceKey)) observedByTimestamp.set(sourceKey, point);
+    });
+    const valid = [...observedByTimestamp.values()];
     if (!valid.length) return [];
     const toMinutes = (time) => Number(String(time).slice(0, 2)) * 60 + Number(String(time).slice(3, 5));
     const fromMinutes = toMinutes(startTime);
