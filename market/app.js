@@ -254,7 +254,7 @@
     const hideTooltip = () => {
       if (tooltip) tooltip.hidden = true;
       const crosshair = svg.querySelector(".chart-crosshair");
-      if (crosshair) crosshair.setAttribute("opacity", "0");
+      if (crosshair) { crosshair.setAttribute("opacity", "0"); crosshair.style.opacity = "0"; }
       lastTooltipIndex = -1;
     };
     const hitAreaElement = svg.querySelector(".chart-hit-area");
