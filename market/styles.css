@@ -35,13 +35,15 @@ body{background-color:#061116;background-image:radial-gradient(circle at 12% 18%
 /* Industry ranking: compact data table instead of decorative cards. */
 .industry-table-panel{overflow:hidden;border-radius:16px;background:#fff;box-shadow:0 16px 35px rgba(38,73,60,.09)}
 .industry-table-scroll{overflow-x:auto}
-.industry-table{width:100%;min-width:620px;border-collapse:collapse;color:#173b3f;background:#fff;font-size:12px}
-.industry-table thead th{padding:14px 18px;background:#173b3f;color:#f5faef;font-weight:700;text-align:right;white-space:nowrap}
-.industry-table tbody td{padding:14px 18px;border-bottom:1px solid #e2ebe5;text-align:right;vertical-align:middle}
+.industry-table{width:100%;min-width:0;border-collapse:collapse;color:#173b3f;background:#fff;font-size:12px}
+.industry-table thead th{padding:11px 10px;background:#e8f1eb;color:#173b3f;font-weight:800;text-align:right;white-space:nowrap;border-bottom:2px solid #b8cec0;cursor:pointer}
+.industry-table thead th:hover,.industry-table thead th:focus-visible{background:#d9e8de;color:#102d33}
+.industry-table tbody td{padding:11px 10px;border-bottom:1px solid #e2ebe5;text-align:right;vertical-align:middle}
 .industry-table tbody tr:last-child td{border-bottom:0}
 .industry-table tbody tr:hover{background:#f5f8f2}
-.industry-rank-cell{width:130px;color:#607571;font-weight:800;text-align:center!important}
-.industry-name-cell{font-weight:700;min-width:260px}
+.industry-name-cell{font-weight:700;min-width:180px;cursor:pointer}
+.industry-name-cell a{color:#173b3f;font-weight:700}
+.industry-table tbody td:nth-child(n+3){white-space:nowrap}
 .industry-median{color:#388268;font-weight:800;direction:ltr;unicode-bidi:isolate;display:inline-block}
 .industry-median.negative{color:#c6535b}
 .industry-empty{text-align:center!important;color:#607571;padding:24px!important}

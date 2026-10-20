@@ -24,6 +24,11 @@
   const pct = (value) => core.formatPercent(value, 2);
   const integer = (value) => core.formatInteger(value);
   const closePct = (row) => core.closePercent(row.close_price, row.yesterday_price);
+  const lastCloseDiffPct = (row) => {
+    const last = numeric(row && row.last_pct);
+    const close = closePct(row);
+    return last === null || close === null ? null : last - close;
+  };
 
   function scorePosition(row, ranking) {
     const rank = numeric(row && row.score_rank);
@@ -252,14 +257,30 @@
   }
 
   function renderIndustries(data) {
-    const rows = Array.isArray(data.industries) ? data.industries : [];
-    const markup = rows.map((row, index) => {
+    const stocks = Array.isArray(data.stocks) ? data.stocks : [];
+    const groups = new Map();
+    stocks.forEach((stock) => {
+      const name = String(stock.industry || "").trim();
+      if (!name) return;
+      if (!groups.has(name)) groups.set(name, []);
+      groups.get(name).push(stock);
+    });
+    const sourceRows = Array.isArray(data.industries) ? data.industries : [];
+    const rows = sourceRows.map((row) => {
+      const members = groups.get(String(row.industry || "").trim()) || [];
+      const diffs = members.map(lastCloseDiffPct).filter((value) => value !== null);
+      const turnover = members.reduce((sum, stock) => sum + (numeric(stock.trade_value_toman) || 0), 0);
+      const avgDiff = diffs.length ? diffs.reduce((sum, value) => sum + value, 0) / diffs.length : null;
+      return { ...row, count: members.length || row.count, turnover_toman: turnover || numeric(row.turnover_toman), avg_last_close_diff_pct: avgDiff };
+    });
+    const markup = rows.map((row) => {
       const score = numeric(row.median);
       const positive = score === null || score >= 0;
-      return `<tr><td class="industry-rank-cell">${core.faDigits(index + 1)}</td><td class="industry-name-cell">${escapeHtml(row.industry || "بدون صنعت")}</td><td>${escapeHtml(integer(row.count))}</td><td><span class="industry-median ${positive ? "" : "negative"}">${escapeHtml(signed(score))}</span></td></tr>`;
+      const industry = String(row.industry || "بدون صنعت");
+      return `<tr><td class="industry-name-cell"><a href="industries/?industry=${encodeURIComponent(industry)}" aria-label="مشاهده سهام صنعت ${escapeHtml(industry)}">${escapeHtml(industry)}</a></td><td>${escapeHtml(integer(row.count))}</td><td><span class="industry-median ${positive ? "" : "negative"}">${escapeHtml(signed(score))}</span></td><td data-sort-value="${numeric(row.turnover_toman) === null ? "" : row.turnover_toman}">${escapeHtml(formatValueBillion(row.turnover_toman))}</td><td data-sort-value="${numeric(row.avg_last_close_diff_pct) === null ? "" : row.avg_last_close_diff_pct}">${escapeHtml(pct(row.avg_last_close_diff_pct))}</td></tr>`;
     }).join("");
     const element = $("#industriesGrid");
-    if (element) element.innerHTML = markup || `<tr><td colspan="4" class="industry-empty">داده صنعت هنوز آماده نیست.</td></tr>`;
+    if (element) element.innerHTML = markup || `<tr><td colspan="5" class="industry-empty">داده صنعت هنوز آماده نیست.</td></tr>`;
   }
 
   const optionsNumber = (value, digits = 0) => { const parsed = numeric(value); return parsed === null ? "—" : core.faDigits(parsed.toLocaleString("fa-IR", { maximumFractionDigits: digits, minimumFractionDigits: digits })); };
