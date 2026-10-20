@@ -38,13 +38,13 @@ if __package__:
 else:
     from export_signals import export as export_signals
     from leveraged_snapshots import read_latest as read_leveraged
-    from chart_data import load_daily_chart_rows, load_intraday_chart_rows
+    from chart_data import load_daily_chart_rows, load_intraday_chart_rows, load_intraday_symbol_rows
     from export_options import export_from_scores_db
     from score_candles import build_candles
     from tsetmc_enrichment import enrich_stocks
     from comprehensive_table import build_comprehensive_rows
     from industry_table import build_industry_table
-    write_symbol_history = None
+    from symbol_history import write_symbol_history
 
 PUBLISHED_FILES = (
     "market/data/market.json",
@@ -102,11 +102,10 @@ def atomic_json(path: Path, payload: dict) -> None:
 
 def build_intraday_symbols(conn: sqlite3.Connection, trading_date: str) -> dict:
     try:
-        symbols = {}
+        symbols = load_intraday_symbol_rows(conn, trading_date)
     except sqlite3.OperationalError as exc:
-        # Keep publisher tests and older databases compatible while the
-        # optional intraday symbol table is absent.
-        if "no such table" not in str(exc).lower():
+        # Keep older databases compatible while optional price columns are absent.
+        if "no such table" not in str(exc).lower() and "no such column" not in str(exc).lower():
             raise
         symbols = {}
     return {
@@ -467,7 +466,8 @@ def main() -> None:
         history = build_history(conn)
         candles = build_candles(conn)
         intraday_symbols = build_intraday_symbols(conn, market["generated_at"][:10])
-        pass
+        if write_symbol_history is not None:
+            write_symbol_history(conn, (row.get("symbol") for row in market.get("stocks", [])), SYMBOL_HISTORY_DIR / "history")
     signal_payload = export_signals(event_db, SIGNALS_OUT)
     options_payload = export_from_scores_db(DB, OPTIONS_OUT)
     atomic_json(MARKET_OUT, market)

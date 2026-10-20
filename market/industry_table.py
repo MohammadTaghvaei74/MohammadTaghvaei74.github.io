@@ -51,12 +51,15 @@ def _last_close_diff(stock: dict[str, Any]) -> float | None:
     explicit = _finite(stock.get("last_close_diff_pct"))
     if explicit is not None:
         return explicit
+    last = _finite(stock.get("last_price"))
+    close = _finite(stock.get("close_price"))
+    if close not in (None, 0) and last is not None:
+        return (last - close) / close * 100
     last_pct = _finite(stock.get("last_pct"))
     close_pct = _pct_from_close(stock)
     if last_pct is None or close_pct is None:
         return None
     return last_pct - close_pct
-
 
 def _complete_days(conn, latest_day: str, limit: int = max(HORIZONS)) -> list[str]:
     try:

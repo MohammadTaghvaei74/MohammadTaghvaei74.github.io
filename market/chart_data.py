@@ -130,9 +130,20 @@ def load_intraday_symbol_rows(
     high/low are taken only from observed rows; missing minutes remain absent.
     No interpolation or fabricated zero is allowed.
     """
+    tables = {row[0] for row in conn.execute("SELECT name FROM sqlite_master WHERE type='table'")}
+    if "stock_snapshots" not in tables:
+        return {}
+    available = {row[1] for row in conn.execute("PRAGMA table_info(stock_snapshots)")}
+    required = {"timestamp", "symbol", "score", "trading_date", "valid", "trade_volume"}
+    if not required.issubset(available):
+        return {}
+    last_price = "last_price" if "last_price" in available else "NULL"
+    close_price = "close_price" if "close_price" in available else "NULL"
+    yesterday = "yesterday_price" if "yesterday_price" in available else "NULL"
+    value = "trade_value_toman" if "trade_value_toman" in available else "NULL"
     rows = conn.execute(
-        """SELECT timestamp, symbol, score, last_price, close_price,
-                  yesterday_price, trade_volume, trade_value_toman
+        f"""SELECT timestamp, symbol, score, {last_price}, {close_price},
+                  {yesterday}, trade_volume, {value}
            FROM stock_snapshots
            WHERE trading_date=? AND valid=1 AND score IS NOT NULL
              AND trade_volume>0 AND substr(timestamp, 12, 5) BETWEEN ? AND ?

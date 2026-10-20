@@ -63,3 +63,17 @@ def test_intraday_chart_excludes_prior_days_and_pre_open_samples(tmp_path):
     assert rows[-1]['time'] == '10:00'
     assert rows[-1]['median_score'] == 4
     conn.close()
+
+
+def test_intraday_symbol_rows_are_observed_minute_bars_and_keep_missing_prices_null(tmp_path):
+    db = tmp_path / 'scores.db'
+    conn = make_scores_db(db)
+    add_scores(conn, '2026-10-19', [('فولاد', 2, 1, 10)], time='09:15')
+    add_scores(conn, '2026-10-19', [('فولاد', 4, 1, 11)], time='09:15:45')
+    add_scores(conn, '2026-10-19', [('فولاد', 6, 1, 12)], time='09:17')
+    conn.commit()
+    bars = publish_snapshot.load_intraday_symbol_rows(conn, '2026-10-19')
+    assert [bar['time'] for bar in bars['فولاد']] == ['09:15', '09:17']
+    assert [bar['score'] for bar in bars['فولاد']] == [4.0, 6.0]
+    assert bars['فولاد'][0]['price_open'] is None
+    conn.close()
