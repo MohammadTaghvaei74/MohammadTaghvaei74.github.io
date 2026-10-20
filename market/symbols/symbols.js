@@ -1,148 +1,108 @@
 'use strict';
-(function(){
-var C=window.SymbolCore,M=window.MarketCore,$=function(s){return document.querySelector(s);};
-var market=null,archive=null,candlesArchive=null,candleIndex=new Map(),universe=null,items=[],selected=null;
-var esc=function(v){return C.text(v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});};
-var fmt=C.format,scoreFmt=function(v){var n=C.number(v);return n===null?'—':C.format(n,1);};
-function money(v){var n=C.number(v);return n===null?'—':C.integer(n)+' تومان';}
-function million(v){var n=C.number(v);return n===null?'—':C.format(n/1e6,1)+' M';}
-function billion(v){var n=C.number(v);return n===null?'—':C.format(n/1e9,1)+' B';}
-function hmt(v){var n=C.number(v);return n===null?'—':n.toLocaleString('fa-IR',{minimumFractionDigits:1,maximumFractionDigits:1})+' همت';}
-function signed(v,d){var n=C.number(v);return n===null?'—':(n>0?'+':n<0?'−':'')+C.format(Math.abs(n),d===undefined?2:d);}
-function queue(v){var n=C.number(v);return n===null||n<=0?'—':billion(n);}
-function field(label,value,extra){return '<div class="field '+(extra||'')+'"><span>'+esc(label)+'</span><b><bdi>'+esc(value===null||value===undefined||value===''?'—':value)+'</bdi></b></div>';}
-function compare(label,leftLabel,leftValue,rightLabel,rightValue){return '<div class="field compare-field"><span>'+esc(label)+'</span><b><div>'+esc(leftLabel+' : '+leftValue)+'</div><div>'+esc(rightLabel+' : '+rightValue)+'</div></b></div>';}
-function rankedMetric(label,value,rankLabel,rankValue,extra){return '<div class="field '+(extra||'')+'"><span>'+esc(label)+'</span><b><div>'+esc(label+' : '+value)+'</div><div>'+esc(rankLabel+' : '+rankValue)+'</div></b></div>';}
-function rank(value,total){var n=C.number(value),t=C.number(total);return n===null||t===null||t<=0?'—':C.digits(Math.ceil(n/t*100))+'٪';}
-function group(title,fields,extra){return '<section class="metric-group '+(extra||'')+'"><h3>'+esc(title)+'</h3><div class="fields">'+fields.join('')+'</div></section>';}
-function stamp(v){return M.formatDate(v);}
-var solarDate=new Intl.DateTimeFormat('fa-IR-u-ca-persian',{year:'numeric',month:'2-digit',day:'2-digit',timeZone:'UTC'});
-function faDate(day){var date=new Date(String(day)+'T12:00:00Z');return Number.isNaN(date.getTime())?'—':solarDate.format(date);}
-function niceTicks(min,max){
- var rough=Math.max(1,(max-min)/5),power=Math.pow(10,Math.floor(Math.log10(rough))),unit=rough/power;
- var step=(unit<=1?1:unit<=2?2:unit<=5?5:10)*power,ticks=[];
- for(var v=Math.floor(min/step)*step,end=Math.ceil(max/step)*step;v<=end;v+=step)ticks.push(v);
- return ticks;
-}
-function bindChartTooltip(){
- var host=$('.candle-stage');if(!host)return;
- var tip=host.querySelector('.candle-tooltip');
- function hide(){tip.hidden=true;}
- host.querySelectorAll('.score-candle').forEach(function(candle){
-  function show(event){
-   var d=candle.dataset;
-   tip.innerHTML='<strong>'+esc(faDate(d.day))+'</strong>'+[['باز شدن',d.open],['بیشترین',d.high],['کمترین',d.low],['بسته شدن',d.close]].map(function(row){return '<div><span>'+row[0]+'</span><bdi>'+esc(scoreFmt(row[1]))+'</bdi></div>';}).join('');
-   tip.innerHTML+='<div><span>اولین نمونه (تهران)</span><bdi>'+esc(d.first?new Date(d.first).toLocaleTimeString('fa-IR',{timeZone:'Asia/Tehran',hour:'2-digit',minute:'2-digit',second:'2-digit'}):'—')+'</bdi></div>';
-   tip.hidden=false;
-   var box=host.getBoundingClientRect(),anchor=candle.getBoundingClientRect(),px=event.clientX||anchor.x+anchor.width/2,py=event.clientY||anchor.y;
-   tip.style.left=Math.max(4,Math.min(px-box.left+14,box.width-tip.offsetWidth-4))+'px';
-   tip.style.top=Math.max(4,Math.min(py-box.top+14,box.height-tip.offsetHeight-4))+'px';
+(function () {
+  const $ = (selector) => document.querySelector(selector);
+  const C = window.SymbolCore;
+  const M = window.MarketCore;
+  let market = null, archive = null, candles = [], candleIndex = {}, intraday = {}, manifest = {};
+  let items = [], selected = null, minuteRows = [];
+  const isLeverageMember = (r, item) => r&&r.symbol===item.symbol;
+  const esc = (value) => C.text(value).replace(/[&<>"']/g, (ch) => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[ch]));
+  const num = C.number;
+  const score = (value) => { const n = num(value); return n === null ? '—' : C.format(n, 1); };
+  const integer = (value) => num(value) === null ? '—' : C.integer(value);
+  const money = (value, divisor, suffix, digits = 1) => { const n = num(value); return n === null ? '—' : C.format(n / divisor, digits) + suffix; };
+  const billion = (value) => money(value, 1e9, ' B');
+  const million = (value) => money(value, 1e6, ' M');
+  const hmt = (value) => money(value, 1e12, ' همت');
+  const signed = (value, digits = 1) => { const n = num(value); return n === null ? '—' : (n > 0 ? '+' : n < 0 ? '−' : '') + C.format(Math.abs(n), digits); };
+  const rank = (value, total) => { const n = num(value), t = num(total); return n === null || t === null || !t ? '—' : C.digits(n) + ' از ' + C.digits(t); };
+  const fmtTime = (raw) => { const d = new Date(raw); return Number.isNaN(d.getTime()) ? '—' : d.toLocaleDateString('fa-IR', { timeZone:'Asia/Tehran', year:'numeric', month:'2-digit', day:'2-digit' }) + ' · ' + d.toLocaleTimeString('fa-IR', { timeZone:'Asia/Tehran', hour:'2-digit', minute:'2-digit' }); };
+  const faDate = (day) => { const d = new Date(String(day) + 'T12:00:00Z'); return Number.isNaN(d.getTime()) ? '—' : d.toLocaleDateString('fa-IR-u-ca-persian', { timeZone:'UTC', year:'numeric', month:'2-digit', day:'2-digit' }); };
+  const load = (url) => Promise.resolve().then(() => { const controller = typeof AbortController === 'function' ? new AbortController() : null; const options = controller ? { cache:'no-store', signal:controller.signal } : { cache:'no-store' }; return fetch(url + (url.includes('?') ? '&' : '?') + 'ts=' + Date.now(), options); }).then((r) => { if (!r.ok) throw Error('HTTP ' + r.status); return r.json(); });
+  const download = (data, type, name) => { const url = URL.createObjectURL(new Blob([data], {type})); const a = document.createElement('a'); a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 2000); };
+  const csv = (rows) => rows.map((row) => row.map((v) => '"' + String(v === null || v === undefined ? '' : v).replace(/"/g, '""') + '"').join(',')).join('\r\n');
+  const group = (title, fields) => '<section class="metric-group"><h3>' + esc(title) + '</h3><div class="fields">' + fields.map((f) => '<div class="field"><span>' + esc(f[0]) + '</span><b><bdi>' + esc(f[1] === null || f[1] === undefined ? '—' : f[1]) + '</bdi></b></div>').join('') + '</div></section>';
+
+  function lineChart(points, key, title, color) {
+    const values = points.map((p) => num(p[key])).filter((v) => v !== null);
+    if (!values.length) return '<p class="meta">داده دقیقه‌ای این سهم برای امروز منتشر نشده است.</p>';
+    const W = 900, H = 250, left = 48, right = 880, top = 18, bottom = 38;
+    let lo = Math.min(...values), hi = Math.max(...values); if (lo === hi) { lo -= 1; hi += 1; }
+    const x = (i) => left + i * (right - left) / Math.max(1, points.length - 1);
+    const y = (v) => H - bottom - (v - lo) * (H - bottom - top) / (hi - lo);
+    let path = '', circles = '';
+    points.forEach((p, i) => { const v = num(p[key]); if (v === null) return; path += (path ? ' L' : 'M') + x(i).toFixed(1) + ' ' + y(v).toFixed(1); circles += '<circle cx="' + x(i) + '" cy="' + y(v) + '" r="3" fill="' + color + '" tabindex="0"><title>' + esc(p.time || '') + ' · ' + esc(score(v)) + '</title></circle>'; });
+    const labels = points.filter((_, i) => i === 0 || i === points.length - 1 || i === Math.floor(points.length / 2)).map((p) => '<span>' + esc(p.time || '') + '</span>').join('');
+    return '<div class="symbol-chart"><div class="symbol-chart-head"><b>' + esc(title) + '</b><small>هر نقطه = یک دقیقه مشاهده‌شده؛ بدون پرکردن دقیقه‌های مفقود</small></div><svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="' + esc(title) + '"><line x1="' + left + '" x2="' + right + '" y1="' + y(0) + '" y2="' + y(0) + '" class="chart-zero"/><path d="' + path + '" stroke="' + color + '"/><g>' + circles + '</g></svg><div class="symbol-chart-labels">' + labels + '</div></div>';
   }
-  candle.addEventListener('pointerenter',show);candle.addEventListener('pointermove',show);candle.addEventListener('pointerleave',hide);
-  candle.addEventListener('focus',show);candle.addEventListener('blur',hide);candle.addEventListener('click',show);
-  candle.addEventListener('keydown',function(event){if(event.key==='Escape')hide();});
- });
-}
-function load(url){return Promise.resolve().then(function(){var Controller=typeof window!=='undefined'&&typeof window.AbortController==='function'?window.AbortController:null,ac=Controller?new Controller():null,timer=ac?setTimeout(function(){ac.abort();},12000):null,opts={cache:'no-store'};if(ac)opts.signal=ac.signal;return fetch(url+'?ts='+Date.now(),opts).then(function(r){if(!r.ok)throw Error('HTTP '+r.status);return r.json();}).then(function(data){if(timer)clearTimeout(timer);return data;},function(){if(timer)clearTimeout(timer);return null;});});}
-function render(){
- var q=C.normalize($('#q').value),key=$('#sort').value;
- var list=items.filter(function(x){return !q||C.normalize(x.symbol+' '+(x.current&&x.current.industry||'')).indexOf(q)>=0;});
- list.sort(function(a,b){if(key==='symbol')return a.symbol.localeCompare(b.symbol,'fa');var k=key==='pct'?'last_pct':'score',av=key==='history'?a.history.length:C.number(a.current&&a.current[k]),bv=key==='history'?b.history.length:C.number(b.current&&b.current[k]);if(av===null&&bv===null)return a.symbol.localeCompare(b.symbol,'fa');if(av===null)return 1;if(bv===null)return -1;return bv-av;});
- $('#shown').textContent=C.integer(list.length)+' نماد';
- $('#list').innerHTML=list.map(function(x){return '<button type="button" class="row '+(x.symbol===selected?'sel':'')+'" data-symbol="'+esc(x.symbol)+'"><span><b>'+esc(x.symbol)+'</b><small>'+esc(x.current&&x.current.industry||'فقط آرشیو تاریخی')+'</small></span><strong>'+esc(x.current?scoreFmt(x.current.score):C.integer(x.history.length)+' روز')+'</strong></button>';}).join('')||'<p class="empty">نمادی پیدا نشد.</p>';
- $('#list').querySelectorAll('button').forEach(function(el){el.onclick=function(){select(el.dataset.symbol,true);};});
-}
-function chart(item){
- var rows=(candleIndex.get(item.symbol)||[]).slice().sort(function(a,b){return String(a.day||'').localeCompare(String(b.day||''));});
- if(!rows.length)return '<p class="meta">کندل‌های روزانه برای این نماد هنوز منتشر نشده است.</p>';
- var valid=rows.filter(function(r){
-  var o=C.number(r.open),h=C.number(r.high),l=C.number(r.low),c=C.number(r.close);
-  return [o,h,l,c].every(function(n){return n!==null;})&&h>=Math.max(o,c)&&l<=Math.min(o,c)&&h>=l;
- });
- if(!valid.length)return '<p class="meta">مقادیر معتبر کندل برای نمودار یافت نشد؛ جدول داده را بررسی کنید.</p>';
- var values=[];valid.forEach(function(r){values.push(r.open,r.high,r.low,r.close);});
- var leverage=Array.isArray(market&&market.leveraged)&&market.leveraged.some(function(r){return r&&r.symbol===item.symbol;});
- var thresholds=C.thresholds([item.current&&item.current.score].concat(values),leverage),lo=Math.min.apply(Math,[0].concat(values,thresholds))-1,hi=Math.max.apply(Math,[0].concat(values,thresholds))+1;
- var ticks=niceTicks(lo,hi);lo=ticks[0];hi=ticks[ticks.length-1];
- var mobile=window.matchMedia('(max-width:800px)').matches,w=Math.max(240,Math.round(($('#dossier').clientWidth||866)-68)),h=mobile?360:460,left=48,right=w-20,topPad=30,bottomPad=48;
- var step=(right-left)/Math.max(1,valid.length-1),body=Math.max(3,Math.min(18,step*0.62)),x=function(i){return Math.round(left+i*step);},y=function(v){return Math.round(h-bottomPad-(v-lo)*(h-bottomPad-topPad)/(hi-lo));};
- var lines=ticks.map(function(v){return '<line x1="'+left+'" x2="'+right+'" y1="'+y(v)+'" y2="'+y(v)+'" stroke="#d8e3db"/><text class="y-tick" data-value="'+v+'" x="'+(left-10)+'" y="'+(y(v)+4)+'" text-anchor="end">'+esc(C.integer(v))+'</text>';}).join('');
- lines+=thresholds.map(function(v,index){return '<line class="threshold" x1="'+left+'" x2="'+right+'" y1="'+y(v)+'" y2="'+y(v)+'" stroke="#b46a40" stroke-dasharray="5 5"/><text x="'+right+'" y="'+(topPad+12+index*18)+'" text-anchor="end">آستانه '+esc(scoreFmt(v))+'</text>';}).join('');
- var plots=valid.map(function(r,j){var open=C.number(r.open),high=C.number(r.high),low=C.number(r.low),close=C.number(r.close),cx=x(j),top=y(Math.max(open,close)),bottom=y(Math.min(open,close)),height=Math.max(2,bottom-top),dir=close>=open?'up':'down';return '<g tabindex="0" role="graphics-symbol" aria-label="'+esc(faDate(r.day)+'؛ باز شدن '+fmt(open)+'؛ بیشترین '+fmt(high)+'؛ کمترین '+fmt(low)+'؛ بسته شدن '+fmt(close))+'" class="score-candle '+dir+'" data-first="'+esc(r.first_timestamp||'')+'" data-day="'+esc(r.day)+'" data-open="'+open+'" data-high="'+high+'" data-low="'+low+'" data-close="'+close+'"><line class="candle-wick" x1="'+cx+'" x2="'+cx+'" y1="'+y(high)+'" y2="'+y(low)+'"/><rect class="candle-body" x="'+(cx-body/2)+'" y="'+top+'" width="'+body+'" height="'+height+'" rx="2"/><rect class="candle-hit" x="'+(cx-Math.max(body,step*.9)/2)+'" y="'+topPad+'" width="'+Math.max(body,step*.9)+'" height="'+(h-topPad-bottomPad)+'" fill="transparent"/></g>';}).join('');
- var labels=(mobile?[0,valid.length-1]:[0,Math.floor((valid.length-1)/2),valid.length-1]).filter(function(v,i,a){return a.indexOf(v)===i;}).map(function(i,index,all){return '<text class="x-date" x="'+x(i)+'" y="'+(h-15)+'" text-anchor="'+(index===0?'start':index===all.length-1?'end':'middle')+'">'+esc(faDate(valid[i].day))+'</text>';}).join('');
- return '<div class="candle-stage"><svg class="chart candle-chart" viewBox="0 '+w+' '+h+'" role="group" aria-label="کندل استیک روزانه امتیاز '+esc(item.symbol)+'">'+lines+plots+labels+'</svg><div class="candle-tooltip" role="tooltip" hidden></div></div>';
-}
-function priceSlider(item){
- var c=item.current||{},base=C.number(c.yesterday_price),closePrice=C.number(c.close_price),last=C.number(c.last_price);
- var openPrice=C.number(c.open_price);if(openPrice===null){var history=item.history||[],first=history.length?history[0]:null;openPrice=C.number(first&&first.open_price);if(openPrice===null)openPrice=base;}
- if(base===null||base<=0||closePrice===null||openPrice===null)return '<div class="price-slider-empty">اطلاعات OPEN و CLOSE برای رسم بازه موجود نیست.</div>';
- var openPct=(openPrice-base)*100/base,closePct=(closePrice-base)*100/base;
- var buy=C.number(c.buy_queue_value_toman)>0,sell=C.number(c.sell_queue_value_toman)>0;
- var clamp=function(v){return Math.max(-3,Math.min(3,v));},pos=function(v){return ((clamp(v)+3)/6*100).toFixed(2)+'%';};
- var rising=closePrice>=openPrice,cls=rising?'up':'down',color=rising?'#3f8b62':'#c7463d';
- var openLabel=buy&&openPct>=3?'+۳':sell&&openPct<=-3?'−۳':(openPct>0?'+':'')+fmt(openPct)+'٪';
- var closeLabel=buy&&closePct>=3?'+۳':sell&&closePct<=-3?'−۳':(closePct>0?'+':'')+fmt(closePct)+'٪';
- var span=Math.abs(clamp(closePct)-clamp(openPct)),start=Math.min(clamp(openPct),clamp(closePct));
- return '<div class="price-slider '+cls+'" role="img" aria-label="روند قیمت '+esc(item.symbol)+'؛ تغییر از '+esc(fmt(openPct))+' به '+esc(fmt(closePct))+' درصد"><div class="price-slider-head"><span class="sell-label">صف فروش · −۳٪</span><strong>روند قیمت در طول روز</strong><span class="buy-label">صف خرید · +۳٪</span></div><div class="price-track"><div class="price-base"></div><div class="price-fill" style="right:'+pos(start)+';width:'+(span/6*100).toFixed(2)+'%;background:'+color+'"></div><span class="price-end-label negative">−۳</span><span class="price-end-label positive">+۳</span><span class="price-mark open" title="نقطه آغاز" aria-label="نقطه آغاز بازه" style="right:'+pos(openPct)+';color:'+color+'"></span><span class="price-mark close" title="نقطه پایان" aria-label="نقطه پایان بازه" style="right:'+pos(closePct)+';color:'+color+'"></span><span class="price-current" style="right:'+pos(closePct)+';color:'+color+'">'+esc(closeLabel)+'</span></div><div class="price-slider-foot"><span>آخرین: '+esc(C.integer(last===null?closePrice:last))+'</span><span>قیمت پایانی: '+esc(C.integer(closePrice))+'</span><span>قیمت دیروز: '+esc(C.integer(base))+'</span></div><p class="meta">بازه ثابت −۳٪ تا +۳٪ است؛ بخش رنگی فاصلهٔ نقطه آغاز تا قیمت فعلی را نشان می‌دهد.</p></div>';
-}
-function download(data,type,name){var u=URL.createObjectURL(new Blob([data],{type:type})),a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(u);},3000);}
-function downloadXlsx(rows,name){if(!window.XLSX){alert('ماژول Excel هنوز بارگذاری نشده است؛ CSV را امتحان کن');return;}var book=XLSX.utils.book_new(),sheet=XLSX.utils.json_to_sheet(rows.map(function(r){return {'تاریخ':r.day,'نماد':r.symbol,'تعداد نمونه':r.count,'میانگین امتیاز':r.mean,'میانه امتیاز':r.median,'کمینه':r.min,'بیشینه':r.max,'آخرین امتیاز':r.last,'کیفیت':r.quality==='review'?'review':'valid'};}));XLSX.utils.book_append_sheet(book,sheet,'Score History');XLSX.writeFile(book,name);
-}
-function archiveDate(v){return v?faDate(v):'—';}
-function historyTrend(rows){
- if(!rows.length)return '<div class="archive-trend"><h3>روند روزانه امتیاز</h3><p class="meta">برای این نماد سابقه روزانه‌ای در دسترس نیست.</p></div>';
- var width=900,height=240,left=44,right=880,top=20,bottom=34;
- var values=[];rows.forEach(function(r){['mean','median','last'].forEach(function(k){var n=C.number(r[k]);if(n!==null)values.push(n);});});
- if(!values.length)return '<div class="archive-trend"><h3>روند روزانه امتیاز</h3><p class="meta">مقدار معتبر برای رسم روند یافت نشد.</p></div>';
- var lo=Math.min.apply(Math,values),hi=Math.max.apply(Math,values);if(lo===hi){lo-=1;hi+=1;}
- var x=function(i){return left+i*(right-left)/Math.max(1,rows.length-1);},y=function(v){return height-bottom-(v-lo)*(height-bottom-top)/(hi-lo);};
- var path=function(key){var d='';rows.forEach(function(r,i){var n=C.number(r[key]);if(n===null)return;d+=(d?' L':'M')+x(i).toFixed(1)+' '+y(n).toFixed(1);});return d;};
- var labels=rows.map(function(r,i){if(i!==0&&i!==rows.length-1&&i!==Math.floor((rows.length-1)/2))return '';return '<text x="'+x(i)+'" y="'+(height-8)+'" text-anchor="middle">'+esc(faDate(r.day))+'</text>';}).join('');
- return '<div class="archive-trend"><div class="archive-trend-head"><h3>روند روزانه امتیاز</h3><span>میانگین / میانه / آخرین مقدار</span></div><svg class="archive-trend-chart" viewBox="0 0 '+width+' '+height+'" role="img" aria-label="روند روزانه امتیاز '+esc(rows[0].symbol||'')+'"><line x1="'+left+'" x2="'+right+'" y1="'+y(0)+'" y2="'+y(0)+'" stroke="#d8e3db"/><path d="'+path('mean')+'" stroke="#73c8ea"/><path d="'+path('median')+'" stroke="#9bc93f"/><path d="'+path('last')+'" stroke="#e97845" stroke-dasharray="5 5"/>'+labels+'</svg><div class="archive-trend-legend"><span><i class="mean"></i> میانگین</span><span><i class="median"></i> میانه</span><span><i class="last"></i> آخرین</span></div></div>';
-}
-function select(symbol,push){
- selected=symbol;var item=universe&&universe.bySymbol.get(symbol);render();
- if(push)history.pushState(null,'','?symbol='+encodeURIComponent(symbol));
- if(!item){$('#dossier').innerHTML='<div class="empty"><h2>'+(symbol?'نماد پیدا نشد':'یک نماد را انتخاب کن')+'</h2><p>از فهرست جست‌وجو و انتخاب کنید.</p></div>';return;}
- var c=item.current,rows=item.history;
- var groups=c?[
-  group('امتیاز و جایگاه',[field('امتیاز فعلی',scoreFmt(c.score),'hero-value'),field('جایگاه بین تمام سهام',rank(item.rank,universe.rankedCount),'rank-value')]),
-  group('صف',[].concat(C.number(c.buy_queue_value_toman)>0?[field('ارزش صف خرید',queue(c.buy_queue_value_toman),'queue-buy')]:[]).concat(C.number(c.sell_queue_value_toman)>0?[field('ارزش صف فروش',queue(c.sell_queue_value_toman),'queue-sell')]:[]).concat(C.number(c.buy_queue_value_toman)<=0&&C.number(c.sell_queue_value_toman)<=0?[field('صف','—')]:[])),
-  group('حجم معاملات (M)',[field('امروز',million(c.trade_volume)),field('میانگین',million(c.avg15_trade_volume))]),
-  group('ارزش معاملات (B)',[field('امروز',billion(c.trade_value_toman)),field('میانگین',billion(c.avg15_trade_value_toman)),field('جایگاه میانگین ارزش معاملات ۱۵ روز اخیر',rank(c.avg15_trade_value_rank,c.avg15_trade_value_rank_total))]),
-  group('رفتار خریدار و فروشنده',[rankedMetric('سرانه خرید',million(c.buy_per_capita_toman),'جایگاه سرانه خرید',rank(c.buy_per_capita_rank,c.buy_per_capita_rank_total),'positive'),rankedMetric('سرانه فروش',million(c.sell_per_capita_toman),'جایگاه سرانه فروش',rank(c.sell_per_capita_rank,c.sell_per_capita_rank_total),'negative')]),
-  group('قدرت',[field('قدرت',C.number(c.buyer_power)===null?'—':C.format(c.buyer_power,1),'power-value'),field('جایگاه',rank(c.buyer_power_rank,c.buyer_power_rank_total),'power-value')]),
-  group('بازار و مشخصات سهم',[field('صنعت',c.industry||'—'),field('مارکت‌کپ',hmt(c.market_cap_hmt),'market-cap'),field('جایگاه مارکت‌کپ',rank(c.market_cap_rank,c.market_cap_rank_total)),field('روز معاملاتی',faDate(c.trading_date))])
- ]:[];
- var table=rows.map(function(r){return '<tr><td data-sort-value="'+esc(r.day)+'">'+esc(r.day)+'</td>'+['count','mean','median','min','max','last'].map(function(k){return '<td><bdi>'+esc(k==='count'?C.integer(r[k]):scoreFmt(r[k]))+'</bdi></td>';}).join('')+'<td>'+esc(r.quality==='review'?'نیازمند بررسی':r.quality==='valid'?'معتبر':'نامشخص')+'</td></tr>';}).join('');
- var tsetmc=c&&c.tsetmc_url?'<a class="tsetmc-link" href="'+esc(c.tsetmc_url)+'" target="_blank" rel="noopener">مشاهده صفحه سهم در TSETMC ↗</a>':'';
- $('#dossier').innerHTML='<div class="dossier-head"><div><span class="tag">'+(c?'آخرین snapshot':'فقط آرشیو تاریخی')+'</span><h2>'+esc(symbol)+'</h2><p class="meta">'+(c?'زمان منبع: '+esc(stamp(c.timestamp||M.sourceTimestamp(market))):'در snapshot جاری داده‌ای برای این نماد نداریم.')+'</p></div><div class="head-actions">'+tsetmc+'<button class="share" id="copyLink">کپی لینک</button></div></div><div class="metric-groups">'+groups.join('')+'</div><div class="price-slider-box"><h3>روند حرکت قیمت در طول روز</h3>'+priceSlider(item)+'</div>'+historyTrend(rows)+'<div class="chartbox"><h3>کندل روزانه امتیازهای مشاهده‌شده</h3>'+chart(item)+'</div><div class="export-actions"><button class="share" id="csv">دانلود CSV</button><button class="share" id="xlsx">دانلود Excel</button><button class="share" id="json">دانلود JSON</button><span class="meta">'+C.integer(rows.length)+' روز موجود؛ نبود سابقه به معنی صفر نیست.</span></div><div class="tablebox"><table><thead><tr><th>تاریخ</th><th>تعداد نمونه</th><th>میانگین</th><th>میانه</th><th>کمینه</th><th>بیشینه</th><th>آخرین</th><th>کیفیت</th></tr></thead><tbody>'+ (table||'<tr><td colspan="8">تاریخچه‌ای در دسترس نیست.</td></tr>')+'</tbody></table></div>';
- bindChartTooltip();
- $('#csv').disabled=!rows.length;
- $('#csv').onclick=function(){var keys=['day','symbol','count','mean','median','min','max','last','quality'];download('\uFEFF'+C.csv([keys].concat(rows.map(function(r){return keys.map(function(k){return r[k];});}))),'text/csv;charset=utf-8',symbol+'-history.csv');};
- var xlsxButton=$('#xlsx');if(xlsxButton)xlsxButton.onclick=function(){downloadXlsx(rows,symbol+'-score-history.xlsx');};
- $('#json').onclick=function(){download(JSON.stringify({source_timestamp:M.sourceTimestamp(market),current:c,history:rows},null,2),'application/json',symbol+'.json');};
- $('#copyLink').onclick=function(){var el=this;if(!navigator.clipboard){el.textContent='کپی پشتیبانی نمی‌شود';return;}navigator.clipboard.writeText(location.href).then(function(){el.textContent='کپی شد';},function(){el.textContent='کپی ناموفق';});};
-}
-$('#q').oninput=render;$('#sort').onchange=render;$('#downloadAllArchive').onclick=function(){location.href='../history/data/market-score-history.xlsx';};
-window.addEventListener('popstate',function(){select(new URLSearchParams(location.search).get('symbol'),false);});
-function refresh(){return Promise.all([load('../data/market.json'),load('../history/data/history.json'),load('../history/data/score-candles.json')]).then(function(results){
- market=results[0];archive=results[1];candlesArchive=results[2];candleIndex=new Map();
- if(candlesArchive&&Array.isArray(candlesArchive.rows)){candlesArchive.rows.forEach(function(row){if(!row||!row.symbol)return;if(!candleIndex.has(row.symbol))candleIndex.set(row.symbol,[]);candleIndex.get(row.symbol).push(row);});}
- if(!market||!Array.isArray(market.stocks)&&!Array.isArray(market.top_stocks))market=null;
- if(!archive||!Array.isArray(archive.rows))archive=null;
- universe=C.buildUniverse(market,archive);items=Array.from(universe.bySymbol.values());
-  if(archive){$('#archiveDays').textContent=C.integer(archive.valid_day_count);$('#archiveRows').textContent=C.integer(archive.row_count);$('#archiveLastDay').textContent=archiveDate(archive.generated_at);}
-   var countEl=$('#count'),stampEl=$('#stamp');if(countEl)countEl.textContent=C.integer(items.length);if(stampEl)stampEl.textContent=stamp(M.sourceTimestamp(market));
- var age=Date.now()-Date.parse(M.sourceTimestamp(market)||''),messages=[];
- if(!market)messages.push('دریافت snapshot جاری ناموفق بود؛ داده‌های آرشیوی جای قیمت جاری نیستند.');
- else if(!Number.isFinite(age)||age>24*3600000||age< -300000)messages.push('snapshot قدیمی یا زمان منبع نامعتبر است؛ داده زنده محسوب نمی‌شود.');
- if(universe.partial)messages.push('فهرست جاری کامل نیست؛ فقط نمادهای موجود در داده نمایش داده می‌شوند.');
- if(!candlesArchive)messages.push('دریافت کندل‌ها ناموفق بود؛ تلاش مجدد در ۶۰ ثانیه.');
- if(!archive)messages.push('آرشیو در دسترس نیست؛ اطلاعات جاری همچنان قابل مشاهده است.');
- $('#availability').textContent=messages.length?'داده با محدودیت':'snapshot دریافت شد';$('#notice').hidden=!messages.length;$('#notice').textContent=messages.join(' ');
- render();var wanted=new URLSearchParams(location.search).get('symbol');select(wanted||null,false);
-}).catch(function(){ $('#availability').textContent='خطا در نمایش داده';$('#notice').hidden=false;$('#notice').textContent='داده قابل پردازش نیست. صفحه را دوباره بارگذاری کنید.';}).then(function(){setTimeout(refresh,60000);});}
-var resizeTimer;window.addEventListener('resize',function(){clearTimeout(resizeTimer);resizeTimer=setTimeout(function(){if(universe&&selected)select(selected,false);},150);});
-refresh();
+
+  function scoreCandles(rows) {
+    if (!rows.length) return '<p class="meta">کندل امتیاز روزانه برای این سهم موجود نیست.</p>';
+    const W = 900, H = 300, left = 48, right = 880, top = 18, bottom = 45;
+    const values = rows.flatMap((r) => [r.open, r.high, r.low, r.close].map(num)).filter((v) => v !== null);
+    let lo = Math.min(...values), hi = Math.max(...values); if (lo === hi) { lo -= 1; hi += 1; }
+    const x = (i) => left + i * (right-left) / Math.max(1, rows.length-1), y = (v) => H-bottom-(v-lo)*(H-bottom-top)/(hi-lo);
+    const plots = rows.map((r, i) => { const o=num(r.open), h=num(r.high), l=num(r.low), c=num(r.close); if ([o,h,l,c].some((v)=>v===null)) return ''; const rising=c>=o, cx=x(i), bodyTop=y(Math.max(o,c)), bodyBottom=y(Math.min(o,c)); return '<g class="daily-candle ' + (rising?'up':'down') + '"><line x1="' + cx + '" x2="' + cx + '" y1="' + y(h) + '" y2="' + y(l) + '"/><rect x="' + (cx-12) + '" y="' + bodyTop + '" width="24" height="' + Math.max(3, bodyBottom-bodyTop) + '" rx="2"><title>' + esc(faDate(r.day)) + ' · باز ' + esc(score(o)) + ' · بالا ' + esc(score(h)) + ' · پایین ' + esc(score(l)) + ' · بسته ' + esc(score(c)) + '</title></rect></g>'; }).join('');
+    const labels = rows.map((r, i) => '<text x="' + x(i) + '" y="' + (H-12) + '" text-anchor="middle">' + esc(faDate(r.day)) + '</text>').join('');
+    return '<div class="symbol-chart"><div class="symbol-chart-head"><b>کندل روزانه امتیاز · ۱۰ روز اخیر</b><small>باز / بیشینه / کمینه / بسته از نمونه‌های واقعی همان روز</small></div><svg viewBox="0 0 ' + W + ' ' + H + '" class="daily-candle-chart" role="img" aria-label="کندل روزانه امتیاز"><line x1="' + left + '" x2="' + right + '" y1="' + y(0) + '" y2="' + y(0) + '" class="chart-zero"/>' + plots + labels + '</svg><div class="candle-legend"><span class="up">● صعودی</span><span class="down">● نزولی</span></div></div>';
+  }
+
+  function priceCandles(points) {
+    const rows = points.filter((p) => [p.price_open,p.price_high,p.price_low,p.price_close].every((v) => num(v) !== null));
+    if (!rows.length) return '<p class="meta">روند قیمت دقیقه‌ای برای این سهم در snapshot فعلی در دسترس نیست.</p>';
+    const W=900,H=300,left=48,right=880,top=18,bottom=45, values=rows.flatMap((r)=>[r.price_open,r.price_high,r.price_low,r.price_close].map(num)); let lo=Math.min(...values),hi=Math.max(...values); if(lo===hi){lo-=1;hi+=1;}
+    const x=(i)=>left+i*(right-left)/Math.max(1,rows.length-1),y=(v)=>H-bottom-(v-lo)*(H-bottom-top)/(hi-lo);
+    const plots=rows.map((r,i)=>{const o=num(r.price_open),h=num(r.price_high),l=num(r.price_low),c=num(r.price_close),cx=x(i),up=c>=o;return '<g class="price-candle '+(up?'up':'down')+'"><line x1="'+cx+'" x2="'+cx+'" y1="'+y(h)+'" y2="'+y(l)+'"/><rect x="'+(cx-3)+'" y="'+y(Math.max(o,c))+'" width="6" height="'+Math.max(2,y(Math.min(o,c))-y(Math.max(o,c)))+'"><title>'+esc(r.time)+' · باز '+esc(integer(o))+' · بسته '+esc(integer(c))+'</title></rect></g>';}).join('');
+    const labels=rows.filter((_,i)=>i===0||i===rows.length-1||i===Math.floor(rows.length/2)).map((r)=>'<text x="'+x(rows.indexOf(r))+'" y="'+(H-12)+'" text-anchor="middle">'+esc(r.time)+'</text>').join('');
+    return '<div class="symbol-chart"><div class="symbol-chart-head"><b>روند حرکت قیمت · کندل دقیقه‌ای</b><small>فقط قیمت‌های مشاهده‌شده در snapshot امروز</small></div><svg viewBox="0 0 '+W+' '+H+'" class="price-candle-chart" role="img" aria-label="روند حرکت قیمت به صورت کندلی">'+plots+labels+'</svg></div>';
+  }
+
+  function minuteTable(rows) {
+    if (!rows.length) return '<p class="meta">داده دقیقه‌ای ذخیره‌شده برای این سهم در فهرست عمومی موجود نیست.</p>';
+    const body = rows.map((r) => '<tr><td>' + esc(fmtTime(r[0])) + '</td><td><bdi>' + esc(score(r[1])) + '</bdi></td></tr>').join('');
+    return '<div class="minute-data-head"><div><h3>کل داده دقیقه‌ای ذخیره‌شده</h3><small>' + C.integer(rows.length) + ' مشاهده واقعی؛ ترتیب زمانی صعودی</small></div><div><button class="share" id="minuteCsv">دانلود CSV</button><button class="share" id="minuteXlsx">دانلود Excel</button></div></div><div class="tablebox minute-tablebox"><table><thead><tr><th>تاریخ و ساعت تهران</th><th>امتیاز</th></tr></thead><tbody>' + body + '</tbody></table></div>';
+  }
+
+  function renderList() {
+    const q = C.normalize($('#q').value), key = $('#sort').value;
+    const list = items.filter((item) => !q || C.normalize(item.symbol + ' ' + ((item.current && item.current.industry) || '')).includes(q));
+        list.sort((a,b) => key === 'symbol' ? a.symbol.localeCompare(b.symbol, 'fa') : key === 'history' ? b.history.length-a.history.length : ((num(b.current && b.current[key === 'pct' ? 'last_pct' : 'score']) === null ? -Infinity : num(b.current && b.current[key === 'pct' ? 'last_pct' : 'score'])) - (num(a.current && a.current[key === 'pct' ? 'last_pct' : 'score']) === null ? -Infinity : num(a.current && a.current[key === 'pct' ? 'last_pct' : 'score']))));
+    $('#shown').textContent = C.integer(list.length) + ' نماد';
+    $('#list').innerHTML = list.map((item) => '<a class="row ' + (item.symbol === selected ? 'sel' : '') + '" href="?symbol=' + encodeURIComponent(item.symbol) + '"><span><b>' + esc(item.symbol) + '</b><small>' + esc(item.current && item.current.industry || 'فقط آرشیو تاریخی') + '</small></span><strong>' + esc(item.current ? score(item.current.score) : C.integer(item.history.length) + ' روز') + '</strong></a>').join('') || '<p class="empty">نمادی پیدا نشد.</p>';
+  }
+
+  function select(symbol, push = false) {
+    selected = symbol;
+    if (push) history.pushState(null, '', '?symbol=' + encodeURIComponent(symbol));
+    renderList();
+    const item = items.find((x) => x.symbol === symbol);
+    if (!item) { $('#dossier').innerHTML = '<div class="empty"><h2>یک سهم را انتخاب کن</h2><p>از فهرست جست‌وجو و انتخاب کنید.</p></div>'; return; }
+    const c = item.current || {}, daily = item.history.slice(-10), points = intraday[item.symbol] || [], priceRows = points, scoreRows = (candleIndex[item.symbol] || []).slice(-10);
+    const groups = c ? [
+      group('امتیاز و جایگاه', [['امتیاز فعلی', score(c.score)], ['جایگاه از لحاظ امتیاز', rank(c.score_rank, c.score_rank_total)]]),
+      group('صف و معاملات', [['ارزش صف', billion((num(c.buy_queue_value_toman) || 0) > 0 ? c.buy_queue_value_toman : c.sell_queue_value_toman)], ['حجم معاملات امروز', million(c.trade_volume)], ['حجم معاملات میانگین ۱۵ روز اخیر', million(c.avg15_trade_volume)], ['ارزش معاملات امروز', billion(c.trade_value_toman)], ['ارزش معاملات میانگین ۱۵ روز اخیر', billion(c.avg15_trade_value_toman)], ['جایگاه ارزش معاملات', rank(c.avg15_trade_value_rank, c.avg15_trade_value_rank_total)]]),
+      group('رفتار معامله‌گران', [['سرانه خرید', million(c.buy_per_capita_toman)], ['سرانه فروش', million(c.sell_per_capita_toman)], ['جایگاه سرانه خرید', rank(c.buy_per_capita_rank, c.buy_per_capita_rank_total)], ['قدرت', score(c.buyer_power)], ['جایگاه قدرت', rank(c.buyer_power_rank, c.buyer_power_rank_total)]]),
+      group('مشخصات سهم', [['صنعت', c.industry || '—'], ['مارکت کپ', hmt(c.market_cap_hmt)], ['جایگاه مارکت کپ', rank(c.market_cap_rank, c.market_cap_rank_total)]])
+    ] : [];
+    const tsetmc = c.tsetmc_url ? '<a class="tsetmc-link" href="' + esc(c.tsetmc_url) + '" target="_blank" rel="noopener">صفحه سهم در TSETMC ↗</a>' : '';
+    $('#dossier').innerHTML = '<div class="dossier-head"><div><span class="tag">' + (c.score !== undefined ? 'آخرین snapshot' : 'فقط آرشیو تاریخی') + '</span><h2>' + esc(symbol) + '</h2><p class="meta">' + (c.timestamp ? 'زمان منبع: ' + esc(M.formatDate(c.timestamp)) : 'در snapshot جاری داده‌ای برای این نماد نداریم.') + '</p></div><div class="head-actions">' + tsetmc + '<button class="share" id="copyLink">کپی لینک</button></div></div><div class="metric-groups">' + groups.join('') + '</div><div class="chartbox">' + scoreCandles(scoreRows) + '</div><div class="chartbox">' + lineChart(points, 'score', 'روند امتیاز امروز', '#388268') + '</div><div class="chartbox">' + priceCandles(points) + '</div><div id="minuteData" class="tablebox"><p class="meta">در حال دریافت دیتای دقیقه‌ای…</p></div><div class="export-actions"><button class="share" id="dailyCsv">دانلود CSV روزانه</button><button class="share" id="dailyXlsx">دانلود Excel روزانه</button><span class="meta">' + C.integer(daily.length) + ' روز اخیر؛ داده ناموجود با «—» نمایش داده می‌شود.</span></div>';
+    $('#copyLink').onclick = () => navigator.clipboard && navigator.clipboard.writeText(location.href);
+    $('#dailyCsv').onclick = () => download('\ufeff' + csv([['تاریخ','نماد','تعداد نمونه','میانگین','میانه','کمینه','بیشینه','آخرین','کیفیت'], ...daily.map((r) => [r.day,r.symbol,r.count,r.mean,r.median,r.min,r.max,r.last,r.quality])]), 'text/csv;charset=utf-8', symbol + '-score-history.csv');
+    $('#dailyXlsx').onclick = () => { if (!window.XLSX) return; const sheet = XLSX.utils.json_to_sheet(daily.map((r) => ({ 'تاریخ':r.day,'نماد':r.symbol,'تعداد نمونه':r.count,'میانگین امتیاز':r.mean,'میانه امتیاز':r.median,'کمینه':r.min,'بیشینه':r.max,'آخرین امتیاز':r.last,'کیفیت':r.quality }))); const book = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(book, sheet, 'Score History'); XLSX.writeFile(book, symbol + '-score-history.xlsx'); };
+    const info = manifest[symbol];
+    if (!info) { $('#minuteData').innerHTML = minuteTable([]); return; }
+    load('data/' + info.file).then((payload) => { minuteRows = Array.isArray(payload.rows) ? payload.rows : []; $('#minuteData').innerHTML = minuteTable(minuteRows); $('#minuteCsv').onclick = () => download('\ufeff' + csv([['تاریخ و ساعت','امتیاز'], ...minuteRows]), 'text/csv;charset=utf-8', symbol + '-minute-score.csv'); $('#minuteXlsx').onclick = () => { if (!window.XLSX) return; const sheet = XLSX.utils.aoa_to_sheet([['تاریخ و ساعت','امتیاز'], ...minuteRows]); const book = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(book, sheet, 'Minute Scores'); XLSX.writeFile(book, symbol + '-minute-score.xlsx'); }; }).catch(() => { $('#minuteData').innerHTML = '<p class="meta">دریافت دیتای دقیقه‌ای این سهم ناموفق بود.</p>'; });
+  }
+
+  function refresh() {
+    Promise.all([load('../data/market.json'), load('../history/data/history.json'), load('../history/data/score-candles.json'), load('data/intraday.json'), load('data/history-manifest.json')]).then(([m,h,c,i,man]) => {
+      market=m; archive=h; candles=c.rows || []; candleIndex={}; candles.forEach((row) => { if (!candleIndex[row.symbol]) candleIndex[row.symbol]=[]; candleIndex[row.symbol].push(row); }); intraday=i.symbols || {}; manifest=man.symbols || {};
+      const bySymbol=new Map(); (market.stocks || []).forEach((row) => bySymbol.set(row.symbol, {symbol:row.symbol,current:row,history:[]}));
+      (archive.rows || []).forEach((row) => { if(!bySymbol.has(row.symbol)) bySymbol.set(row.symbol,{symbol:row.symbol,current:null,history:[]}); bySymbol.get(row.symbol).history.push(row); });
+      items=Array.from(bySymbol.values());
+      $('#archiveDays').textContent=C.integer(archive.valid_day_count); $('#archiveRows').textContent=C.integer(archive.row_count); $('#archiveLastDay').textContent=faDate(archive.generated_at);
+      const wanted=new URLSearchParams(location.search).get('symbol'); select(wanted || (items[0] ? items[0].symbol : null)); $('#availability').textContent='داده سهم آماده است';
+    }).catch(() => { $('#availability').textContent='دریافت داده ناموفق بود'; $('#list').innerHTML='<p class="empty">داده سهم در دسترس نیست.</p>'; });
+  }
+  $('#q').oninput=renderList; $('#sort').onchange=renderList; $('#refresh').onclick=refresh; window.addEventListener('popstate',()=>select(new URLSearchParams(location.search).get('symbol'))); refresh();
 })();

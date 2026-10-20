@@ -98,13 +98,21 @@ def atomic_json(path: Path, payload: dict) -> None:
 
 
 def build_intraday_symbols(conn: sqlite3.Connection, trading_date: str) -> dict:
+    try:
+        symbols = load_intraday_symbol_rows(conn, trading_date)
+    except sqlite3.OperationalError as exc:
+        # Keep publisher tests and older databases compatible while the
+        # optional intraday symbol table is absent.
+        if "no such table" not in str(exc).lower():
+            raise
+        symbols = {}
     return {
         "schema_version": 1,
         "source": "scores_history.db / valid stock_snapshots",
         "trading_date": trading_date,
         "window_start": "09:15",
         "window_end": "12:30",
-        "symbols": load_intraday_symbol_rows(conn, trading_date),
+        "symbols": symbols,
     }
 
 
@@ -365,7 +373,7 @@ def assert_safe_worktree(status_lines: list[str]) -> None:
         # not published, but an older/manual run may leave it untracked under
         # the site tree. Ignore only this exact cache; all other unexpected
         # files remain fail-closed.
-        safe_path = path in PUBLISHED_FILES
+        safe_path = path in PUBLISHED_FILES or path.startswith("market/symbols/data/history/")
         runtime_cache = path == "market/data/options_history.sqlite"
         unsafe_status = "U" in (index_status, worktree_status) or "D" in (index_status, worktree_status) or index_status == "R" or worktree_status == "R" or " -> " in path
         if (not safe_path and not runtime_cache) or unsafe_status:
@@ -426,11 +434,14 @@ def main() -> None:
         market = build_market(conn)
         history = build_history(conn)
         candles = build_candles(conn)
+        intraday_symbols = build_intraday_symbols(conn, market["generated_at"][:10])
+        write_symbol_history(conn, (row.get("symbol") for row in market.get("stocks", [])), SYMBOL_HISTORY_DIR / "history")
     signal_payload = export_signals(event_db, SIGNALS_OUT)
     options_payload = export_from_scores_db(DB, OPTIONS_OUT)
     atomic_json(MARKET_OUT, market)
     atomic_json(HISTORY_OUT, history)
     atomic_json(SITE / "market/history/data/score-candles.json", candles)
+    atomic_json(INTRADAY_SYMBOLS_OUT, intraday_symbols)
     build_xlsx(history)
     changed = git_publish(SITE, list(PUBLISHED_FILES))
     print("PUBLISHED" if changed else "NO_CHANGE", market["generated_at"], history["valid_day_count"], history["row_count"], signal_payload["status"], options_payload["status"], options_payload["counts"])
