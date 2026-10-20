@@ -467,7 +467,8 @@ def main() -> None:
         candles = build_candles(conn)
         intraday_symbols = build_intraday_symbols(conn, market["generated_at"][:10])
         if write_symbol_history is not None:
-            write_symbol_history(conn, (row.get("symbol") for row in market.get("stocks", [])), SYMBOL_HISTORY_DIR / "history")
+            source_rows = market.get("comprehensive_stocks") or market.get("stocks", [])
+            write_symbol_history(conn, (row.get("symbol") for row in source_rows), SYMBOL_HISTORY_DIR / "history")
     signal_payload = export_signals(event_db, SIGNALS_OUT)
     options_payload = export_from_scores_db(DB, OPTIONS_OUT)
     atomic_json(MARKET_OUT, market)
