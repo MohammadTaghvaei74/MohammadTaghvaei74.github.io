@@ -2,6 +2,16 @@
 
 /* 40-symbol leader list: show ten rows, scroll the remaining rows inside the card. */
 .focus-grid{grid-template-columns:1.1fr .9fr .9fr}
+.pulse-panel .panel-note:empty{display:none}
+.chart-hit{fill:transparent;stroke:transparent;cursor:crosshair}
+.chart-hit:focus{outline:none;stroke:var(--lime);stroke-width:1;stroke-opacity:.55}
+.chart-crosshair{stroke:var(--lime);stroke-width:1;stroke-dasharray:4 4;opacity:.65}
+.chart-label{font-size:13px}
+.chart-tooltip{opacity:0;pointer-events:none;transition:opacity .12s ease}
+.chart-tooltip.active{opacity:1}
+.chart-tooltip rect{fill:#07131a;stroke:var(--lime);stroke-width:1;filter:drop-shadow(0 4px 8px rgba(0,0,0,.3))}
+.chart-tooltip-title,.chart-tooltip-value{fill:var(--ink);font:600 11px var(--fa)}
+.chart-tooltip-value{font-weight:500}
 .leader-panel .table-scroll{overflow-y:auto;height:500px!important;max-height:500px;scrollbar-width:thin;scrollbar-color:var(--blue) var(--surface-2)}
 .leader-panel .table-scroll::-webkit-scrollbar{width:7px}
 .leader-panel .table-scroll::-webkit-scrollbar-track{background:var(--surface-2)}
@@ -44,8 +54,8 @@ body{background:var(--bg);color:var(--ink);background-image:radial-gradient(circ
 /* Compact the market pulse panel so the chart does not dominate the page. */
 @media(min-width:721px){
   .pulse-panel{padding:22px}
-  .pulse-panel .chart-wrap{margin-top:14px;height:190px}
-  .pulse-panel .chart-legend{padding-top:10px;gap:12px}
+  .pulse-panel .chart-wrap{margin-top:14px;height:300px}
+  .pulse-panel .chart-legend{padding-top:12px;gap:14px}
 }
 
 .queue-leaders-panel{overflow:hidden}.queue-leaders-table{min-width:900px}.queue-leaders-table th,.queue-leaders-table td{white-space:nowrap}.queue-leaders-table th:nth-child(5),.queue-leaders-table td:nth-child(5){color:var(--ink)}.queue-leaders-table th:nth-child(6),.queue-leaders-table td:nth-child(6){color:var(--blue)}.queue-leaders-section .section-heading p{max-width:760px}

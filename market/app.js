@@ -114,6 +114,23 @@
     return path.trim();
   }
 
+  function chartTooltipMarkup(index, points, series, x, y) {
+    const point = points[index] || {};
+    const values = [
+      ["کل بازار", series.market[index], "#388268"],
+      ["لیدرها", series.leaders[index], "#ffae73"],
+      ["بقیه بازار", series.rest[index], "#7fd8ef"],
+    ].filter(([, value]) => numeric(value) !== null);
+    const tooltipWidth = 190;
+    const tooltipHeight = 30 + values.length * 19;
+    const rawX = x(index) + 14;
+    const tooltipX = rawX + tooltipWidth > 760 ? x(index) - tooltipWidth - 14 : rawX;
+    const tooltipY = Math.max(8, Math.min(300 - tooltipHeight - 8, y(numeric(series.market[index]) !== null ? numeric(series.market[index]) : numeric(series.leaders[index]) !== null ? numeric(series.leaders[index]) : numeric(series.rest[index])) - tooltipHeight / 2));
+    const time = escapeHtml(core.faDigits(String(point.time || "—").slice(0, 5)));
+    const rows = values.map(([label, value, color], rowIndex) => `<circle cx="${tooltipX + 12}" cy="${tooltipY + 31 + rowIndex * 19}" r="3.5" fill="${color}"/><text class="chart-tooltip-value" x="${tooltipX + tooltipWidth - 12}" y="${tooltipY + 35 + rowIndex * 19}" text-anchor="end">${escapeHtml(label)}: ${escapeHtml(signed(value, 2))}</text>`).join("");
+    return `<g class="chart-tooltip active" data-tooltip-index="${index}" role="status"><rect x="${tooltipX}" y="${tooltipY}" width="${tooltipWidth}" height="${tooltipHeight}" rx="8"/><text class="chart-tooltip-title" x="${tooltipX + tooltipWidth - 12}" y="${tooltipY + 20}" text-anchor="end">ساعت ${time}</text>${rows}</g>`;
+  }
+
   function renderChart(data) {
     const svg = $("#marketChart");
     if (!svg) return;
@@ -125,9 +142,9 @@
       market: points.map((row) => row.median_score),
     };
     const actualValues = [series.leaders, series.rest, series.market].flat().map(numeric).filter((value) => value !== null);
-    const width = 760, height = 265, pad = { top: 18, right: 14, bottom: 32, left: 38 };
+    const width = 760, height = 300, pad = { top: 18, right: 14, bottom: 38, left: 48 };
     if (!actualValues.length) {
-      svg.innerHTML = `<text class="chart-empty" x="380" y="130" text-anchor="middle">دادهٔ امروز از ۰۹:۱۵ هنوز موجود نیست.</text>`;
+      svg.innerHTML = `<text class="chart-empty" x="380" y="145" text-anchor="middle">دادهٔ امروز از ۰۹:۱۵ هنوز موجود نیست.</text>`;
       return;
     }
     const min = Math.min(-3, ...actualValues) - .4;
@@ -140,11 +157,26 @@
     const zeroY = y(0);
     // Do not bridge missing samples with a filled area.
     const areaPath = marketPath && series.market.every((value) => value !== null) ? `${marketPath} L ${x(days.length - 1)},${zeroY} L ${x(0)},${zeroY} Z` : "";
-    const grid = [-3, 0, 3].map((tick) => `<line class="${tick === 0 ? "chart-zero" : "chart-grid-line"}" x1="${pad.left}" x2="${width - pad.right}" y1="${y(tick)}" y2="${y(tick)}"/><text class="chart-label" x="${pad.left - 9}" y="${y(tick) + 4}" text-anchor="end">${core.faDigits(tick)}</text>`).join("");
+    const grid = [-3, -2, -1, 0, 1, 2, 3].map((tick) => `<line class="${tick === 0 ? "chart-zero" : "chart-grid-line"}" x1="${pad.left}" x2="${width - pad.right}" y1="${y(tick)}" y2="${y(tick)}"/><text class="chart-label" x="${pad.left - 11}" y="${y(tick) + 5}" text-anchor="end">${core.faDigits(tick)}</text>`).join("");
     const labels = days.map((point, index) => `<text class="chart-label" x="${x(index)}" y="${height - 8}" text-anchor="middle">${escapeHtml(core.faDigits(String(point.time || "").slice(0, 5)))}</text>`).join("");
     const leadersMarkup = leadersPath ? `<path class="chart-path chart-leaders" d="${leadersPath}"/>` : "";
     const restMarkup = restPath ? `<path class="chart-path chart-rest" d="${restPath}"/>` : "";
-    svg.innerHTML = `<defs><linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b8df55" stop-opacity=".25"/><stop offset="1" stop-color="#b8df55" stop-opacity="0"/></linearGradient></defs>${grid}${labels}${areaPath ? `<path class="chart-area" d="${areaPath}"/>` : ""}${leadersMarkup}${restMarkup}<path class="chart-path chart-market" d="${marketPath}"/>`;
+    const pointMarkup = days.map((point, index) => [
+      [series.market[index], "market"], [series.leaders[index], "leaders"], [series.rest[index], "rest"],
+    ].filter(([value]) => numeric(value) !== null).map(([value, name]) => `<circle class="chart-hit chart-hit-${name}" data-index="${index}" cx="${x(index)}" cy="${y(value)}" r="10" tabindex="0" aria-label="${escapeHtml(String(point.time || ""))} ${escapeHtml(name)} ${escapeHtml(signed(value, 2))}"/>`).join("")).join("");
+    svg.innerHTML = `<defs><linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b8df55" stop-opacity=".25"/><stop offset="1" stop-color="#b8df55" stop-opacity="0"/></linearGradient></defs>${grid}${labels}${areaPath ? `<path class="chart-area" d="${areaPath}"/>` : ""}${leadersMarkup}${restMarkup}<path class="chart-path chart-market" d="${marketPath}"/><line class="chart-crosshair" x1="${x(0)}" x2="${x(0)}" y1="${pad.top}" y2="${height - pad.bottom}"/>${pointMarkup}`;
+    const showTooltip = (index) => {
+      const crosshair = svg.querySelector(".chart-crosshair");
+      if (crosshair) { crosshair.setAttribute("x1", x(index)); crosshair.setAttribute("x2", x(index)); }
+      const current = svg.querySelector(".chart-tooltip");
+      if (current) current.outerHTML = chartTooltipMarkup(index, days, series, x, y);
+      else if (crosshair) crosshair.insertAdjacentHTML("afterend", chartTooltipMarkup(index, days, series, x, y));
+    };
+    svg.querySelectorAll(".chart-hit").forEach((hit) => {
+      const show = () => showTooltip(Number(hit.dataset.index));
+      hit.addEventListener("pointerenter", show);
+      hit.addEventListener("focus", show);
+    });
   }
 
   function scoreClass(value) {

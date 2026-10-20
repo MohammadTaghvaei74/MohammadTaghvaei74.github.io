@@ -38,7 +38,7 @@
   .panel-heading { gap: 8px; }
   .panel h2, .section-heading h2 { font-size: 19px; }
   .panel-note, .tiny-label { font-size: 9px; }
-  .chart-wrap { margin: 12px -3px 0; min-height: 156px; }
+  .chart-wrap { margin: 12px -3px 0; min-height: 220px; height: 220px; }
   .chart-legend { padding-top: 9px; gap: 8px; font-size: 9px; flex-wrap: wrap; }
   .chart-caption { width: 100%; }
   .allocation-copy strong { font-size: 17px; }
