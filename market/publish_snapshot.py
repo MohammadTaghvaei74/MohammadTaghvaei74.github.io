@@ -208,7 +208,7 @@ def build_market(conn: sqlite3.Connection) -> dict:
         "groups": groups,
         "top_stocks": top_stocks,
         "top_buy_queue": queue_rows[:10],
-        "stocks": [row for row in stocks if row.get("industry")],
+        "stocks": stocks,
         "comprehensive_stocks": comprehensive_stocks,
         "comprehensive_meta": comprehensive_meta,
         "leveraged": read_leveraged(conn, latest),
