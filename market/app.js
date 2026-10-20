@@ -128,7 +128,7 @@
     const tooltipWidth = 190;
     const tooltipHeight = 30 + values.length * 19;
     const rawX = x(index) + 14;
-    const tooltipX = rawX + tooltipWidth > 760 ? x(index) - tooltipWidth - 14 : rawX;
+    const tooltipX = rawX + tooltipWidth > 1200 ? x(index) - tooltipWidth - 14 : rawX;
     const tooltipY = Math.max(8, Math.min(300 - tooltipHeight - 8, y(numeric(series.market[index]) !== null ? numeric(series.market[index]) : numeric(series.leaders[index])) - tooltipHeight / 2));
     const time = escapeHtml(core.faDigits(String(point.time || "—").slice(0, 5)));
     const rows = values.map(([label, value, color], rowIndex) => `<circle cx="${tooltipX + 12}" cy="${tooltipY + 31 + rowIndex * 19}" r="3.5" fill="${color}"/><text class="chart-tooltip-value" fill="#ffffff" x="${tooltipX + tooltipWidth - 12}" y="${tooltipY + 35 + rowIndex * 19}" text-anchor="end">${escapeHtml(label)}: ${escapeHtml(signed(value, 2))}</text>`).join("");
@@ -142,6 +142,11 @@
     const fromMinutes = toMinutes(startTime);
     const lastMinute = toMinutes(valid[valid.length - 1].time);
     const byMinute = new Map(valid.map((point) => [toMinutes(point.time), point]));
+    const interpolate = (left, right, key, ratio) => {
+      const a = numeric(left && left[key]);
+      const b = numeric(right && right[key]);
+      return a === null || b === null ? (a === null ? b : a) : a + (b - a) * ratio;
+    };
     const result = [];
     let latest = null;
     for (let minute = fromMinutes; minute <= lastMinute; minute += 1) {
@@ -151,7 +156,14 @@
         result.push({time: `${String(Math.floor(minute / 60)).padStart(2, "0")}:${String(minute % 60).padStart(2, "0")}`, median_score: null, leader_median_score: null});
         continue;
       }
-      result.push({...latest, time: `${String(Math.floor(minute / 60)).padStart(2, "0")}:${String(minute % 60).padStart(2, "0")}`});
+      const next = valid.find((point) => toMinutes(point.time) > minute);
+      const previousMinute = toMinutes(latest.time);
+      const ratio = next ? (minute - previousMinute) / Math.max(toMinutes(next.time) - previousMinute, 1) : 0;
+      result.push({...latest,
+        time: `${String(Math.floor(minute / 60)).padStart(2, "0")}:${String(minute % 60).padStart(2, "0")}`,
+        median_score: source ? source.median_score : interpolate(latest, next, "median_score", ratio),
+        leader_median_score: source ? source.leader_median_score : interpolate(latest, next, "leader_median_score", ratio),
+      });
     }
     return result;
   }
@@ -183,7 +195,7 @@
     // Do not bridge missing samples with a filled area.
     const areaPath = marketPath && series.market.every((value) => value !== null) ? `${marketPath} L ${x(days.length - 1)},${zeroY} L ${x(0)},${zeroY} Z` : "";
     const grid = [-3, -2, -1, 0, 1, 2, 3].map((tick) => `<line class="${tick === 0 ? "chart-zero" : "chart-grid-line"}" x1="${pad.left}" x2="${width - pad.right}" y1="${y(tick)}" y2="${y(tick)}"/><text class="chart-label" x="${pad.left - 11}" y="${y(tick) + 5}" text-anchor="end">${core.faDigits(tick)}</text>`).join("");
-    const labels = days.map((point, index) => index % 5 === 0 || index === days.length - 1 ? `<text class="chart-label" x="${x(index)}" y="${height - 8}" text-anchor="middle">${escapeHtml(core.faDigits(String(point.time || "").slice(0, 5)))}</text>` : "").join("");
+    const labels = days.map((point, index) => index % 15 === 0 || index === days.length - 1 ? `<text class="chart-label" x="${x(index)}" y="${height - 8}" text-anchor="middle">${escapeHtml(core.faDigits(String(point.time || "").slice(0, 5)))}</text>` : "").join("");
     const leadersMarkup = leadersPath ? `<path class="chart-path chart-leaders" d="${leadersPath}"/>` : "";
 
     const plotWidth = width - pad.left - pad.right;
@@ -199,11 +211,7 @@
       const current = svg.querySelector(".chart-tooltip");
       const nextMarkup = chartTooltipMarkup(index, days, series, x, y);
       if (current) {
-        const next = document.createRange().createContextualFragment(nextMarkup).firstElementChild;
-        current.replaceChildren(...next.children);
-        for (const attribute of ["x", "y", "width", "height", "data-tooltip-index"]) {
-          if (next.hasAttribute(attribute)) current.setAttribute(attribute, next.getAttribute(attribute));
-        }
+        current.innerHTML = nextMarkup.replace(/^<g[^>]*>/, "").replace(/<\/g>$/, "");
         current.setAttribute("data-tooltip-index", String(index));
       } else if (crosshair) crosshair.insertAdjacentHTML("afterend", nextMarkup);
     };
@@ -226,7 +234,8 @@
   }
 
   function symbolLink(symbol, className = "ranking-symbol") {
-    const value = symbol || "";
+    const value = symbol === null || symbol === undefined ? "" : String(symbol);
+    if (!value) return escapeHtml(value);
     return `<a class="${className}" href="symbols/?symbol=${encodeURIComponent(value)}">${escapeHtml(value)}</a>`;
   }
 

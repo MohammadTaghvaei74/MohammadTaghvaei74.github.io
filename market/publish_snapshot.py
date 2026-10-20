@@ -404,7 +404,7 @@ def assert_safe_worktree(status_lines: list[str]) -> None:
         # not published, but an older/manual run may leave it untracked under
         # the site tree. Ignore only this exact cache; all other unexpected
         # files remain fail-closed.
-        safe_path = path in PUBLISHED_FILES or path.startswith("market/symbols/data/history/")
+        safe_path = path in PUBLISHED_FILES or path == "market/symbols/data/" or path.startswith("market/symbols/data/history/")
         runtime_cache = path == "market/data/options_history.sqlite"
         unsafe_status = "U" in (index_status, worktree_status) or "D" in (index_status, worktree_status) or index_status == "R" or worktree_status == "R" or " -> " in path
         if (not safe_path and not runtime_cache) or unsafe_status:
