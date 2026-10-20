@@ -133,8 +133,8 @@
   function chartTooltipMarkup(index, points, series, x, y) {
     const point = points[index] || {};
     const values = [
-      ["کل بازار", series.market[index], "#388268"],
-      ["لیدرها", series.leaders[index], "#ffae73"],
+      ["کل بازار", series.market[index], "#111827"],
+            ["لیدرها", series.leaders[index], "#2686c5"],
 
     ].filter(([, value]) => numeric(value) !== null);
     const tooltipWidth = 190;

@@ -133,16 +133,16 @@
 .native-market-webview .table-panel:hover,
 .native-market-webview .industry-card:hover { transform: none; }
 
-.chart-path { stroke: #388268; fill: none; }
-.chart-market { stroke: #388268; }
-.chart-leaders { stroke: var(--orange); stroke-dasharray: none; }
+.chart-path { stroke: #111827; fill: none; }
+.chart-market { stroke: #111827; }
+.chart-leaders { stroke: #2686c5; stroke-dasharray: none; }
 .chart-rest { stroke: var(--blue); stroke-dasharray: none; }
-.leaders-line { background: var(--orange); }
+.leaders-line { background: #2686c5; }
 .rest-line { background: var(--blue); }
-.market-line { background: #388268; }
-.legend-leaders { color: var(--orange); }
+.market-line { background: #111827; }
+.legend-leaders { color: #2686c5; }
 .legend-rest { color: var(--blue); }
-.legend-market { color: #388268; }
+.legend-market { color: #111827; }
 .mobile-title { display: none; }
 @media (max-width: 720px) {
   .hero-block h1 { font-size: 23px; line-height: 1.4; letter-spacing: -.5px; }
