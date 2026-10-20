@@ -237,8 +237,9 @@
   }
 
   function symbolLink(symbol, className = "ranking-symbol") {
-    const value = symbol === null || symbol === undefined ? "" : String(symbol);
-    if (!value) return escapeHtml(value);
+    if (symbol === null || symbol === undefined) return "—";
+    const value = String(symbol);
+    if (!value || typeof symbol !== "string") return escapeHtml(value);
     return `<a class="${className}" href="symbols/?symbol=${encodeURIComponent(value)}">${escapeHtml(value)}</a>`;
   }
 
