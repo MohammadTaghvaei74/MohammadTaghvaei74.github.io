@@ -13,7 +13,7 @@ from typing import Any
 
 SCHEMA_VERSION = 1
 SOURCE = "telegram_event_delivery"
-LIMIT = 100
+LIMIT = 10000
 SIGNAL_MAX_AGE = timedelta(hours=36)
 HEALTH_MAX_AGE = timedelta(minutes=15)
 FUTURE_TOLERANCE = timedelta(minutes=5)
