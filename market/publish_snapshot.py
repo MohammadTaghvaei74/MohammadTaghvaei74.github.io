@@ -68,6 +68,8 @@ HISTORY_OUT = SITE / "market/history/data/history.json"
 XLSX_OUT = SITE / "market/history/data/market-score-history.xlsx"
 INTRADAY_SYMBOLS_OUT = SITE / "market/symbols/data/intraday.json"
 SYMBOL_HISTORY_DIR = SITE / "market/symbols/data"
+FUND_OUT = SITE / "market/data/funds.json"
+FUND_SOURCE = Path("/root/bourse-alert/fund_report_public.json")
 TEHRAN = ZoneInfo("Asia/Tehran")
 
 
@@ -118,6 +120,17 @@ def build_intraday_symbols(conn: sqlite3.Connection, trading_date: str) -> dict:
         "window_end": "12:30",
         "symbols": symbols,
     }
+
+
+def load_fund_report() -> dict:
+    if not FUND_SOURCE.exists():
+        return {'schema_version': 1, 'status': 'unavailable', 'rows': [], 'row_count': 0}
+    try:
+        payload = json.loads(FUND_SOURCE.read_text(encoding='utf-8'))
+        rows = payload.get('rows') if isinstance(payload, dict) else []
+        return {**payload, 'status': 'ready' if isinstance(rows, list) else 'unavailable', 'rows': rows if isinstance(rows, list) else []}
+    except (OSError, ValueError, TypeError) as exc:
+        return {'schema_version': 1, 'status': 'unavailable', 'rows': [], 'row_count': 0, 'error': str(exc)}
 
 
 def build_market(conn: sqlite3.Connection) -> dict:
@@ -456,7 +469,7 @@ def main() -> None:
     if not is_publish_window():
         print("SKIP_OUTSIDE_MARKET_WINDOW")
         return
-    global DB, SITE, MARKET_OUT, HISTORY_OUT, XLSX_OUT, INTRADAY_SYMBOLS_OUT, SYMBOL_HISTORY_DIR
+    global DB, SITE, MARKET_OUT, HISTORY_OUT, XLSX_OUT, INTRADAY_SYMBOLS_OUT, SYMBOL_HISTORY_DIR, FUND_OUT
     DB = Path(os.environ.get("BOURSE_DB", str(DB)))
     event_db = Path(os.environ.get("EVENT_DB", "/root/bourse-alert/event_live.db"))
     SITE = Path(os.environ.get("SITE_REPO", str(SITE)))
@@ -467,8 +480,11 @@ def main() -> None:
     INTRADAY_SYMBOLS_OUT = SITE / "market/symbols/data/intraday.json"
     SYMBOL_HISTORY_DIR = SITE / "market/symbols/data"
     OPTIONS_OUT = SITE / "market/data/options.json"
+    FUND_OUT = SITE / "market/data/funds.json"
     with connect() as conn:
         market = build_market(conn)
+        fund_report = load_fund_report()
+        market["fund_report"] = fund_report
         history = build_history(conn)
         candles = build_candles(conn)
         intraday_symbols = build_intraday_symbols(conn, market["generated_at"][:10])
@@ -483,6 +499,7 @@ def main() -> None:
     signal_payload = export_signals(event_db, SIGNALS_OUT)
     options_payload = export_from_scores_db(DB, OPTIONS_OUT)
     atomic_json(MARKET_OUT, market)
+    atomic_json(FUND_OUT, fund_report)
     atomic_json(HISTORY_OUT, history)
     atomic_json(SITE / "market/history/data/score-candles.json", candles)
     atomic_json(INTRADAY_SYMBOLS_OUT, intraday_symbols)

@@ -374,6 +374,19 @@
   const optionsNumber = (value, digits = 0) => { const parsed = numeric(value); return parsed === null ? "—" : core.faDigits(parsed.toLocaleString("fa-IR", { maximumFractionDigits: digits, minimumFractionDigits: digits })); };
   const optionsPercent = (value) => { const parsed = numeric(value); return parsed === null ? "—" : `${optionsNumber(parsed, 1)}٪`; };
   function optionsStatusLabel(status) { return ({ ready: "داده معتبر آماده است.", no_opportunity: "فعلاً جفت واجد شرایط پیدا نشد.", insufficient_data: "داده کافی برای محاسبه کامل نیست.", stale: "داده آپشن قدیمی است.", unavailable: "منبع داده آپشن در دسترس نیست." }[status] || "وضعیت داده نامشخص است."); }
+  function renderFundReport(data) {
+    const payload = data && data.fund_report || {};
+    const rows = Array.isArray(payload.rows) ? payload.rows : [];
+    const element = $("#fundReportRows");
+    if (!element) return;
+    const n = (value, digits = 1) => numeric(value) === null ? "—" : core.faDigits(Number(value).toLocaleString("fa-IR", {minimumFractionDigits: digits, maximumFractionDigits: digits}));
+    const pct = (value) => numeric(value) === null ? "—" : `${n(Number(value) * 100, 0)}٪`;
+    element.innerHTML = rows.map((row, index) => `<tr><td>${core.faDigits(index + 1)}</td><td><b>${escapeHtml(row.symbol || "—")}</b>${String(row.description || "").includes("اهرمی") ? " <span class="fund-leveraged">🔥</span>" : ""}</td><td>${n(row.portfolio_score)}</td><td>${n(row.board_score)}</td><td>${n(row.score_diff)}</td><td>${numeric(row.bubble_pct) === null ? "—" : `${n(row.bubble_pct)}٪`}</td><td>${n(row.liquidity, 0)}</td><td>${pct(row.matched_weight)}</td><td>${escapeHtml(row.report_date || "—")}</td></tr>`).join("") || `<tr><td colspan="9">گزارش صندوق‌ها هنوز آماده نیست.</td></tr>`;
+    text("#fundReportCount", rows.length ? `${core.faDigits(rows.length)} صندوق` : "—");
+    const generated = payload.generated_at ? core.formatDate(payload.generated_at) : "—";
+    text("#fundReportMeta", payload.status === "ready" ? `به‌روزرسانی: ${generated} · پوشش حداقل ۷۰٪ · مرتب‌سازی اختلاف امتیاز` : "گزارش صندوق‌ها هنوز آماده نیست.");
+  }
+
   function renderOptions(options) {
     const payload = options && typeof options === "object" ? options : {};
     const allPairs = Array.isArray(payload.pairs) ? payload.pairs : [];
@@ -410,6 +423,7 @@
     renderChart(data);
     renderTables(data);
     renderIndustries(data);
+    renderFundReport(data);
     renderOptions(options || data.options || emptyOptions());
   }
 
@@ -425,6 +439,16 @@
       if (error instanceof SyntaxError) throw new Error("فایل snapshot JSON نامعتبر است.");
       throw error;
     } finally { window.clearTimeout(timeout); }
+  }
+
+  async function fetchFundReportInBackground() {
+    try {
+      const funds = await fetchJson(`data/funds.json?ts=${Date.now()}`);
+      if (currentData) { currentData.fund_report = funds; renderFundReport(currentData); }
+    } catch (error) {
+      console.warn("Fund report snapshot unavailable", error);
+      if (currentData) renderFundReport(currentData);
+    }
   }
 
   async function fetchOptionsInBackground() {
@@ -447,6 +471,7 @@
       const data = core.validateSnapshot(await fetchJson(`data/market.json?ts=${Date.now()}`));
       render(data, emptyOptions());
       text("#sourceStatus", `منبع: ${currentData.source} · زمان منبع: ${core.formatDate(core.sourceTimestamp(currentData))}`);
+      void fetchFundReportInBackground();
       void fetchOptionsInBackground();
       if (showToast) toast("داده داشبورد به‌روزرسانی شد");
     } catch (error) {
