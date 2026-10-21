@@ -47,7 +47,7 @@ def _connect(db_path: str | os.PathLike[str]) -> sqlite3.Connection:
 def _category(event_key: str) -> str:
     prefix = event_key.split(":", 1)[0].lower()
     if prefix == "gap":
-        return "pressure"
+        return "allocation"
     return prefix if prefix in CATEGORIES else "other"
 
 
