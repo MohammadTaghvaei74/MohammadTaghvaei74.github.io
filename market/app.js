@@ -443,7 +443,7 @@
 
   async function fetchFundReportInBackground() {
     try {
-      const funds = await fetchJson(`data/funds.json?ts=${Date.now()}`);
+      const funds = await fetchJson("data/funds.json", "default");
       if (currentData) { currentData.fund_report = funds; renderFundReport(currentData); }
     } catch (error) {
       console.warn("Fund report snapshot unavailable", error);
@@ -453,7 +453,7 @@
 
   async function fetchOptionsInBackground() {
     try {
-      const options = await fetchJson(`data/options.json?ts=${Date.now()}`);
+      const options = await fetchJson("data/options.json", "default");
       if (currentData) renderOptions(options);
     } catch (error) {
       console.warn("Options snapshot unavailable", error);
@@ -461,16 +461,29 @@
     }
   }
 
-  async function loadData(showToast = false) {
-    if (loading) return;
+  async function fetchComprehensiveInBackground() {
+    try {
+      const comprehensive = await fetchJson("data/comprehensive.json", "default");
+      if (currentData && typeof window.dispatchEvent === "function") {
+        const detail = {...currentData, comprehensive_stocks: Array.isArray(comprehensive.rows) ? comprehensive.rows : [], comprehensive_meta: comprehensive.meta || {}};
+        const event = typeof window.CustomEvent === "function" ? new window.CustomEvent("market:snapshot", {detail}) : null;
+        if (event) window.dispatchEvent(event);
+      }
+    } catch (error) { console.warn("Comprehensive snapshot unavailable", error); }
+  }
+
+  async function loadData(showToast = false, force = false) {
+    if (loading || (!force && currentData && Date.now() - lastLoadAt < 10000)) return;
     loading = true;
     if (!currentData) setStatus("در حال دریافت", "loading");
     try {
       // Critical path: render the 179KB market snapshot immediately. The heavy
       // options feed must never delay the first useful paint.
-      const data = core.validateSnapshot(await fetchJson(`data/market.json?ts=${Date.now()}`));
+      const data = core.validateSnapshot(await fetchJson("data/market.json", "default"));
       render(data, emptyOptions());
       text("#sourceStatus", `منبع: ${currentData.source} · زمان منبع: ${core.formatDate(core.sourceTimestamp(currentData))}`);
+      lastLoadAt = Date.now();
+      void fetchComprehensiveInBackground();
       void fetchFundReportInBackground();
       void fetchOptionsInBackground();
       if (showToast) toast("داده داشبورد به‌روزرسانی شد");
@@ -493,12 +506,13 @@
     sections.forEach((section) => observer.observe(section));
   }
 
+  let lastLoadAt = 0;
   const refreshButton = $("#refreshButton");
-  if (refreshButton) refreshButton.addEventListener("click", () => loadData(true));
+  if (refreshButton) refreshButton.addEventListener("click", () => loadData(true, true));
   document.addEventListener("visibilitychange", () => {
-    if (document.visibilityState === "visible") loadData(true);
+    if (document.visibilityState === "visible") loadData(false);
   });
-  window.addEventListener("pageshow", () => loadData(true));
+  window.addEventListener("pageshow", () => loadData(false));
   refreshTimer = window.setInterval(() => {
     if (document.visibilityState === "visible") loadData(false);
   }, REFRESH_MS);

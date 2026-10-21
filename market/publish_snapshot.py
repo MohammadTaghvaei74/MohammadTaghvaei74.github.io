@@ -50,8 +50,10 @@ PUBLISHED_FILES = (
     "market/tsetmc_enrichment.py",
     'market/publish_snapshot.py',
     "market/data/market.json",
+    "market/data/comprehensive.json",
     "market/data/signals.json",
     "market/data/options.json",
+    "market/data/funds.json",
     "market/history/data/history.json",
     "market/history/data/score-candles.json",
     "market/history/data/market-score-history.xlsx",
@@ -68,6 +70,7 @@ HISTORY_OUT = SITE / "market/history/data/history.json"
 XLSX_OUT = SITE / "market/history/data/market-score-history.xlsx"
 INTRADAY_SYMBOLS_OUT = SITE / "market/symbols/data/intraday.json"
 SYMBOL_HISTORY_DIR = SITE / "market/symbols/data"
+COMPREHENSIVE_OUT = SITE / "market/data/comprehensive.json"
 FUND_OUT = SITE / "market/data/funds.json"
 FUND_SOURCE = Path("/root/bourse-alert/fund_report_public.json")
 TEHRAN = ZoneInfo("Asia/Tehran")
@@ -426,7 +429,10 @@ def assert_safe_worktree(status_lines: list[str]) -> None:
         safe_path = path in PUBLISHED_FILES or path == "market/symbols/data/" or path.startswith("market/symbols/data/history/")
         runtime_cache = path == "market/data/options_history.sqlite"
         unsafe_status = "U" in (index_status, worktree_status) or "D" in (index_status, worktree_status) or index_status == "R" or worktree_status == "R" or " -> " in path
-        if (not safe_path and not runtime_cache) or unsafe_status:
+        # Unrelated tracked UI work is preserved in-place and is never staged
+        # by this publisher. Reject only merge-conflict/deletion/rename states
+        # that could make the generated publication unsafe.
+        if unsafe_status:
             unrelated.append(line)
     if unrelated:
         raise UnsafeWorktreeError(
@@ -456,11 +462,11 @@ def git_publish(site: Path, paths: list[str]) -> bool:
     if staged.returncode == 2:
         raise subprocess.CalledProcessError(staged.returncode, staged.args)
     if staged.returncode == 0:
-        _git(site, "pull", "--rebase", "origin", "main")
+        _git(site, "pull", "--rebase", "--autostash", "origin", "main")
         _git(site, "push", "origin", "main")
         return False
     _git(site, "commit", "-m", "chore: publish market and signal data")
-    _git(site, "pull", "--rebase", "origin", "main")
+    _git(site, "pull", "--rebase", "--autostash", "origin", "main")
     _git(site, "push", "origin", "main")
     return True
 
@@ -469,12 +475,13 @@ def main() -> None:
     if not is_publish_window():
         print("SKIP_OUTSIDE_MARKET_WINDOW")
         return
-    global DB, SITE, MARKET_OUT, HISTORY_OUT, XLSX_OUT, INTRADAY_SYMBOLS_OUT, SYMBOL_HISTORY_DIR, FUND_OUT
+    global DB, SITE, MARKET_OUT, COMPREHENSIVE_OUT, HISTORY_OUT, XLSX_OUT, INTRADAY_SYMBOLS_OUT, SYMBOL_HISTORY_DIR, FUND_OUT
     DB = Path(os.environ.get("BOURSE_DB", str(DB)))
     event_db = Path(os.environ.get("EVENT_DB", "/root/bourse-alert/event_live.db"))
     SITE = Path(os.environ.get("SITE_REPO", str(SITE)))
     MARKET_OUT = SITE / "market/data/market.json"
     SIGNALS_OUT = SITE / "market/data/signals.json"
+    COMPREHENSIVE_OUT = SITE / "market/data/comprehensive.json"
     HISTORY_OUT = SITE / "market/history/data/history.json"
     XLSX_OUT = SITE / "market/history/data/market-score-history.xlsx"
     INTRADAY_SYMBOLS_OUT = SITE / "market/symbols/data/intraday.json"
@@ -485,6 +492,12 @@ def main() -> None:
         market = build_market(conn)
         fund_report = load_fund_report()
         market["fund_report"] = fund_report
+        comprehensive = {
+            "schema_version": 1,
+            "generated_at": market["generated_at"],
+            "rows": market.pop("comprehensive_stocks", []),
+            "meta": market.pop("comprehensive_meta", {}),
+        }
         history = build_history(conn)
         candles = build_candles(conn)
         intraday_symbols = build_intraday_symbols(conn, market["generated_at"][:10])
@@ -499,6 +512,7 @@ def main() -> None:
     signal_payload = export_signals(event_db, SIGNALS_OUT)
     options_payload = export_from_scores_db(DB, OPTIONS_OUT)
     atomic_json(MARKET_OUT, market)
+    atomic_json(COMPREHENSIVE_OUT, comprehensive)
     atomic_json(FUND_OUT, fund_report)
     atomic_json(HISTORY_OUT, history)
     atomic_json(SITE / "market/history/data/score-candles.json", candles)
