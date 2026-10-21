@@ -429,10 +429,7 @@ def assert_safe_worktree(status_lines: list[str]) -> None:
         safe_path = path in PUBLISHED_FILES or path == "market/symbols/data/" or path.startswith("market/symbols/data/history/")
         runtime_cache = path == "market/data/options_history.sqlite"
         unsafe_status = "U" in (index_status, worktree_status) or "D" in (index_status, worktree_status) or index_status == "R" or worktree_status == "R" or " -> " in path
-        # Unrelated tracked UI work is preserved in-place and is never staged
-        # by this publisher. Reject only merge-conflict/deletion/rename states
-        # that could make the generated publication unsafe.
-        if unsafe_status:
+        if (not safe_path and not runtime_cache) or unsafe_status:
             unrelated.append(line)
     if unrelated:
         raise UnsafeWorktreeError(
