@@ -5,6 +5,8 @@ provider values remain None; the public page must render them as an em dash.
 """
 from __future__ import annotations
 
+import os
+
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import date, datetime
 import logging
@@ -125,7 +127,11 @@ def attach_turnover_metrics(stocks: list[dict[str, Any]]) -> None:
 
 def enrich_stocks(stocks: list[dict[str, Any]], now: datetime | date) -> list[dict[str, Any]]:
     """Enrich all current stocks while keeping failures explicit and safe."""
-    enrich_market_cap(stocks)
+    # Market-cap enrichment performs one extra request per instrument and may
+    # be slow during provider degradation. Client-type data is a core market
+    # field and must remain enabled independently.
+    if os.environ.get("SKIP_TSETMC_MARKET_CAP", "") != "1":
+        enrich_market_cap(stocks)
     eligible = [stock for stock in stocks if str(stock.get("instrument") or "").strip()]
     if eligible:
         enrich_signal_client_type(eligible, now)

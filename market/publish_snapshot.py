@@ -47,6 +47,7 @@ else:
     from symbol_history import write_symbol_history
 
 PUBLISHED_FILES = (
+    "market/tsetmc_enrichment.py",
     'market/publish_snapshot.py',
     "market/data/market.json",
     "market/data/signals.json",
