@@ -47,6 +47,7 @@ else:
     from symbol_history import write_symbol_history
 
 PUBLISHED_FILES = (
+    'market/publish_snapshot.py',
     "market/data/market.json",
     "market/data/signals.json",
     "market/data/options.json",
@@ -209,7 +210,11 @@ def build_market(conn: sqlite3.Connection) -> dict:
         item["score_rank"] = score_rank
         item["score_rank_total"] = score_total
         item["score_position_pct"] = round(score_rank / score_total * 100) if score_total else None
-    enrich_stocks(stocks, datetime.fromisoformat(latest))
+    # TSETMC enrichment is optional and must never block publication of the
+    # core market snapshot. External provider failures are represented as
+    # missing enrichment fields, while core market data continues publishing.
+    if os.environ.get("SKIP_TSETMC_ENRICHMENT", "") != "1":
+        enrich_stocks(stocks, datetime.fromisoformat(latest))
     queue_rows = build_queue_rows(stocks, datetime.fromisoformat(latest), conn)
     comprehensive_stocks, comprehensive_meta = build_comprehensive_rows(stocks, latest, conn)
     industry_table = build_industry_table(stocks, latest, conn)
