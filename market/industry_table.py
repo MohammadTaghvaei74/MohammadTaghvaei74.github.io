@@ -124,7 +124,7 @@ def build_industry_table(stocks: list[dict[str, Any]], latest: str, conn) -> lis
     groups: dict[str, list[dict[str, Any]]] = defaultdict(list)
     for stock in stocks:
         industry = str(stock.get("industry") or "").strip()
-        if industry:
+        if industry and not industry.startswith("اوراق"):
             groups[industry].append(stock)
 
     historical, history_days = _historical_turnover(conn, latest[:10])

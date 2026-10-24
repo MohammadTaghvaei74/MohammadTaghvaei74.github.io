@@ -128,6 +128,7 @@
   function buildIndustries(snapshot) {
     var groups = new Map();
     readStocks(snapshot).forEach(function (stock) {
+      if (/^اوراق(?:\s|‌)/.test(String(stock.industry || "").trim())) return;
       var key = normalizeFa(stock.industry);
       if (!groups.has(key)) groups.set(key, {name: String(stock.industry), stocks: []});
       groups.get(key).stocks.push(stock);
@@ -135,6 +136,7 @@
     var provided = snapshot && Array.isArray(snapshot.industry_table) ? snapshot.industry_table : [];
     provided.forEach(function (row) {
       if (!row || !row.industry) return;
+      if (/^اوراق(?:\s|‌)/.test(String(row.industry).trim())) return;
       var key = normalizeFa(row.industry);
       if (!groups.has(key)) groups.set(key, {name: String(row.industry), stocks: []});
       groups.get(key).summary = row;
@@ -318,6 +320,14 @@ if (typeof window !== "undefined") {
         control.addEventListener("change", updateFilters);
       });
     }
+    function renderIndustryChoiceFilter() {
+      var select = $("industrySelectFilter");
+      if (!select) return;
+      var selected = select.value;
+      var names = state.groups.map(function (group) { return group.name; }).sort(function (a, b) { return a.localeCompare(b, "fa"); });
+      select.innerHTML = "<option value=\"\">همه صنایع</option>" + names.map(function (name) { return "<option value=\"" + E.escapeHtml(name) + "\">" + E.escapeHtml(name) + "</option>"; }).join("");
+      select.value = names.indexOf(selected) >= 0 ? selected : "";
+    }
     function updateFilters(event) {
       var key = event.target.getAttribute("data-filter-key");
       var row = event.target.closest(".industry-filter-control");
@@ -410,7 +420,10 @@ if (typeof window !== "undefined") {
     }
     function applyVisible() {
       var search = $("search");
-      var searched = E.filterIndustries(state.groups, search ? search.value : "");
+      var choice = $("industrySelectFilter");
+      var choiceText = $("industryTextFilter");
+      var searched = E.filterIndustries(state.groups, choiceText && choiceText.value ? choiceText.value : search ? search.value : "");
+      if (choice && choice.value) searched = searched.filter(function (group) { return group.name === choice.value; });
       state.visible = E.filterSummary(searched, state.filters);
       if (!state.selected || state.visible.indexOf(state.selected) < 0) state.selected = state.visible[0] || null;
       render();
@@ -430,7 +443,7 @@ if (typeof window !== "undefined") {
         if (!response.ok) throw new Error("http");
         return response.json();
       }).then(function (data) {
-        state.last = data; state.error = null; state.groups = E.buildIndustries(data); applyVisible(); updateStatus(data, null, false);
+        state.last = data; state.error = null; state.groups = E.buildIndustries(data); renderIndustryChoiceFilter(); applyVisible(); updateStatus(data, null, false);
       }).catch(function (error) {
         state.error = error; updateStatus(state.last, error, false);
         if (!state.last) { state.groups = []; state.visible = []; state.selected = null; render(); }
@@ -459,6 +472,8 @@ if (typeof window !== "undefined") {
       var refresh = $("refresh"); if (refresh) refresh.addEventListener("click", load);
       var clear = $("clearIndustryFilters"); if (clear) clear.addEventListener("click", clearFilters);
       var search = $("search"); if (search) search.addEventListener("input", applyVisible);
+      var choice = $("industrySelectFilter"); if (choice) choice.addEventListener("change", applyVisible);
+      var choiceText = $("industryTextFilter"); if (choiceText) choiceText.addEventListener("input", applyVisible);
       load(); setInterval(load, 60000);
     });
     window.IndustryExplorerSelect = selectIndustry;

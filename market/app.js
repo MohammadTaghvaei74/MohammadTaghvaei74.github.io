@@ -214,13 +214,21 @@
       market: points.map((row) => row.median_score),
     };
     const actualValues = [series.leaders, series.market].flat().map(numeric).filter((value) => value !== null);
+    const extremaLabel = $("#chartExtrema");
+    const leaderExtrema = core.chartExtrema(series.leaders);
+    const marketExtrema = core.chartExtrema(series.market);
+    if (extremaLabel) {
+      const extremaText = (label, extrema) => `${label}: کمینه ${extrema.min === null ? "—" : signed(extrema.min, 2)} · بیشینه ${extrema.max === null ? "—" : signed(extrema.max, 2)}`;
+      extremaLabel.textContent = `${extremaText("لیدرها", leaderExtrema)}  |  ${extremaText("کل بازار", marketExtrema)}`;
+    }
     const width = 1200, height = 300, pad = { top: 18, right: 24, bottom: 38, left: 62 };
     if (!actualValues.length) {
       svg.innerHTML = `<text class="chart-empty" x="380" y="145" text-anchor="middle">دادهٔ امروز از ۰۹:۱۵ هنوز موجود نیست.</text>`;
       return;
     }
-    const min = Math.min(-3, ...actualValues) - .4;
-    const max = Math.max(3, ...actualValues) + .4;
+    const scale = core.chartScale(series.leaders, series.market);
+    const min = scale.min - .4;
+    const max = scale.max + .4;
     const x = (index) => pad.left + index * (width - pad.left - pad.right) / Math.max(days.length - 1, 1);
     const y = (value) => pad.top + (max - value) * (height - pad.top - pad.bottom) / (max - min);
     const marketPath = pathFor(series.market, x, y);
@@ -229,7 +237,7 @@
     const zeroY = y(0);
     // Do not bridge missing samples with a filled area.
     const areaPath = marketPath && series.market.every((value) => value !== null) ? `${marketPath} L ${x(days.length - 1)},${zeroY} L ${x(0)},${zeroY} Z` : "";
-    const grid = [-3, -2, -1, 0, 1, 2, 3].map((tick) => `<line class="${tick === 3 ? "chart-limit-positive" : tick === -3 ? "chart-limit-negative" : tick === 0 ? "chart-zero" : "chart-grid-line"}" x1="${pad.left}" x2="${width - pad.right}" y1="${y(tick)}" y2="${y(tick)}"/><text class="chart-label" x="${pad.left - 11}" y="${y(tick) + 5}" text-anchor="end">${core.faDigits(tick)}</text>`).join("");
+    const grid = scale.ticks.map((tick) => `<line class="${tick === scale.max ? "chart-limit-positive" : tick === scale.min ? "chart-limit-negative" : tick === 0 ? "chart-zero" : "chart-grid-line"}" x1="${pad.left}" x2="${width - pad.right}" y1="${y(tick)}" y2="${y(tick)}"/><text class="chart-label" x="${pad.left - 11}" y="${y(tick) + 5}" text-anchor="end">${core.faDigits(tick)}</text>`).join("");
     const labels = days.map((point, index) => {
       const time = String(point.time || "").slice(0, 5);
       return /:(00|15|30|45)$/.test(time) || index === days.length - 1 ? `<text class="chart-label" x="${x(index)}" y="${height - 8}" text-anchor="middle">${escapeHtml(core.faDigits(time))}</text>` : "";
@@ -239,7 +247,7 @@
     const plotWidth = width - pad.left - pad.right;
     const step = plotWidth / Math.max(days.length - 1, 1);
     const hitArea = `<rect class="chart-hit-area" x="${pad.left}" y="${pad.top}" width="${plotWidth}" height="${height - pad.top - pad.bottom}" tabindex="0" aria-label="نقاط نمودار امتیاز"/>`;
-    const bands = `<defs><linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b8df55" stop-opacity=".25"/><stop offset="1" stop-color="#b8df55" stop-opacity="0"/></linearGradient><linearGradient id="positiveBand" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#9bd5a3" stop-opacity=".035"/><stop offset="1" stop-color="#5cae70" stop-opacity=".20"/></linearGradient><linearGradient id="negativeBand" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e5a0a0" stop-opacity=".035"/><stop offset="1" stop-color="#c96b70" stop-opacity=".20"/></linearGradient></defs><rect x="${pad.left}" y="${y(3)}" width="${plotWidth}" height="${zeroY - y(3)}" fill="url(#positiveBand)"/><rect x="${pad.left}" y="${zeroY}" width="${plotWidth}" height="${y(-3) - zeroY}" fill="url(#negativeBand)"/>`;
+    const bands = `<defs><linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b8df55" stop-opacity=".25"/><stop offset="1" stop-color="#b8df55" stop-opacity="0"/></linearGradient><linearGradient id="positiveBand" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#9bd5a3" stop-opacity=".035"/><stop offset="1" stop-color="#5cae70" stop-opacity=".20"/></linearGradient><linearGradient id="negativeBand" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e5a0a0" stop-opacity=".035"/><stop offset="1" stop-color="#c96b70" stop-opacity=".20"/></linearGradient></defs><rect x="${pad.left}" y="${y(scale.max)}" width="${plotWidth}" height="${zeroY - y(scale.max)}" fill="url(#positiveBand)"/><rect x="${pad.left}" y="${zeroY}" width="${plotWidth}" height="${y(scale.min) - zeroY}" fill="url(#negativeBand)"/>`;
     svg.innerHTML = `${bands}${grid}${labels}${areaPath ? `<path class="chart-area" d="${areaPath}"/>` : ""}${leadersMarkup}<path class="chart-path chart-market" d="${marketPath}"/><line class="chart-crosshair" x1="${x(0)}" x2="${x(0)}" y1="${pad.top}" y2="${height - pad.bottom}" opacity="0"/>${hitArea}`;
     const chartWrap = svg.parentElement;
     let tooltip = chartWrap && chartWrap.querySelector(".chart-tooltip-html");
@@ -361,15 +369,16 @@
   }
 
   function renderIndustries(data) {
+    const isEquityIndustry = (name) => !/^اوراق(?:\s|‌)/.test(String(name || "").trim());
     const stocks = Array.isArray(data.stocks) ? data.stocks : [];
     const groups = new Map();
     stocks.forEach((stock) => {
       const name = String(stock.industry || "").trim();
-      if (!name) return;
+      if (!name || !isEquityIndustry(name)) return;
       if (!groups.has(name)) groups.set(name, []);
       groups.get(name).push(stock);
     });
-    const sourceRows = Array.isArray(data.industry_table) && data.industry_table.length ? data.industry_table : (Array.isArray(data.industries) ? data.industries : []);
+    const sourceRows = (Array.isArray(data.industry_table) && data.industry_table.length ? data.industry_table : (Array.isArray(data.industries) ? data.industries : [])).filter((row) => isEquityIndustry(row.industry));
     const rows = sourceRows.map((row) => {
       const members = groups.get(String(row.industry || "").trim()) || [];
       const diffs = members.map(lastCloseDiffPct).filter((value) => value !== null);
@@ -379,7 +388,19 @@
       return { ...row, count: members.length || row.count || row.stock_count, median: rowScore, turnover_toman: turnover || numeric(row.turnover_toman || row.trade_value_toman), avg_last_close_diff_pct: avgDiff };
     });
     const totalIndustries = rows.length;
-    const markup = rows.map((row, index) => {
+    const select = $("#industrySelectFilter");
+    const textFilter = $("#industryTextFilter");
+    if (select) {
+      const selected = select.value;
+      select.innerHTML = `<option value="">همه صنایع</option>` + rows.map((row) => String(row.industry || "")).sort((a, b) => a.localeCompare(b, "fa")).map((name) => `<option value="${escapeHtml(name)}">${escapeHtml(name)}</option>`).join("");
+      select.value = rows.some((row) => String(row.industry || "") === selected) ? selected : "";
+    }
+
+
+    const selectedIndustry = select ? select.value : "";
+    const query = textFilter ? String(textFilter.value || "").trim().toLocaleLowerCase("fa") : "";
+    const visibleRows = rows.filter((row) => { const name = String(row.industry || ""); return (!selectedIndustry || name === selectedIndustry) && (!query || name.toLocaleLowerCase("fa").indexOf(query) >= 0); });
+    const markup = visibleRows.map((row, index) => {
       const score = numeric(row.median !== undefined ? row.median : row.median_score);
       const positive = score === null || score >= 0;
       const industry = String(row.industry || "بدون صنعت");
@@ -391,6 +412,9 @@
     if (element) element.innerHTML = markup || `<tr><td colspan="6" class="industry-empty">داده صنعت هنوز آماده نیست.</td></tr>`;
   }
 
+
+
+  [$("#industrySelectFilter"), $("#industryTextFilter")].forEach((control) => { if (control) ["input", "change"].forEach((eventName) => control.addEventListener(eventName, () => { if (currentData) renderIndustries(currentData); })); });
   const optionsNumber = (value, digits = 0) => { const parsed = numeric(value); return parsed === null ? "—" : core.faDigits(parsed.toLocaleString("fa-IR", { maximumFractionDigits: digits, minimumFractionDigits: digits })); };
   const optionsPercent = (value) => { const parsed = numeric(value); return parsed === null ? "—" : `<strong>${optionsNumber(parsed, 1)}</strong> <span class="percent-unit">٪</span>`; };
   function optionsStatusLabel(status) { return ({ ready: "داده معتبر آماده است.", no_opportunity: "فعلاً جفت واجد شرایط پیدا نشد.", insufficient_data: "داده کافی برای محاسبه کامل نیست.", stale: "داده آپشن قدیمی است.", unavailable: "منبع داده آپشن در دسترس نیست." }[status] || "وضعیت داده نامشخص است."); }

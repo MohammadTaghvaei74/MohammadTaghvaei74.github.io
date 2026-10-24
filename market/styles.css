@@ -42,6 +42,8 @@ body{background-color:#061116;background-image:radial-gradient(circle at 12% 18%
 .industry-table{width:100%;min-width:0;border-collapse:collapse;color:#173b3f;background:#fff;font-size:12px}
 .industry-table thead th{padding:11px 10px;background:#e8f1eb;color:#173b3f;font-weight:800;text-align:right;white-space:nowrap;border-bottom:2px solid #b8cec0;cursor:pointer}
 .industry-table thead th:hover,.industry-table thead th:focus-visible{background:#d9e8de;color:#102d33}
+.industry-table thead tr.industry-filter-row th{padding:7px 8px;background:#f5f8f2;cursor:default;border-bottom:1px solid #d5e2d9}.industry-table thead tr.industry-filter-row th:hover{background:#f5f8f2}.industry-filter-row select,.industry-filter-row input{box-sizing:border-box;width:100%;min-width:150px;padding:7px 9px;border:1px solid #b8cec0;border-radius:8px;background:#fff;color:#173b3f;font:inherit;font-size:12px}.industry-filter-row input{margin-top:5px}
+
 .industry-table tbody td{padding:11px 6px;border-bottom:1px solid #e2ebe5;text-align:right;vertical-align:middle;color:#000}.industry-table tbody td:nth-last-child(-n+2){padding-inline:4px}
 .industry-table tbody tr:last-child td{border-bottom:0}
 .industry-table tbody tr:hover{background:#f5f8f2}
@@ -68,7 +70,9 @@ body{background:var(--bg);color:var(--ink);background-image:radial-gradient(circ
   .pulse-panel{padding:22px}
   .pulse-panel .chart-wrap{margin-top:14px;height:300px}
   .pulse-panel .chart-legend{padding-top:12px;gap:14px}
-}
+ }
+ .chart-extrema{margin-top:8px;color:var(--muted);font-size:12px;text-align:right;direction:rtl}
+ @media(max-width:720px){.chart-extrema{font-size:11px;line-height:1.8}}
 
 .queue-leaders-panel{overflow:hidden}.queue-leaders-table{min-width:900px}.queue-leaders-table th,.queue-leaders-table td{white-space:nowrap}.queue-leaders-table th:nth-child(5),.queue-leaders-table td:nth-child(5){color:var(--ink)}.queue-leaders-table th:nth-child(6),.queue-leaders-table td:nth-child(6){color:var(--blue)}.queue-leaders-section .section-heading p{max-width:760px}
 

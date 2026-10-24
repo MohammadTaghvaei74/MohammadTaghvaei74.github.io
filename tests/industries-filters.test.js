@@ -23,6 +23,18 @@ test('summary comparison filters use displayed billion units and numeric operato
   assert.equal(E.parseComparison('<', '۱۰').value, 10);
 });
 
+test('financing papers are not treated as industries', () => {
+  const groups = E.buildIndustries({stocks: [
+    {symbol: 'سهم', industry: 'بانک', score: 1},
+    {symbol: 'اوراق', industry: 'اوراق تامین مالی', score: 9},
+    {symbol: 'تملی', industry: 'اوراق حق تقدم استفاده از تسهیلات مسکن', score: 8}
+  ], industry_table: [
+    {industry: 'بانک', stock_count: 1, median_score: 1},
+    {industry: 'اوراق تامین مالی', stock_count: 1, median_score: 9}
+  ]});
+  assert.deepEqual(groups.map((group) => group.name), ['بانک']);
+});
+
 test('industry text filter supports contains and equality', () => {
   const groups = E.buildIndustries(snapshot);
   assert.equal(E.filterSummary(groups, {industry: {operator: 'contains', value: 'خود'}})[0].name, 'خودرو');
