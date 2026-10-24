@@ -9,6 +9,9 @@
   let currentData = null;
   let loading = false;
   let refreshTimer = null;
+  let industryFilterBound = false;
+  const industryColumnFilters = {industry: [{op: "contains", value: ""}], rank: [{op: "", value: ""}, {op: "", value: ""}], count: [{op: "", value: ""}, {op: "", value: ""}], median: [{op: "", value: ""}, {op: "", value: ""}], turnover: [{op: "", value: ""}, {op: "", value: ""}], diff: [{op: "", value: ""}, {op: "", value: ""}]};
+  const industryFilterJoin = {rank: "and", count: "and", median: "and", turnover: "and", diff: "and"};
 
   if (!core) {
     console.error("Market core failed to load");
@@ -393,7 +396,31 @@
       return { ...row, count: members.length || row.count || row.stock_count, median: rowScore, turnover_toman: turnover || numeric(row.turnover_toman || row.trade_value_toman), avg_last_close_diff_pct: avgDiff };
     });
     const totalIndustries = rows.length;
-    const markup = rows.map((row, index) => {
+    const compareIndustryFilter = (value, filter, scale = 1) => {
+      if (!filter || !filter.op || filter.value === "") return true;
+      const actual = numeric(value);
+      const expected = numeric(filter.value);
+      if (actual === null || expected === null) return false;
+      const left = actual / scale;
+      if (filter.op === "=") return left === expected;
+      if (filter.op === ">") return left > expected;
+      if (filter.op === ">=") return left >= expected;
+      if (filter.op === "<") return left < expected;
+      if (filter.op === "<=") return left <= expected;
+      return true;
+    };
+    const matchesTwo = (value, filters, scale) => {
+      const active = filters.filter((filter) => filter.op && filter.value !== "");
+      if (!active.length) return true;
+      return industryFilterJoin.and === "and" ? active.every((filter) => compareIndustryFilter(value, filter, scale)) : active.some((filter) => compareIndustryFilter(value, filter, scale));
+    };
+    const query = String(industryColumnFilters.industry[0].value || "").trim().toLocaleLowerCase("fa");
+    const visibleRows = rows.filter((row, index) => {
+      const name = String(row.industry || "");
+      const rank = numeric(row.rank) || index + 1;
+      return (!query || name.toLocaleLowerCase("fa").indexOf(query) >= 0) && matchesTwo(rank, industryColumnFilters.rank, 1) && matchesTwo(row.count, industryColumnFilters.count, 1) && matchesTwo(row.median, industryColumnFilters.median, 1) && matchesTwo(row.turnover_toman, industryColumnFilters.turnover, 1000000000) && matchesTwo(row.avg_last_close_diff_pct, industryColumnFilters.diff, 1);
+    });
+    const markup = visibleRows.map((row, index) => {
       const score = numeric(row.median !== undefined ? row.median : row.median_score);
       const positive = score === null || score >= 0;
       const industry = String(row.industry || "بدون صنعت");
@@ -404,6 +431,41 @@
     const element = $("#industriesGrid");
     if (element) element.innerHTML = markup || `<tr><td colspan="6" class="industry-empty">داده صنعت هنوز آماده نیست.</td></tr>`;
   }
+
+  function bindIndustryColumnFilters() {
+    const table = $(".industry-table");
+    if (!table) return;
+    if (!industryFilterBound) {
+      industryFilterBound = true;
+      table.addEventListener("input", (event) => {
+        const input = event.target.closest("[data-industry-filter]");
+        if (!input) return;
+        const key = input.getAttribute("data-industry-filter");
+        const slot = Number(input.getAttribute("data-slot") || 0);
+        industryColumnFilters[key][slot].value = input.value;
+        if (currentData) renderIndustries(currentData);
+      });
+      table.addEventListener("change", (event) => {
+        const control = event.target.closest("[data-industry-op]");
+        if (!control) return;
+        const key = control.getAttribute("data-industry-op");
+        const slot = Number(control.getAttribute("data-slot") || 0);
+        industryColumnFilters[key][slot].op = control.value;
+        if (currentData) renderIndustries(currentData);
+      });
+    }
+    const operators = `<option value="">شرط</option><option value=">">&gt;</option><option value=">=">≥</option><option value="=">=</option><option value="<">&lt;</option><option value="<=">≤</option>`;
+    table.querySelectorAll("[data-filter-cell]").forEach((cell) => {
+      const key = cell.getAttribute("data-filter-cell");
+      const placeholder = key === "turnover" ? "میلیارد" : key === "diff" ? "درصد" : "عدد";
+      cell.innerHTML = `<div class="industry-filter-stack"><span class="industry-filter-pair" dir="ltr"><select data-industry-op="${key}" data-slot="0" aria-label="فیلتر اول ${key}">${operators}</select><input data-industry-filter="${key}" data-slot="0" inputmode="decimal" placeholder="${placeholder}" aria-label="مقدار فیلتر اول ${key}"></span><span class="industry-filter-pair" dir="ltr"><select data-industry-op="${key}" data-slot="1" aria-label="فیلتر دوم ${key}">${operators}</select><input data-industry-filter="${key}" data-slot="1" inputmode="decimal" placeholder="${placeholder}" aria-label="مقدار فیلتر دوم ${key}"></span></div>`;
+      cell.querySelectorAll("[data-industry-op]").forEach((control) => { const slot = Number(control.getAttribute("data-slot")); control.value = industryColumnFilters[key][slot].op; });
+      cell.querySelectorAll("[data-industry-filter]").forEach((control) => { const slot = Number(control.getAttribute("data-slot")); control.value = industryColumnFilters[key][slot].value; });
+    });
+    const textInput = table.querySelector('[data-industry-filter="industry"]');
+    if (textInput) textInput.value = industryColumnFilters.industry[0].value;
+  }
+  bindIndustryColumnFilters();
 
   const optionsNumber = (value, digits = 0) => { const parsed = numeric(value); return parsed === null ? "—" : core.faDigits(parsed.toLocaleString("fa-IR", { maximumFractionDigits: digits, minimumFractionDigits: digits })); };
   const optionsPercent = (value) => { const parsed = numeric(value); return parsed === null ? "—" : `<strong>${optionsNumber(parsed, 1)}</strong> <span class="percent-unit">٪</span>`; };
