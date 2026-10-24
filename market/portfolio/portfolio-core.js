@@ -8,7 +8,7 @@ const PORTFOLIO_CORE = (() => {
   };
   const cleanSymbol = (value) => String(value || "").replace(/[\u200c\u200d]/g, "").trim();
   const equityRow = (row) => row && !/^اوراق(?:\s|‌)/.test(String(row.industry || "").trim());
-  const tradedRow = (row) => equityRow(row) && num(row.score) !== null && num(row.trade_volume) !== null && num(row.trade_volume) > 0;
+  const tradedRow = (row) => equityRow(row) && num(row.score) !== null && ((num(row.trade_volume) !== null && num(row.trade_volume) > 0) || (row.instrument_type === "leveraged" && num(row.trade_value_toman) !== null && num(row.trade_value_toman) > 0));
 
   function buildUniverse(stocks) {
     return (Array.isArray(stocks) ? stocks : []).filter(tradedRow);
@@ -36,10 +36,27 @@ const PORTFOLIO_CORE = (() => {
     return (Array.isArray(stocks) ? stocks : []).find((row) => cleanSymbol(row.symbol) === wanted) || null;
   }
 
-  function resolveHolding(holding, stocks, ranking) {
-    const row = findStock(stocks, holding.symbol);
+  function catalogHas(catalog, symbol) {
+    const wanted = cleanSymbol(symbol);
+    return (Array.isArray(catalog) ? catalog : []).some((item) => cleanSymbol(item.symbol || item) === wanted);
+  }
+
+  function resolveHolding(holding, stocks, ranking, catalog) {
+    const clean = cleanSymbol(holding.symbol);
+    const row = findStock(stocks, clean);
     const value = Math.max(0, num(holding.value) || 0);
-    if (!row) return { ...holding, symbol: cleanSymbol(holding.symbol), value, row: null, score: null, status: "not_found", contribution: null, rank: null };
+    if (!row) {
+      return {
+        ...holding,
+        symbol: clean,
+        value,
+        row: null,
+        score: null,
+        status: catalogHas(catalog, clean) ? "snapshot_missing" : "not_found",
+        contribution: null,
+        rank: null,
+      };
+    }
     const tradeVolume = num(row.trade_volume);
     const rawScore = num(row.score);
     const isUntraded = tradeVolume === null || tradeVolume <= 0;
@@ -55,10 +72,10 @@ const PORTFOLIO_CORE = (() => {
     return { ...holding, symbol: String(row.symbol), value, row, score, status: isUntraded ? "untraded_zero" : rawScore === null ? "missing_score" : "ready", contribution: null, rank: group };
   }
 
-  function calculatePortfolio({ holdings, cash = 0, marketMedian, stocks }) {
+  function calculatePortfolio({ holdings, cash = 0, marketMedian, stocks, catalog }) {
     const safeHoldings = (Array.isArray(holdings) ? holdings : []).filter((holding) => cleanSymbol(holding.symbol));
     const ranking = industryRanking(stocks);
-    const resolved = safeHoldings.map((holding) => resolveHolding(holding, stocks, ranking));
+    const resolved = safeHoldings.map((holding) => resolveHolding(holding, stocks, ranking, catalog));
     const validRows = resolved.filter((item) => item.value > 0 && item.score !== null);
     const missingRows = resolved.filter((item) => item.value > 0 && item.score === null);
     const numericCash = Math.max(0, num(cash) || 0);
@@ -69,7 +86,10 @@ const PORTFOLIO_CORE = (() => {
     const totalScore = missingRows.length || totalValue <= 0 ? null : weightedScoreSum / totalValue;
     const investedScore = missingRows.length || investedValue <= 0 ? null : weightedScoreSum / investedValue;
     const market = num(marketMedian);
-    resolved.forEach((item) => { item.weight = totalValue > 0 ? item.value / totalValue : null; item.contribution = item.weight === null || item.score === null || missingRows.length ? null : item.weight * item.score; });
+    resolved.forEach((item) => {
+      item.weight = totalValue > 0 ? item.value / totalValue : null;
+      item.contribution = item.weight === null || item.score === null || missingRows.length ? null : item.weight * item.score;
+    });
     return {
       holdings: resolved, cash: numericCash, investedValue, totalValue, totalScore, investedScore, marketMedian: market,
       gap: totalScore === null || market === null ? null : totalScore - market,

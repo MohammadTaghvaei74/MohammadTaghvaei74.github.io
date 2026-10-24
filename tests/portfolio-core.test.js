@@ -38,6 +38,19 @@ test('unmatched symbols are visible as missing and do not become zero silently',
   assert.equal(result.holdings[0].status, 'not_found');
 });
 
+test('catalog symbols without a current snapshot are distinguishable from unknown symbols', () => {
+  const result = P.calculatePortfolio({
+    holdings: [{symbol: 'طلا', value: 100}, {symbol: 'ناشناخته', value: 100}],
+    cash: 0,
+    marketMedian: 1,
+    stocks,
+    catalog: [{symbol: 'طلا'}],
+  });
+  assert.equal(result.holdings[0].status, 'snapshot_missing');
+  assert.equal(result.holdings[1].status, 'not_found');
+  assert.equal(result.totalScore, null);
+});
+
 test('industry rank puts higher score first and excludes non-equity industries', () => {
   const ranking = P.industryRanking([...stocks, {symbol: 'اوراق ۱', industry: 'اوراق بدهی', score: 99, trade_volume: 100}]);
   assert.deepEqual(ranking.get('الف'), {rank: 1, total: 3, industry: 'سیمان'});
