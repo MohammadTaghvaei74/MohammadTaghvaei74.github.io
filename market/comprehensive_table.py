@@ -143,6 +143,31 @@ def build_comprehensive_rows(stocks: list[dict[str, Any]], latest: str, conn) ->
         })
         rows.append(row)
 
+    # Rank the exact displayed universe by current score, then repeat inside
+    # each industry.  Keep the denominator aligned with the visible table so
+    # the UI can show rank / total without inventing a second population.
+    ranked = sorted(
+        (row for row in rows if _finite(row.get("score")) is not None),
+        key=lambda row: (-_finite(row["score"]), str(row.get("symbol") or "")),
+    )
+    for position, row in enumerate(ranked, 1):
+        row["score_rank"] = position
+        row["score_rank_total"] = len(ranked)
+    by_industry: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    for row in ranked:
+        industry = str(row.get("industry") or "").strip()
+        if industry:
+            by_industry[industry].append(row)
+    for members in by_industry.values():
+        for position, row in enumerate(members, 1):
+            row["industry_score_rank"] = position
+            row["industry_score_rank_total"] = len(members)
+    for row in rows:
+        row.setdefault("score_rank", None)
+        row.setdefault("score_rank_total", len(ranked))
+        row.setdefault("industry_score_rank", None)
+        row.setdefault("industry_score_rank_total", 0)
+
     meta = {
         "days": days,
         "target_times": list(TARGET_TIMES),
