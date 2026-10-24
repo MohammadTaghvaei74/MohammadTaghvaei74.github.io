@@ -361,14 +361,17 @@
       const rowScore = numeric(row.median !== undefined ? row.median : row.median_score);
       return { ...row, count: members.length || row.count || row.stock_count, median: rowScore, turnover_toman: turnover || numeric(row.turnover_toman || row.trade_value_toman), avg_last_close_diff_pct: avgDiff };
     });
-    const markup = rows.map((row) => {
+    const totalIndustries = rows.length;
+    const markup = rows.map((row, index) => {
       const score = numeric(row.median !== undefined ? row.median : row.median_score);
       const positive = score === null || score >= 0;
       const industry = String(row.industry || "بدون صنعت");
-      return `<tr><td class="industry-name-cell"><a href="industries/?industry=${encodeURIComponent(industry)}" aria-label="مشاهده سهام صنعت ${escapeHtml(industry)}">${escapeHtml(industry)}</a></td><td>${escapeHtml(integer(row.count))}</td><td><span class="industry-median ${positive ? "" : "negative"}">${escapeHtml(signed(score))}</span></td><td data-sort-value="${numeric(row.turnover_toman) === null ? "" : row.turnover_toman}">${escapeHtml(formatValueBillion(row.turnover_toman))}</td><td data-sort-value="${numeric(row.avg_last_close_diff_pct) === null ? "" : row.avg_last_close_diff_pct}">${escapeHtml(pct(row.avg_last_close_diff_pct))}</td></tr>`;
+      const rank = numeric(row.rank) || index + 1;
+      const rankPercent = numeric(row.rank_position_pct) || Math.round(rank / totalIndustries * 100);
+      return `<tr><td class="industry-name-cell"><a href="industries/?industry=${encodeURIComponent(industry)}" aria-label="مشاهده سهام صنعت ${escapeHtml(industry)}">${escapeHtml(industry)}</a></td><td data-sort-value="${rank}"><bdi dir="ltr" title="رتبه ${escapeHtml(integer(rank))} از ${escapeHtml(integer(totalIndustries))}">${escapeHtml(integer(rankPercent))}٪</bdi></td><td>${escapeHtml(integer(row.count))}</td><td><span class="industry-median ${positive ? "" : "negative"}">${escapeHtml(signed(score))}</span></td><td data-sort-value="${numeric(row.turnover_toman) === null ? "" : row.turnover_toman}">${escapeHtml(formatValueBillion(row.turnover_toman))}</td><td data-sort-value="${numeric(row.avg_last_close_diff_pct) === null ? "" : row.avg_last_close_diff_pct}"><bdi dir="ltr" class="industry-signed-value">${escapeHtml(pct(row.avg_last_close_diff_pct))}</bdi></td></tr>`;
     }).join("");
     const element = $("#industriesGrid");
-    if (element) element.innerHTML = markup || `<tr><td colspan="5" class="industry-empty">داده صنعت هنوز آماده نیست.</td></tr>`;
+    if (element) element.innerHTML = markup || `<tr><td colspan="6" class="industry-empty">داده صنعت هنوز آماده نیست.</td></tr>`;
   }
 
   const optionsNumber = (value, digits = 0) => { const parsed = numeric(value); return parsed === null ? "—" : core.faDigits(parsed.toLocaleString("fa-IR", { maximumFractionDigits: digits, minimumFractionDigits: digits })); };

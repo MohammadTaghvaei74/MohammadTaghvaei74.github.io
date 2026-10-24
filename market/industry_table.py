@@ -161,8 +161,11 @@ def build_industry_table(stocks: list[dict[str, Any]], latest: str, conn) -> lis
         -(_finite(row.get("median_score")) or 0),
         row["industry"],
     ))
+    total = len(result)
     for rank, row in enumerate(result, 1):
         row["rank"] = rank
+        row["rank_total"] = total
+        row["rank_position_pct"] = round(rank / total * 100) if total else None
     return result
 
 

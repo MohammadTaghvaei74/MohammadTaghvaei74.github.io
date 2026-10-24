@@ -49,6 +49,9 @@ def test_industry_table_aggregates_current_metrics_and_averages_completed_days()
     assert row["avg_last_close_diff_pct"] == pytest.approx(((103 - 102) / 102 * 100 + (100 - 101) / 101 * 100) / 2)
     assert row["avg_buy_per_capita_toman"] == 10e6
     assert row["avg_power"] == 2
+    assert row["rank"] == 1
+    assert row["rank_total"] == 1
+    assert row["rank_position_pct"] == 100
     assert row["trade_value_toman"] == 12e9
     assert row["avg_trade_value_5d_toman"] == 36e9
     assert row["avg_trade_value_10d_toman"] == 36e9

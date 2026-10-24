@@ -49,6 +49,7 @@ body{background-color:#061116;background-image:radial-gradient(circle at 12% 18%
 .industry-name-cell a{color:#173b3f;font-weight:700;font-size:13.5px}
 .industry-table tbody td:nth-child(n+3){white-space:nowrap}
 .industry-median{color:#000;font-weight:800;direction:ltr;unicode-bidi:isolate;display:inline-block}
+.industry-signed-value{direction:ltr;unicode-bidi:isolate;display:inline-block}
 .industry-median.negative{color:#000}
 .industry-empty{text-align:center!important;color:#607571;padding:24px!important}
 
