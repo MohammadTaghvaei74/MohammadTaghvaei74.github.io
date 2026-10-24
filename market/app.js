@@ -201,7 +201,7 @@
     const rows = Array.isArray(data.queue_intraday) ? data.queue_intraday : [];
     const values = rows.flatMap((row) => [numeric(row.buy_value_hmt), numeric(row.sell_value_hmt)]).filter((value) => value !== null);
     if (!values.length) { svg.innerHTML = `<text class="chart-empty" x="600" y="145" text-anchor="middle">داده ارزش صف‌ها برای امروز موجود نیست.</text>`; return; }
-    const width = 1200, height = 460, pad = {top:18,right:24,bottom:38,left:78};
+    const width = 1200, height = 460, pad = {top:4,right:24,bottom:24,left:78};
     const max = Math.max(1, ...values) * 1.08;
     const x = (index) => pad.left + index * (width - pad.left - pad.right) / Math.max(rows.length - 1, 1);
     const y = (value) => pad.top + (max - value) * (height - pad.top - pad.bottom) / max;
@@ -229,7 +229,7 @@
       const extremaText = (label, extrema) => `${label}: کمینه ${extrema.min === null ? "—" : signed(extrema.min, 2)} · بیشینه ${extrema.max === null ? "—" : signed(extrema.max, 2)}`;
       extremaLabel.textContent = `${extremaText("لیدرها", leaderExtrema)}  |  ${extremaText("کل بازار", marketExtrema)}`;
     }
-    const width = 1200, height = 460, pad = { top: 18, right: 24, bottom: 38, left: 62 };
+    const width = 1200, height = 460, pad = { top: 4, right: 24, bottom: 24, left: 62 };
     if (!actualValues.length) {
       svg.innerHTML = `<text class="chart-empty" x="380" y="145" text-anchor="middle">دادهٔ امروز از ۰۹:۱۵ هنوز موجود نیست.</text>`;
       return;
