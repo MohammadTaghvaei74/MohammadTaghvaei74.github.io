@@ -99,8 +99,14 @@
       lastUpdate.textContent = core.formatDate(publishedAt);
       lastUpdate.dateTime = publishedAt || "";
     }
-    text("#updatedAt", core.formatDate(core.sourceTimestamp(data)));
-    text("#sourceStatus", `منبع: ${data.source || "نامشخص"} · زمان منبع: ${core.formatDate(core.sourceTimestamp(data))}`);
+    const marketTimestamp = core.sourceTimestamp(data);
+    const lastUpdate = $("#lastUpdate");
+    if (lastUpdate) {
+      lastUpdate.textContent = core.formatDate(marketTimestamp);
+      lastUpdate.dateTime = marketTimestamp || "";
+    }
+    text("#updatedAt", core.formatDate(marketTimestamp));
+    text("#sourceStatus", `منبع: ${data.source || "نامشخص"} · زمان منبع: ${core.formatDate(marketTimestamp)}`);
     text("#marketMood", marketMedian === null ? "داده موجود نیست" : marketMedian > 2 ? "مثبت و پرقدرت" : marketMedian > 0 ? "مثبت اما متعادل" : marketMedian < -2 ? "فشار عرضه" : "خنثی / نوسانی");
     text("#marketTrend", marketMedian === null ? "—" : marketMedian >= 0 ? "بالای صفر" : "زیر صفر");
     text("#allocationLabel", allocation.label);
