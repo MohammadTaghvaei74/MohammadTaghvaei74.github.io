@@ -9,6 +9,8 @@
   let currentData = null;
   let loading = false;
   let refreshTimer = null;
+  let industryFilterBound = false;
+  const industryColumnFilters = {industry: {op: "", value: ""}, rank: {op: "", value: ""}, count: {op: "", value: ""}, median: {op: "", value: ""}, turnover: {op: "", value: ""}, diff: {op: "", value: ""}};
 
   if (!core) {
     console.error("Market core failed to load");
@@ -394,25 +396,27 @@
       return { ...row, count: members.length || row.count || row.stock_count, median: rowScore, turnover_toman: turnover || numeric(row.turnover_toman || row.trade_value_toman), avg_last_close_diff_pct: avgDiff };
     });
     const totalIndustries = rows.length;
-    const select = $("#industrySelectFilter");
-    const textFilter = $("#industryTextFilter");
-    if (select) {
-      const selected = select.value;
-      select.innerHTML = `<option value="">همه صنایع</option>` + rows.map((row) => String(row.industry || "")).sort((a, b) => a.localeCompare(b, "fa")).map((name) => `<option value="${escapeHtml(name)}">${escapeHtml(name)}</option>`).join("");
-      select.value = rows.some((row) => String(row.industry || "") === selected) ? selected : "";
-    }
-
-
-    const selectedIndustry = select ? select.value : "";
-    const query = textFilter ? String(textFilter.value || "").trim() : "";
-        const queryNormalized = core.normalizeFa ? core.normalizeFa(query) : query.toLocaleLowerCase("fa");
-        const visibleRows = rows.filter((row) => {
-          const name = String(row.industry || "");
-          const members = groups.get(name) || [];
-          const matchesName = !queryNormalized || (core.normalizeFa ? core.normalizeFa(name).indexOf(queryNormalized) >= 0 : name.toLocaleLowerCase("fa").indexOf(queryNormalized) >= 0);
-          const matchesSymbol = !queryNormalized || members.some((member) => core.normalizeFa ? core.normalizeFa(member.symbol).indexOf(queryNormalized) >= 0 : String(member.symbol || "").toLocaleLowerCase("fa").indexOf(queryNormalized) >= 0);
-          return (!selectedIndustry || name === selectedIndustry) && (!queryNormalized || matchesName || matchesSymbol);
-        });
+    const compareIndustryFilter = (value, filter, scale = 1) => {
+      if (!filter || !filter.op || filter.value === "") return true;
+      const actual = numeric(value);
+      const expected = numeric(filter.value);
+      if (actual === null || expected === null) return false;
+      const left = actual / scale;
+      if (filter.op === "=") return left === expected;
+      if (filter.op === ">") return left > expected;
+      if (filter.op === ">=") return left >= expected;
+      if (filter.op === "<") return left < expected;
+      if (filter.op === "<=") return left <= expected;
+      return true;
+    };
+    const textFilter = industryColumnFilters.industry;
+    const queryNormalized = String(textFilter.value || "").trim().toLocaleLowerCase("fa");
+    const visibleRows = rows.filter((row, index) => {
+      const name = String(row.industry || "");
+      const rank = numeric(row.rank) || index + 1;
+      const matchesText = !queryNormalized || name.toLocaleLowerCase("fa").indexOf(queryNormalized) >= 0;
+      return matchesText && compareIndustryFilter(rank, industryColumnFilters.rank) && compareIndustryFilter(row.count, industryColumnFilters.count) && compareIndustryFilter(row.median, industryColumnFilters.median) && compareIndustryFilter(row.turnover_toman, industryColumnFilters.turnover, 1000000000) && compareIndustryFilter(row.avg_last_close_diff_pct, industryColumnFilters.diff);
+    });
     const markup = visibleRows.map((row, index) => {
       const score = numeric(row.median !== undefined ? row.median : row.median_score);
       const positive = score === null || score >= 0;
@@ -427,7 +431,29 @@
 
 
 
-  [$("#industrySelectFilter"), $("#industryTextFilter")].forEach((control) => { if (control) ["input", "change"].forEach((eventName) => control.addEventListener(eventName, () => { if (currentData) renderIndustries(currentData); })); });
+  function bindIndustryColumnFilters() {
+    if (industryFilterBound) return;
+    const table = $(".industry-table");
+    if (!table) return;
+    industryFilterBound = true;
+    table.addEventListener("input", (event) => {
+      const input = event.target.closest("[data-industry-filter]");
+      if (!input) return;
+      const key = input.getAttribute("data-industry-filter");
+      industryColumnFilters[key].value = input.value;
+      const op = table.querySelector(`[data-industry-op="${key}"]`);
+      industryColumnFilters[key].op = op ? op.value : "contains";
+      if (currentData) renderIndustries(currentData);
+    });
+    table.addEventListener("change", (event) => {
+      const op = event.target.closest("[data-industry-op]");
+      if (!op) return;
+      const key = op.getAttribute("data-industry-op");
+      industryColumnFilters[key].op = op.value;
+      if (currentData) renderIndustries(currentData);
+    });
+  }
+  bindIndustryColumnFilters();
   const optionsNumber = (value, digits = 0) => { const parsed = numeric(value); return parsed === null ? "—" : core.faDigits(parsed.toLocaleString("fa-IR", { maximumFractionDigits: digits, minimumFractionDigits: digits })); };
   const optionsPercent = (value) => { const parsed = numeric(value); return parsed === null ? "—" : `<strong>${optionsNumber(parsed, 1)}</strong> <span class="percent-unit">٪</span>`; };
   function optionsStatusLabel(status) { return ({ ready: "داده معتبر آماده است.", no_opportunity: "فعلاً جفت واجد شرایط پیدا نشد.", insufficient_data: "داده کافی برای محاسبه کامل نیست.", stale: "داده آپشن قدیمی است.", unavailable: "منبع داده آپشن در دسترس نیست." }[status] || "وضعیت داده نامشخص است."); }
