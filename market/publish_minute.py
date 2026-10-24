@@ -42,7 +42,11 @@ def main() -> int:
         print("SKIP_OUTSIDE_MARKET_WINDOW", flush=True)
         return 0
 
-    os.environ["SKIP_TSETMC_ENRICHMENT"] = "1"
+    # Keep client-type enrichment enabled: the comprehensive table must not
+    # publish dashes when per-capita, power, and legal-flow data is available.
+    # Market-cap enrichment is unrelated to this table and would add ~800
+    # extra provider calls to every minute publication.
+    os.environ["SKIP_TSETMC_MARKET_CAP"] = "1"
     with p.connect() as conn:
         market = p.build_market(conn)
         fund_report = p.load_fund_report()
