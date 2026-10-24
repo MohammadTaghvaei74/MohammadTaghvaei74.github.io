@@ -38,6 +38,11 @@ body{background-color:#061116;background-image:radial-gradient(circle at 12% 18%
 
 /* Industry ranking: compact data table instead of decorative cards. */
 .industry-table-panel{overflow:hidden;border-radius:16px;background:#fff;box-shadow:0 16px 35px rgba(38,73,60,.09)}
+.industry-table-filters{display:grid;grid-template-columns:minmax(220px,320px) minmax(260px,1fr);gap:12px;padding:14px 16px;border-bottom:1px solid #d5e2d9;background:#f5f8f2}
+.industry-table-filters label{display:flex;flex-direction:column;gap:5px;min-width:0;color:#4d6961;font-size:12px;font-weight:700}
+.industry-table-filters select,.industry-table-filters input{width:100%;min-height:40px;padding:8px 11px;border:1px solid #b8cec0;border-radius:8px;background:#fff;color:#173b3f;font:inherit;font-size:13px}
+.industry-table-filters input::placeholder{color:#82938f}
+@media(max-width:720px){.industry-table-filters{grid-template-columns:1fr;padding:12px}.industry-table-filters select,.industry-table-filters input{min-height:42px;font-size:14px}}
 .industry-table-scroll{overflow-x:auto}
 .industry-table{width:100%;min-width:0;border-collapse:collapse;color:#173b3f;background:#fff;font-size:12px}
 .industry-table thead th{padding:11px 10px;background:#e8f1eb;color:#173b3f;font-weight:800;text-align:right;white-space:nowrap;border-bottom:2px solid #b8cec0;cursor:pointer}

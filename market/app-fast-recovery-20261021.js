@@ -389,10 +389,16 @@
       select.value = rows.some((row) => String(row.industry || "") === selected) ? selected : "";
     }
 
-  [$("#industrySelectFilter"), $("#industryTextFilter")].forEach((control) => { if (control) ["input", "change"].forEach((eventName) => control.addEventListener(eventName, () => { if (currentData) renderIndustries(currentData); })); });
     const selectedIndustry = select ? select.value : "";
-    const query = textFilter ? String(textFilter.value || "").trim().toLocaleLowerCase("fa") : "";
-    const visibleRows = rows.filter((row) => { const name = String(row.industry || ""); return (!selectedIndustry || name === selectedIndustry) && (!query || name.toLocaleLowerCase("fa").indexOf(query) >= 0); });
+    const query = textFilter ? String(textFilter.value || "").trim() : "";
+        const queryNormalized = core.normalizeFa ? core.normalizeFa(query) : query.toLocaleLowerCase("fa");
+        const visibleRows = rows.filter((row) => {
+          const name = String(row.industry || "");
+          const members = groups.get(name) || [];
+          const matchesName = !queryNormalized || (core.normalizeFa ? core.normalizeFa(name).indexOf(queryNormalized) >= 0 : name.toLocaleLowerCase("fa").indexOf(queryNormalized) >= 0);
+          const matchesSymbol = !queryNormalized || members.some((member) => core.normalizeFa ? core.normalizeFa(member.symbol).indexOf(queryNormalized) >= 0 : String(member.symbol || "").toLocaleLowerCase("fa").indexOf(queryNormalized) >= 0);
+          return (!selectedIndustry || name === selectedIndustry) && (!queryNormalized || matchesName || matchesSymbol);
+        });
     const markup = visibleRows.map((row, index) => {
       const score = numeric(row.median !== undefined ? row.median : row.median_score);
       const positive = score === null || score >= 0;
