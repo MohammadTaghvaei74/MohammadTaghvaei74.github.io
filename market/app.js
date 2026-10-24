@@ -148,7 +148,7 @@
     const tooltipHeight = 30 + values.length * 19;
     const rawX = x(index) + 14;
     const tooltipX = rawX + tooltipWidth > 1200 ? x(index) - tooltipWidth - 14 : rawX;
-    const tooltipY = Math.max(8, Math.min(300 - tooltipHeight - 8, y(numeric(series.market[index]) !== null ? numeric(series.market[index]) : numeric(series.leaders[index])) - tooltipHeight / 2));
+    const tooltipY = Math.max(8, Math.min(height - tooltipHeight - 8, y(numeric(series.market[index]) !== null ? numeric(series.market[index]) : numeric(series.leaders[index])) - tooltipHeight / 2));
     const time = escapeHtml(core.faDigits(String(point.time || "—").slice(0, 5)));
     const rows = values.map(([label, value, color], rowIndex) => `<circle cx="${tooltipX + 12}" cy="${tooltipY + 31 + rowIndex * 19}" r="3.5" fill="${color}"/><text class="chart-tooltip-value" fill="#ffffff" x="${tooltipX + tooltipWidth - 12}" y="${tooltipY + 35 + rowIndex * 19}" text-anchor="end">${escapeHtml(label)}: ${escapeHtml(signed(value, 2))}</text>`).join("");
     return `<g class="chart-tooltip active" data-tooltip-index="${index}" role="status"><rect x="${tooltipX}" y="${tooltipY}" width="${tooltipWidth}" height="${tooltipHeight}" rx="8" fill="#07131a" stroke="#ffffff"/><text class="chart-tooltip-title" fill="#ffffff" x="${tooltipX + tooltipWidth - 12}" y="${tooltipY + 20}" text-anchor="end">ساعت ${time}</text>${rows}</g>`;
@@ -199,7 +199,7 @@
     const rows = Array.isArray(data.queue_intraday) ? data.queue_intraday : [];
     const values = rows.flatMap((row) => [numeric(row.buy_value_hmt), numeric(row.sell_value_hmt)]).filter((value) => value !== null);
     if (!values.length) { svg.innerHTML = `<text class="chart-empty" x="600" y="145" text-anchor="middle">داده ارزش صف‌ها برای امروز موجود نیست.</text>`; return; }
-    const width = 1200, height = 300, pad = {top:18,right:24,bottom:38,left:78};
+    const width = 1200, height = 460, pad = {top:18,right:24,bottom:38,left:78};
     const max = Math.max(1, ...values) * 1.08;
     const x = (index) => pad.left + index * (width - pad.left - pad.right) / Math.max(rows.length - 1, 1);
     const y = (value) => pad.top + (max - value) * (height - pad.top - pad.bottom) / max;
@@ -227,7 +227,7 @@
       const extremaText = (label, extrema) => `${label}: کمینه ${extrema.min === null ? "—" : signed(extrema.min, 2)} · بیشینه ${extrema.max === null ? "—" : signed(extrema.max, 2)}`;
       extremaLabel.textContent = `${extremaText("لیدرها", leaderExtrema)}  |  ${extremaText("کل بازار", marketExtrema)}`;
     }
-    const width = 1200, height = 300, pad = { top: 18, right: 24, bottom: 38, left: 62 };
+    const width = 1200, height = 460, pad = { top: 18, right: 24, bottom: 38, left: 62 };
     if (!actualValues.length) {
       svg.innerHTML = `<text class="chart-empty" x="380" y="145" text-anchor="middle">دادهٔ امروز از ۰۹:۱۵ هنوز موجود نیست.</text>`;
       return;
