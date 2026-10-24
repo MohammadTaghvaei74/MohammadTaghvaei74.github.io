@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f4f6ef">
+  <meta name="description" content="محاسبه امتیاز وزنی پرتفو و جایگاه نمادها در صنعت">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../styles.css">
+  <link rel="stylesheet" href="../mobile.css">
+  <link rel="stylesheet" href="../header.css?v=shared-header-1">
+  <link rel="stylesheet" href="portfolio.css?v=portfolio-score-1">
+  <title>SORENA WATCH | امتیاز پرتفو</title>
+</head>
+<body>
+  <div class="shell">
+    <header class="topbar">
+      <a class="brand" href="/market/" aria-label="سورنا واچ، صفحه اصلی">
+        <span class="sorena-logo-mark" aria-hidden="true"><svg viewBox="0 0 48 48" role="img"><path d="M5 36 15 20l8 8L34 10l9 26Z"/><path d="M7 40h34"/></svg></span>
+        <span class="brand-copy"><b>SORENA WATCH</b><small>MARKET INTELLIGENCE / DATA DESK</small></span>
+      </a>
+      <nav class="main-nav" aria-label="ناوبری اصلی">
+        <a href="../#overview">نمای کلی</a><a href="../signals/">سیگنال‌ها</a><a href="../symbols/">سهام</a><a href="../industries/">صنایع و سهام</a><a href="../options/">آپشن</a><a href="../#funds">صندوق‌ها</a><a class="active" aria-current="page" href="./">امتیاز پرتفو</a>
+      </nav>
+      <div class="topbar-actions"><span class="market-state" id="state"><i></i><span id="sourceStatus">داده بازار در حال دریافت</span></span></div>
+    </header>
+
+    <main>
+      <section class="portfolio-hero">
+        <span class="category-tag">PORTFOLIO SCORE</span>
+        <h1>امتیاز پرتفو</h1>
+        <p>ارزش خرید هر دارایی را وارد کن؛ امتیاز کل پرتفو با میانگین وزنی امتیازهای امروز بازار محاسبه می‌شود و جایگاه هر نماد در صنعت خودش هم نمایش داده می‌شود.</p>
+        <div class="portfolio-meta"><span>مبنای وزن: <strong>ارزش خرید</strong></span><span>نقد: <strong>امتیاز صفر</strong></span><span>منبع: <strong id="marketDate">در حال دریافت…</strong></span></div>
+      </section>
+
+      <section class="portfolio-layout" aria-label="ورود و نتیجه پرتفو">
+        <article class="portfolio-panel input-panel">
+          <div class="panel-heading"><div><span class="section-index">01</span><h2>پرتفوی من</h2></div><button class="ghost-button" id="clearPortfolio" type="button">پاک‌کردن</button></div>
+          <p class="panel-intro">برای هر نماد مبلغ خرید را به تومان وارد کن. اطلاعات فقط در همین مرورگر ذخیره می‌شود و به سرور ارسال نمی‌شود.</p>
+          <div class="portfolio-fields">
+            <label>نقد / وجه آزاد <span class="field-unit">تومان</span><input id="cashValue" inputmode="decimal" type="number" min="0" step="1000" placeholder="مثلاً ۱۰۰۰۰۰۰۰۰"></label>
+          </div>
+          <div class="holdings-heading"><h3>دارایی‌ها</h3><button class="add-button" id="addHolding" type="button">＋ افزودن نماد</button></div>
+          <div id="holdingRows" class="holding-rows"></div>
+          <button class="calculate-button" id="calculatePortfolio" type="button">محاسبه امتیاز پرتفو <span aria-hidden="true">←</span></button>
+          <p class="privacy-note">⚿ رمز کارگزاری لازم نیست. اتصال خودکار به ایزی‌تریدر فقط باید از مسیر امن سمت‌سرور و پس از تأیید جداگانه ساخته شود.</p>
+        </article>
+
+        <article class="portfolio-panel result-panel" aria-live="polite">
+          <div class="panel-heading"><div><span class="section-index">02</span><h2>نتیجه امروز</h2></div><span class="result-status" id="resultStatus">هنوز محاسبه نشده</span></div>
+          <div class="score-cards">
+            <div class="score-card primary"><span>امتیاز کل پرتفو</span><strong id="totalScore">—</strong><small>با احتساب نقد</small></div>
+            <div class="score-card"><span>امتیاز سرمایه‌گذاری‌شده</span><strong id="investedScore">—</strong><small>بدون نقد</small></div>
+            <div class="score-card"><span>میانه کل بازار</span><strong id="marketMedian">—</strong><small id="coverageLabel">پوشش —</small></div>
+          </div>
+          <div class="comparison-box"><span>فاصله امتیاز پرتفو با میانه بازار</span><strong id="scoreGap">—</strong><p id="comparisonText">بعد از ورود سبد، مقایسه اینجا نمایش داده می‌شود.</p></div>
+          <div class="result-summary" id="resultSummary"></div>
+        </article>
+      </section>
+
+      <section class="portfolio-table-section">
+        <div class="section-heading"><div><span class="section-index">03</span><h2>جزئیات وزن و جایگاه صنعتی</h2></div><p>رتبه ۱ یعنی بالاترین امتیاز در میان نمادهای معتبر و معامله‌شده همان صنعت در snapshot فعلی.</p></div>
+        <article class="portfolio-table-panel"><div class="table-scroll"><table class="portfolio-table" aria-label="جزئیات امتیاز پرتفو"><thead><tr><th>نماد</th><th>صنعت</th><th>ارزش خرید</th><th>وزن</th><th>امتیاز</th><th>رتبه در صنعت</th><th>سهم در امتیاز پرتفو</th><th>وضعیت</th></tr></thead><tbody id="portfolioRows"><tr><td colspan="8" class="empty-row">پس از محاسبه، جزئیات اینجا نمایش داده می‌شود.</td></tr></tbody></table></div></article>
+      </section>
+
+      <aside class="portfolio-disclaimer">این صفحه ابزار سنجش کیفیت امتیاز فعلی پرتفو است، نه محاسبه سود و زیان، ریسک، قیمت خرید یا توصیه معامله. رتبه و امتیاز به زمان آخرین snapshot بازار وابسته است.</aside>
+    </main>
+    <footer class="site-footer"><div><span class="sorena-logo-mark" aria-hidden="true"><svg viewBox="0 0 48 48"><path d="M5 36 15 20l8 8L34 10l9 26Z"/><path d="M7 40h34"/></svg></span><span>SORENA WATCH / ساخته‌شده برای تصمیم‌های دقیق‌تر</span></div><span>داده پژوهشی است؛ توصیه سرمایه‌گذاری نیست.</span></footer>
+  </div>
+  <nav class="mobile-nav portfolio-mobile-nav" aria-label="ناوبری موبایل"><a href="../#overview"><span aria-hidden="true">⌂</span><b>نمای کلی</b></a><a href="../signals/"><span aria-hidden="true">⌁</span><b>سیگنال‌ها</b></a><a href="../symbols/"><span aria-hidden="true">⌕</span><b>نماد</b></a><a href="../industries/"><span aria-hidden="true">▦</span><b>صنایع</b></a><a class="active" href="./" aria-current="page"><span aria-hidden="true">◒</span><b>پرتفو</b></a></nav>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="../core.js"></script>
+  <script src="portfolio-core.js"></script>
+  <script src="portfolio.js"></script>
+</body>
+</html>
