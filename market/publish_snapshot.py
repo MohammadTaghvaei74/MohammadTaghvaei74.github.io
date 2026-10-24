@@ -20,6 +20,10 @@ import subprocess
 import tempfile
 from datetime import datetime
 from pathlib import Path
+try:
+    from .instrument_filters import filter_common_stocks
+except ImportError:
+    from instrument_filters import filter_common_stocks
 from zoneinfo import ZoneInfo
 
 from zipfile import ZIP_DEFLATED, ZipFile, ZipInfo
@@ -168,9 +172,11 @@ def build_market(conn: sqlite3.Connection) -> dict:
     ).fetchall()
     stocks, seen = [], set()
     for row in rows:
-        if row["symbol"] not in seen:
-            stocks.append(dict(row))
-            seen.add(row["symbol"])
+        item = dict(row)
+        if item["symbol"] in seen or not filter_common_stocks([item]):
+            continue
+        stocks.append(item)
+        seen.add(item["symbol"])
     # The live stock feed may not carry industry labels. Recover the validated
     # symbol-to-industry mapping from the finalized daily summary for today.
     try:

@@ -14,6 +14,10 @@ try:
 except ImportError:
     from queue_data import build_queue_rows
 from pathlib import Path
+try:
+    from .instrument_filters import filter_common_stocks
+except ImportError:
+    from instrument_filters import filter_common_stocks
 
 try:
     from .chart_data import load_daily_chart_rows, load_intraday_chart_rows
@@ -64,7 +68,8 @@ def export(db_path: str, output_path: str) -> None:
     stocks = []
     seen = set()
     for row in rows:
-        if row["symbol"] not in seen:
+        item = dict(row)
+        if row["symbol"] not in seen and filter_common_stocks([item]):
             stocks.append(dict(row))
             seen.add(row["symbol"])
     try:
