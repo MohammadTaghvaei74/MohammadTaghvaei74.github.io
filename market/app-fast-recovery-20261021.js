@@ -187,10 +187,26 @@
     return result;
   }
 
+  function renderQueueChart(data) {
+    const svg = $("#queueChart");
+    if (!svg) return;
+    const rows = Array.isArray(data.queue_intraday) ? data.queue_intraday : [];
+    const values = rows.flatMap((row) => [numeric(row.buy_value_hmt), numeric(row.sell_value_hmt)]).filter((value) => value !== null);
+    if (!values.length) { svg.innerHTML = `<text class="chart-empty" x="600" y="145" text-anchor="middle">داده ارزش صف‌ها برای امروز موجود نیست.</text>`; return; }
+    const width = 1200, height = 300, pad = {top:18,right:24,bottom:38,left:78};
+    const max = Math.max(1, ...values) * 1.08;
+    const x = (index) => pad.left + index * (width - pad.left - pad.right) / Math.max(rows.length - 1, 1);
+    const y = (value) => pad.top + (max - value) * (height - pad.top - pad.bottom) / max;
+    const path = (key) => pathFor(rows.map((row) => row[key]), x, y);
+    const ticks = [0, max / 2, max].map((tick) => `<line class="${tick === 0 ? "chart-zero" : "chart-grid-line"}" x1="${pad.left}" x2="${width-pad.right}" y1="${y(tick)}" y2="${y(tick)}"/><text class="chart-label" x="${pad.left-10}" y="${y(tick)+5}" text-anchor="end">${core.formatNumber(tick,1)} همت</text>`).join("");
+    const labels = rows.map((row, index) => index === 0 || index === rows.length - 1 || /:(00|15|30|45)$/.test(row.time || "") ? `<text class="chart-label" x="${x(index)}" y="${height-8}" text-anchor="middle">${escapeHtml(core.faDigits(row.time || "—"))}</text>` : "").join("");
+    svg.innerHTML = `${ticks}${labels}<path class="chart-path chart-buy" d="${path("buy_value_hmt")}"/><path class="chart-path chart-sell" d="${path("sell_value_hmt")}"/>`;
+  }
+
   function renderChart(data) {
     const svg = $("#marketChart");
     if (!svg) return;
-    const points = densifyIntraday(Array.isArray(data.intraday) ? data.intraday : []);
+    const points = densifyIntraday(Array.isArray(data.intraday) ? data.intraday : [], "09:15");
     const days = points;
     const series = {
       leaders: points.map((row) => row.leader_median_score),
@@ -424,6 +440,7 @@
   function render(data, options) {
     currentData = data;
     renderMetrics(data);
+    renderQueueChart(data);
     renderChart(data);
     renderTables(data);
     renderIndustries(data);
