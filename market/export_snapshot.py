@@ -20,9 +20,9 @@ except ImportError:
     from instrument_filters import filter_common_stocks
 
 try:
-    from .chart_data import load_daily_chart_rows, load_intraday_chart_rows
+    from .chart_data import load_daily_chart_rows, load_intraday_chart_rows, load_intraday_queue_rows
 except ImportError:
-    from chart_data import load_daily_chart_rows, load_intraday_chart_rows
+    from chart_data import load_daily_chart_rows, load_intraday_chart_rows, load_intraday_queue_rows
 try:
     from .tsetmc_enrichment import enrich_stocks
     from .comprehensive_table import build_comprehensive_rows
@@ -130,6 +130,7 @@ def export(db_path: str, output_path: str) -> None:
     )]
     daily = load_daily_chart_rows(conn)
     intraday = load_intraday_chart_rows(conn, latest[:10])
+    queue_intraday = load_intraday_queue_rows(conn, latest[:10], "09:15")
     payload = {
         "schema_version": 1,
         "source": "scores_history.db",
@@ -146,6 +147,7 @@ def export(db_path: str, output_path: str) -> None:
         "industries": industries,
         "daily": daily,
         "intraday": intraday,
+        "queue_intraday": queue_intraday,
         "options": {
             "status": "connecting",
             "message": "داده معتبر آپشن بعد از نهایی شدن قرارداد داده اضافه می‌شود.",

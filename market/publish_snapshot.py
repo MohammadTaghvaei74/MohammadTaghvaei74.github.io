@@ -32,7 +32,7 @@ from xml.sax.saxutils import escape
 if __package__:
     from .export_signals import export as export_signals
     from .leveraged_snapshots import read_latest as read_leveraged
-    from .chart_data import load_daily_chart_rows, load_intraday_chart_rows, load_intraday_symbol_rows
+    from .chart_data import load_daily_chart_rows, load_intraday_chart_rows, load_intraday_queue_rows, load_intraday_symbol_rows
     from .export_options import export_from_scores_db
     from .score_candles import build_candles
     from .tsetmc_enrichment import enrich_stocks
@@ -42,7 +42,7 @@ if __package__:
 else:
     from export_signals import export as export_signals
     from leveraged_snapshots import read_latest as read_leveraged
-    from chart_data import load_daily_chart_rows, load_intraday_chart_rows, load_intraday_symbol_rows
+    from chart_data import load_daily_chart_rows, load_intraday_chart_rows, load_intraday_queue_rows, load_intraday_symbol_rows
     from export_options import export_from_scores_db
     from score_candles import build_candles
     from tsetmc_enrichment import enrich_stocks
@@ -258,6 +258,7 @@ def build_market(conn: sqlite3.Connection) -> dict:
     )]
     daily = load_daily_chart_rows(conn)
     intraday = load_intraday_chart_rows(conn, latest[:10])
+    queue_intraday = load_intraday_queue_rows(conn, latest[:10], "09:15")
     return {
         "schema_version": 1,
         "source": "scores_history.db",
@@ -274,6 +275,7 @@ def build_market(conn: sqlite3.Connection) -> dict:
         "industries": industries,
         "daily": daily,
         "intraday": intraday,
+        "queue_intraday": queue_intraday,
         "options": {"status": "connecting", "message": "داده معتبر آپشن بعد از نهایی شدن قرارداد داده اضافه می‌شود."},
     }
 

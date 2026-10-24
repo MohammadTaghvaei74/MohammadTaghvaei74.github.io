@@ -137,6 +137,18 @@ th[role="button"][aria-sort="descending"]:after{content:"↓";color:var(--blue);
   .pulse-panel { padding: 24px 30px 28px; }
   .pulse-panel .chart-wrap { height: 300px; margin-top: 18px; }
 }
+/* Two equal overview charts replace the snapshot cards and allocation slider. */
+.top-charts{grid-template-columns:repeat(2,minmax(0,1fr));align-items:stretch;margin-top:22px}
+.top-charts .panel{min-width:0}
+.top-charts .chart-wrap{height:300px}
+.chart-buy{stroke:var(--green)!important}
+.chart-sell{stroke:var(--red)!important}
+.buy-line{background:var(--green)!important}
+.sell-line{background:var(--red)!important}
+@media(max-width:1050px){.top-charts{grid-template-columns:1fr}}
+@media(max-width:720px){.top-charts{margin-top:10px}.top-charts .chart-wrap{height:230px}}
+.allocation-bar,.compact-signal-panel{display:none!important}
+
 @media (max-width: 720px) {
   .compact-signal-panel { min-height: 0; padding: 15px 13px; }
   .compact-signal-panel .allocation-bar { margin-bottom: 14px; font-size: 12px; }

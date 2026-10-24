@@ -70,7 +70,7 @@ def load_daily_chart_rows(conn: sqlite3.Connection, limit: int = 7) -> list[dict
     return daily_median_fields(conn, rows)
 
 
-def load_intraday_chart_rows(conn: sqlite3.Connection, trading_date: str, start_time: str = "09:05") -> list[dict[str, Any]]:
+def load_intraday_chart_rows(conn: sqlite3.Connection, trading_date: str, start_time: str = "09:15") -> list[dict[str, Any]]:
     """Return today's score movement, aggregated to one point per minute.
 
     The chart must not mix finalized prior days with the live session. A point is
@@ -116,6 +116,22 @@ def load_intraday_chart_rows(conn: sqlite3.Connection, trading_date: str, start_
         })
         minute += timedelta(minutes=1)
     return result
+
+
+def load_intraday_queue_rows(conn: sqlite3.Connection, trading_date: str, start_time: str = "09:00") -> list[dict[str, Any]]:
+    """Return observed aggregate buy/sell queue values for today's session."""
+    available = {row[1] for row in conn.execute("PRAGMA table_info(market_snapshots)")}
+    if not {"timestamp", "buy_value_hmt", "sell_value_hmt"}.issubset(available):
+        return []
+    return [
+        {"timestamp": str(row[0]), "time": str(row[0])[11:16], "buy_value_hmt": row[1], "sell_value_hmt": row[2]}
+        for row in conn.execute(
+            "SELECT timestamp,buy_value_hmt,sell_value_hmt FROM market_snapshots "
+            "WHERE substr(timestamp,1,10)=? AND substr(timestamp,12,5)>=? ORDER BY timestamp",
+            (trading_date, start_time),
+        )
+        if row[1] is not None or row[2] is not None
+    ]
 
 
 def load_intraday_symbol_rows(
@@ -196,5 +212,5 @@ def load_intraday_symbol_rows(
 
 __all__ = [
     "LEADER_SYMBOLS", "daily_median_fields", "load_daily_chart_rows",
-    "load_intraday_chart_rows", "load_intraday_symbol_rows",
+    "load_intraday_chart_rows", "load_intraday_queue_rows", "load_intraday_symbol_rows",
 ]

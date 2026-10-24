@@ -54,12 +54,10 @@ def test_intraday_chart_excludes_prior_days_and_pre_open_samples(tmp_path):
     add_scores(conn, '2026-10-19', [('فولاد', 5, 1, 1), ('A', 3, 1, 1)], time='10:00:00')
     conn.commit()
     rows = publish_snapshot.load_intraday_chart_rows(conn, '2026-10-19')
-    assert len(rows) == 56
-    assert rows[0]['time'] == '09:05'
-    assert rows[5]['time'] == '09:10'
-    assert rows[5]['median_score'] == 3
-    assert rows[10]['time'] == '09:15'
-    assert rows[10]['median_score'] == 2
+    assert len(rows) == 46
+    assert rows[0]['time'] == '09:15'
+    assert rows[rows.index(next(row for row in rows if row['time'] == '10:00'))]['median_score'] == 4
+    assert rows[0]['median_score'] == 2
     assert rows[-1]['time'] == '10:00'
     assert rows[-1]['median_score'] == 4
     conn.close()
