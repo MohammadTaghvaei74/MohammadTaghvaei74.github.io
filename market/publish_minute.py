@@ -49,11 +49,13 @@ def main() -> int:
     os.environ["SKIP_TSETMC_MARKET_CAP"] = "1"
     with p.connect() as conn:
         market = p.build_market(conn)
+        market["published_at"] = datetime.now(TEHRAN).isoformat()
         fund_report = p.load_fund_report()
         market["fund_report"] = fund_report
         comprehensive = {
             "schema_version": 1,
             "generated_at": market["generated_at"],
+            "published_at": market["published_at"],
             "rows": market.pop("comprehensive_stocks", []),
             "meta": market.pop("comprehensive_meta", {}),
         }

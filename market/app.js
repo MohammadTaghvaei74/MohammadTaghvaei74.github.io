@@ -93,6 +93,12 @@
     text("#tradedCount", integer(market.count));
     text("#signalMarket", signed(marketMedian));
     text("#signalLeaders", signed(leaderMedian));
+    const publishedAt = data.published_at || data.generated_at || null;
+    const lastUpdate = $("#lastUpdate");
+    if (lastUpdate) {
+      lastUpdate.textContent = core.formatDate(publishedAt);
+      lastUpdate.dateTime = publishedAt || "";
+    }
     text("#updatedAt", core.formatDate(core.sourceTimestamp(data)));
     text("#sourceStatus", `منبع: ${data.source || "نامشخص"} · زمان منبع: ${core.formatDate(core.sourceTimestamp(data))}`);
     text("#marketMood", marketMedian === null ? "داده موجود نیست" : marketMedian > 2 ? "مثبت و پرقدرت" : marketMedian > 0 ? "مثبت اما متعادل" : marketMedian < -2 ? "فشار عرضه" : "خنثی / نوسانی");
@@ -524,7 +530,7 @@
     try {
       // Critical path: render the 179KB market snapshot immediately. The heavy
       // options feed must never delay the first useful paint.
-      const data = core.validateSnapshot(await fetchJson("data/market.json", "default"));
+      const data = core.validateSnapshot(await fetchJson("data/market.json", "no-store"));
       render(data, emptyOptions());
       text("#sourceStatus", `منبع: ${currentData.source} · زمان منبع: ${core.formatDate(core.sourceTimestamp(currentData))}`);
       lastLoadAt = Date.now();
