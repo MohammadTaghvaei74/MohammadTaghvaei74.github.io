@@ -241,6 +241,10 @@
     var parsed = number(value);
     return parsed === null ? "—" : (parsed > 0 ? "+" : parsed < 0 ? "−" : "") + formatNumber(Math.abs(parsed), 1) + "٪";
   }
+  function percentMarkup(value, digits) {
+    var label = digits === 1 ? signedPercentOne(value) : signedPercent(value);
+    return label === "—" ? label : "<strong>" + escapeHtml(label.slice(0, -1)) + "</strong> <span class=\"percent-unit\">٪</span>";
+  }
   function signedScore(value) {
     var parsed = number(value);
     return parsed === null ? "—" : (parsed > 0 ? "+" : parsed < 0 ? "−" : "") + formatNumber(Math.abs(parsed), 2);
@@ -328,8 +332,8 @@ if (typeof window !== "undefined") {
     }
     function metricCell(group, key, type) {
       var value = group.summary[key];
-      var label = type === "billion" ? E.formatBillion(value) : type === "million" ? E.formatMillion(value) : type === "percent" ? E.signedPct(value) : type === "percent1" ? E.signedPct1(value) : type === "score" ? E.formatNumber(value, 1) : E.formatNumber(value, type === "power" ? 1 : 0);
-      return "<td data-sort-value=\"" + (E.finite(value) ? E.escapeHtml(value) : "") + "\"><bdi>" + E.escapeHtml(label) + "</bdi></td>";
+      var label = type === "billion" ? E.formatBillion(value) : type === "million" ? E.formatMillion(value) : type === "percent" ? percentMarkup(value, 0) : type === "percent1" ? percentMarkup(value, 1) : type === "score" ? E.formatNumber(value, 1) : E.formatNumber(value, type === "power" ? 1 : 0);
+      return "<td data-sort-value=\"" + (E.finite(value) ? E.escapeHtml(value) : "") + "\"><bdi>" + (label.indexOf("<") >= 0 ? label : E.escapeHtml(label)) + "</bdi></td>";
     }
     function summaryRows() {
       var result = state.visible.slice();
@@ -393,7 +397,7 @@ if (typeof window !== "undefined") {
       text($("industryCaption"), "میانه امتیاز " + E.formatNumber(group.score, 1) + " · " + E.formatNumber(group.count, 0) + " نماد");
       var rows = E.sortStocks(group.stocks, state.direction);
       body.innerHTML = rows.length ? rows.map(function (stock, index) {
-        return "<tr><td>" + E.formatNumber(index + 1, 0) + "</td><th scope=\"row\"><a class=\"stock-symbol-link\" href=\"../symbols/?symbol=" + encodeURIComponent(stock.symbol) + "\">" + E.escapeHtml(stock.symbol) + "</a></th><td>" + E.formatNumber(stock.score, 1) + "</td><td class=\"" + (E.finite(stock.last_pct) && stock.last_pct >= 0 ? "up" : "down") + "\">" + E.signedPct(stock.last_pct) + "</td><td>" + (E.finite(stock.trade_value_toman) ? E.formatBillion(stock.trade_value_toman) + " میلیارد" : "—") + "</td></tr>";
+        return "<tr><td>" + E.formatNumber(index + 1, 0) + "</td><th scope=\"row\"><a class=\"stock-symbol-link\" href=\"../symbols/?symbol=" + encodeURIComponent(stock.symbol) + "\">" + E.escapeHtml(stock.symbol) + "</a></th><td>" + E.formatNumber(stock.score, 1) + "</td><td class=\"" + (E.finite(stock.last_pct) && stock.last_pct >= 0 ? "up" : "down") + "\">" + percentMarkup(stock.last_pct, 0) + "</td><td>" + (E.finite(stock.trade_value_toman) ? E.formatBillion(stock.trade_value_toman) + " میلیارد" : "—") + "</td></tr>";
       }).join("") : "<tr><td colspan=\"5\" class=\"empty\">جزئیات سهام این صنعت در منبع فعلی موجود نیست.</td></tr>";
     }
     function render() {

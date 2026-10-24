@@ -50,6 +50,7 @@ body{background-color:#061116;background-image:radial-gradient(circle at 12% 18%
 .industry-table tbody td:nth-child(n+3){white-space:nowrap}
 .industry-median{color:#000;font-weight:800;direction:ltr;unicode-bidi:isolate;display:inline-block}
 .industry-signed-value{direction:ltr;unicode-bidi:isolate;display:inline-block}
+.percent-unit{font-weight:400}
 .industry-median.negative{color:#000}
 .industry-empty{text-align:center!important;color:#607571;padding:24px!important}
 
