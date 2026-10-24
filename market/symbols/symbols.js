@@ -13,6 +13,7 @@
   const money = (value, divisor, suffix, digits = 1) => { const n = num(value); return n === null ? '—' : C.format(n / divisor, digits) + suffix; };
   const billion = (value) => money(value, 1e9, ' B', 0);
   const million = (value) => money(value, 1e6, ' M');
+  const millionBare = (value) => money(value, 1e6, '');
   const hmt = (value) => money(value, 1e12, ' همت');
   const signed = (value, digits = 1) => { const n = num(value); return n === null ? '—' : (n > 0 ? '+' : n < 0 ? '−' : '') + C.format(Math.abs(n), digits); };
   const rank = (value, total) => { const n = num(value), t = num(total); return n === null || t === null || !t ? '—' : C.digits(n) + ' از ' + C.digits(t); };
@@ -81,7 +82,7 @@
     const groups = c ? [
       group('امتیاز و جایگاه', [['امتیاز فعلی', score(c.score)], ['جایگاه از لحاظ امتیاز', rank(c.score_rank, c.score_rank_total)]]),
       group('صف و معاملات', [['ارزش صف', billion((num(c.buy_queue_value_toman) || 0) > 0 ? c.buy_queue_value_toman : c.sell_queue_value_toman)], ['حجم معاملات امروز', million(c.trade_volume)], ['حجم معاملات میانگین ۱۵ روز اخیر', million(c.avg15_trade_volume)], ['ارزش معاملات امروز', billion(c.trade_value_toman)], ['ارزش معاملات میانگین ۱۵ روز اخیر', billion(c.avg15_trade_value_toman)], ['جایگاه ارزش معاملات', rank(c.avg15_trade_value_rank, c.avg15_trade_value_rank_total)]]),
-      group('رفتار معامله‌گران', [['سرانه خرید', million(c.buy_per_capita_toman)], ['سرانه فروش', million(c.sell_per_capita_toman)], ['جایگاه سرانه خرید', rank(c.buy_per_capita_rank, c.buy_per_capita_rank_total)], ['قدرت', score(c.buyer_power)], ['جایگاه قدرت', rank(c.buyer_power_rank, c.buyer_power_rank_total)]]),
+      group('رفتار معامله‌گران', [['سرانه خرید', millionBare(c.buy_per_capita_toman)], ['سرانه فروش', million(c.sell_per_capita_toman)], ['جایگاه سرانه خرید', rank(c.buy_per_capita_rank, c.buy_per_capita_rank_total)], ['قدرت', score(c.buyer_power)], ['جایگاه قدرت', rank(c.buyer_power_rank, c.buyer_power_rank_total)]]),
       group('مشخصات سهم', [['صنعت', c.industry || '—'], ['مارکت کپ', hmt(c.market_cap_hmt)], ['جایگاه مارکت کپ', rank(c.market_cap_rank, c.market_cap_rank_total)]])
     ] : [];
     const tsetmc = c.tsetmc_url ? '<a class="tsetmc-link" href="' + esc(c.tsetmc_url) + '" target="_blank" rel="noopener">صفحه سهم در TSETMC ↗</a>' : '';

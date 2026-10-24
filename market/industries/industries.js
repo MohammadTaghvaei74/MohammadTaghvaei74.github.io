@@ -15,7 +15,7 @@
     {key: "avg_last_pct", label: "میانگین درصد آخرین", type: "percent"},
     {key: "avg_close_pct", label: "میانگین درصد پایانی", type: "percent"},
     {key: "avg_last_close_diff_pct", label: "میانگین اختلاف آخرین و پایانی", type: "percent"},
-    {key: "avg_buy_per_capita_toman", label: "میانگین سرانه خرید میلیون", type: "million"},
+    {key: "avg_buy_per_capita_toman", label: "میانگین سرانه خرید", type: "million"},
     {key: "avg_sell_per_capita_toman", label: "میانگین سرانه فروش میلیون", type: "million"},
     {key: "avg_power", label: "میانگین قدرت", type: "power"},
     {key: "trade_value_toman", label: "مجموع ارزش معاملات میلیارد تومان", type: "billion"},
@@ -233,6 +233,10 @@
     var parsed = number(value);
     return parsed === null ? "—" : faDigits(Math.round(parsed / 1e6).toLocaleString("fa-IR"));
   }
+  function formatMillionBare(value) {
+    var parsed = number(value);
+    return parsed === null ? "—" : formatNumber(parsed / 1e6, 1);
+  }
   function signedPercent(value) {
     var parsed = number(value);
     return parsed === null ? "—" : (parsed > 0 ? "+" : parsed < 0 ? "−" : "") + formatNumber(Math.abs(parsed), 2) + "٪";
@@ -264,7 +268,7 @@
     median: median, buildIndustries: buildIndustries, filterIndustries: filterIndustries,
     searchSelection: searchSelection, sortStocks: sortStocks, parseComparison: parseComparison,
     filterSummary: filterSummary, formatNumber: formatNumber, formatBillion: formatBillion,
-    formatMillion: formatMillion, formatToman: function (value) { return number(value) === null ? "—" : formatBillion(value) + " میلیارد"; },
+    formatMillion: formatMillion, formatMillionBare: formatMillionBare, formatToman: function (value) { return number(value) === null ? "—" : formatBillion(value) + " میلیارد"; },
     signedPct: signedPercent, signedPct1: signedPercentOne, signedScore: signedScore,
     summaryColumns: SUMMARY_COLUMNS, operatorOptions: OPERATOR_OPTIONS,
     textOperatorOptions: TEXT_OPERATOR_OPTIONS,
@@ -332,7 +336,7 @@ if (typeof window !== "undefined") {
     }
     function metricCell(group, key, type) {
       var value = group.summary[key];
-      var label = type === "billion" ? E.formatBillion(value) : type === "million" ? E.formatMillion(value) : type === "percent" ? percentMarkup(value, 0) : type === "percent1" ? percentMarkup(value, 1) : type === "score" ? E.formatNumber(value, 1) : E.formatNumber(value, type === "power" ? 1 : 0);
+      var label = type === "billion" ? E.formatBillion(value) : type === "million" ? E.formatMillion(value) : type === "millionBare" ? E.formatMillionBare(value) : type === "percent" ? percentMarkup(value, 0) : type === "percent1" ? percentMarkup(value, 1) : type === "score" ? E.formatNumber(value, 1) : E.formatNumber(value, type === "power" ? 1 : 0);
       return "<td data-sort-value=\"" + (E.finite(value) ? E.escapeHtml(value) : "") + "\"><bdi>" + (label.indexOf("<") >= 0 ? label : E.escapeHtml(label)) + "</bdi></td>";
     }
     function summaryRows() {
@@ -366,7 +370,7 @@ if (typeof window !== "undefined") {
         return "<tr><th scope=\"row\" class=\"industry-summary-name\"><a href=\"#selectedIndustry\" data-industry-link=\"" + name + "\">" + name + "</a></th><td>" + E.formatNumber(group.count, 0) + "</td>" +
           metricCell(group, "median_score", "score") + metricCell(group, "buy_queue_value_toman", "billion") + metricCell(group, "sell_queue_value_toman", "billion") +
           metricCell(group, "avg_last_pct", "percent") + metricCell(group, "avg_close_pct", "percent") + metricCell(group, "avg_last_close_diff_pct", "percent1") +
-          metricCell(group, "avg_buy_per_capita_toman", "million") + metricCell(group, "avg_sell_per_capita_toman", "million") + metricCell(group, "avg_power", "power") +
+          metricCell(group, "avg_buy_per_capita_toman", "millionBare") + metricCell(group, "avg_sell_per_capita_toman", "million") + metricCell(group, "avg_power", "power") +
           metricCell(group, "trade_value_toman", "billion") + metricCell(group, "avg_trade_value_5d_toman", "billion") + metricCell(group, "avg_trade_value_10d_toman", "billion") + metricCell(group, "avg_trade_value_20d_toman", "billion") + "</tr>";
       }).join("") : "<tr><td colspan=\"15\" class=\"empty\">برای این فیلتر داده‌ای پیدا نشد.</td></tr>";
       body.querySelectorAll("[data-industry-link]").forEach(function (link) {
