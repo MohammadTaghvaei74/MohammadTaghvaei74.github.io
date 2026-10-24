@@ -9,6 +9,7 @@
   const legacyStorageKey = "sorena-watch-portfolio-v1";
   let snapshot = null;
   let catalog = [];
+  const historyScores = new Map();
   let rowId = 0;
   let calculateTimer = 0;
 
@@ -28,15 +29,18 @@
     const clean = portfolio.cleanSymbol(symbol);
     if (!clean) return;
     const existing = map.get(clean);
-    if (!existing || meta.priority < existing.priority) map.set(clean, {symbol: clean, label: meta.label || "", kind: meta.kind || "catalog", priority: meta.priority || 9});
+    if (!existing || meta.priority < existing.priority) map.set(clean, {symbol: clean, label: meta.label || "", kind: meta.kind || "catalog", priority: meta.priority || 9, ...meta});
   }
 
   function buildCatalog(snapshotData, manifestData, fundsData) {
     const map = new Map();
     (snapshotData && Array.isArray(snapshotData.stocks) ? snapshotData.stocks : []).forEach((row) => addCatalogItem(map, row.symbol, {label: row.industry, kind: "current", priority: 1}));
     (snapshotData && Array.isArray(snapshotData.leveraged) ? snapshotData.leveraged : []).forEach((row) => addCatalogItem(map, row.symbol, {label: "صندوق اهرمی · snapshot امروز", kind: "current", priority: 1}));
-    Object.keys(manifestData && manifestData.symbols ? manifestData.symbols : {}).forEach((symbol) => addCatalogItem(map, symbol, {label: "در فهرست تاریخچه نمادها", kind: "history", priority: 2}));
-    (fundsData && Array.isArray(fundsData.rows) ? fundsData.rows : []).forEach((row) => addCatalogItem(map, row.symbol, {label: row.description || "صندوق", kind: "fund", priority: 3}));
+    Object.keys(manifestData && manifestData.symbols ? manifestData.symbols : {}).forEach((symbol) => {
+      const info = manifestData.symbols[symbol] || {};
+      addCatalogItem(map, symbol, {label: "در فهرست تاریخچه نمادها", kind: "history", historyFile: info.file || "", historyLast: info.last || "", priority: 3});
+    });
+    (fundsData && Array.isArray(fundsData.rows) ? fundsData.rows : []).forEach((row) => addCatalogItem(map, row.symbol, {label: row.description || "صندوق", kind: "fund", fundScore: portfolio.num(row.portfolio_score), fundScoreDate: row.portfolio_last_update || row.report_date || "", industry: "صندوق سهامی", priority: 2}));
     return Array.from(map.values()).sort((a, b) => a.symbol.localeCompare(b.symbol, "fa"));
   }
 
@@ -71,6 +75,42 @@
       input.dispatchEvent(new Event("input", {bubbles: true}));
       input.focus();
     }));
+  }
+
+  async function loadHistoryScore(item) {
+    const clean = portfolio.cleanSymbol(item.symbol);
+    if (historyScores.has(clean)) return historyScores.get(clean);
+    if (!item.historyFile) return null;
+    try {
+      const payload = await fetchJson(`../symbols/data/${item.historyFile}`);
+      const rows = Array.isArray(payload.rows) ? payload.rows : [];
+      for (let index = rows.length - 1; index >= 0; index -= 1) {
+        const pair = rows[index];
+        if (Array.isArray(pair) && pair.length >= 2 && portfolio.num(pair[1]) !== null) {
+          const result = {score: portfolio.num(pair[1]), historyTimestamp: pair[0], source: "history", industry: item.industry || ""};
+          historyScores.set(clean, result);
+          return result;
+        }
+      }
+    } catch (_) {}
+    return null;
+  }
+
+  async function loadFallbackScores(holdings) {
+    const fallbacks = new Map();
+    const tasks = (Array.isArray(holdings) ? holdings : []).map(async (holding) => {
+      const clean = portfolio.cleanSymbol(holding.symbol);
+      const item = catalog.find((candidate) => candidate.symbol === clean);
+      if (!item) return;
+      if (item.fundScore !== null && item.fundScore !== undefined) {
+        fallbacks.set(clean, {score: item.fundScore, source: "fund_report", scoreDate: item.fundScoreDate, industry: item.industry || "صندوق سهامی"});
+        return;
+      }
+      const history = await loadHistoryScore(item);
+      if (history) fallbacks.set(clean, history);
+    });
+    await Promise.all(tasks);
+    return fallbacks;
   }
 
   function makeRow(symbol = "", value = "", existingId = "") {
@@ -134,13 +174,15 @@
     if (market) market.textContent = score(result.marketMedian);
     if (gap) gap.textContent = score(result.gap);
     const coverage = $("#coverageLabel"); if (coverage) coverage.textContent = `پوشش ${core.faDigits(result.coverage)} از ${core.faDigits(result.entered)} نماد`;
-    const status = $("#resultStatus"); if (status) { status.textContent = result.totalScore === null ? "داده کافی نیست" : result.missing ? "با هشدار داده‌ای" : "محاسبه شد"; status.dataset.state = result.missing ? "warning" : "ready"; }
-    const comparison = $("#comparisonText"); if (comparison) comparison.textContent = result.gap === null ? "برای مقایسه، باید همه نمادهای دارای ارزش در snapshot امروز وضعیت معتبر داشته باشند." : result.gap > 0 ? "امتیاز وزنی پرتفو بالاتر از میانه بازار است." : result.gap < 0 ? "امتیاز وزنی پرتفو پایین‌تر از میانه بازار است." : "امتیاز وزنی پرتفو با میانه بازار برابر است.";
+    const status = $("#resultStatus"); if (status) { status.textContent = result.totalScore === null ? "داده کافی نیست" : result.missing > 0 ? "با هشدار داده‌ای" : result.historical ? "با آخرین داده معتبر" : "محاسبه شد"; status.dataset.state = result.missing > 0 ? "warning" : "ready"; }
+    const comparison = $("#comparisonText"); if (comparison) comparison.textContent = result.gap === null ? "برای مقایسه، باید همه نمادهای دارای ارزش در یکی از منابع معتبر امتیاز داشته باشند." : result.gap > 0 ? "امتیاز وزنی پرتفو بالاتر از میانه بازار است." : result.gap < 0 ? "امتیاز وزنی پرتفو پایین‌تر از میانه بازار است." : "امتیاز وزنی پرتفو با میانه بازار برابر است.";
     const summary = $("#resultSummary");
     if (summary) {
       const missingSymbols = result.holdings.filter((item) => item.status === "snapshot_missing" || item.status === "not_found").map((item) => item.symbol).filter(Boolean);
-      const missingText = missingSymbols.length ? `<span class="warning-text">${escapeHtml(missingSymbols.join("، "))} در snapshot امروز امتیاز ندارد؛ صفر فرض نشده است.</span>` : "";
-      summary.innerHTML = result.totalValue ? `<span>ارزش مبنای محاسبه: <b>${money(result.totalValue)} میلیون تومان</b></span><span>وزن نقد: <b>${percent(result.cashWeight)}</b></span>${missingText}` : "<span>یک یا چند مبلغ معتبر وارد کن.</span>";
+      const historicalSymbols = result.holdings.filter((item) => item.status === "historical_score" || item.status === "fund_report_score").map((item) => item.symbol).filter(Boolean);
+      const missingText = missingSymbols.length ? `<span class="warning-text">${escapeHtml(missingSymbols.join("، "))} در هیچ منبع معتبر امتیاز ندارد؛ صفر فرض نشده است.</span>` : "";
+      const historicalText = historicalSymbols.length ? `<span class="historical-text">${escapeHtml(historicalSymbols.join("، "))} با آخرین امتیاز معتبر صندوق/تاریخچه محاسبه شده است.</span>` : "";
+      summary.innerHTML = result.totalValue ? `<span>ارزش مبنای محاسبه: <b>${money(result.totalValue)} میلیون تومان</b></span><span>وزن نقد: <b>${percent(result.cashWeight)}</b></span>${historicalText}${missingText}` : "<span>یک یا چند مبلغ معتبر وارد کن.</span>";
     }
   }
 
@@ -165,7 +207,9 @@
     element.innerHTML = result.holdings.map((item) => {
       const row = item.row || {};
       const rank = rankMarkup(item.rank);
-      const status = item.status === "ready" ? "معتبر" : item.status === "untraded_zero" ? "بدون معامله · امتیاز ۰" : item.status === "missing_score" ? "امتیاز ناموجود" : item.status === "snapshot_missing" ? "در snapshot امروز نیست" : "در فهرست داده نیست";
+      const sourceDate = row.scoreDate || row.historyTimestamp || "";
+      const sourceLabel = sourceDate ? ` · ${sourceDate}` : "";
+      const status = item.status === "ready" ? "معتبر" : item.status === "untraded_zero" ? "بدون معامله · امتیاز ۰" : item.status === "missing_score" ? "امتیاز ناموجود" : item.status === "fund_report_score" ? `امتیاز گزارش صندوق${sourceLabel}` : item.status === "historical_score" ? `آخرین امتیاز ثبت‌شده${sourceLabel}` : item.status === "snapshot_missing" ? "در snapshot امروز نیست" : "در فهرست داده نیست";
       const contribution = item.contribution === null ? "—" : score(item.contribution);
       const industry = row.industry || (item.status === "snapshot_missing" ? "داده جاری موجود نیست" : "—");
       return `<tr><td><input class="table-symbol-edit" list="portfolioSymbols" data-row-id="${escapeHtml(item.rowId || "")}" value="${escapeHtml(item.symbol || "")}" aria-label="ویرایش نماد"></td><td>${escapeHtml(industry)}</td><td><div class="table-value-editor"><input class="table-value-edit" data-row-id="${escapeHtml(item.rowId || "")}" type="number" min="0" step="0.1" value="${escapeHtml(item.value)}" aria-label="ویرایش ارزش خرید"><small>میلیون</small></div></td><td dir="ltr">${percent(item.weight)}</td><td dir="ltr">${escapeHtml(score(item.score))}</td><td dir="ltr">${rank}</td><td dir="ltr">${escapeHtml(contribution)}</td><td><span class="row-status ${item.status}">${escapeHtml(status)}</span></td></tr>`;
@@ -173,10 +217,12 @@
     element.querySelectorAll(".table-symbol-edit,.table-value-edit").forEach((input) => input.addEventListener("input", () => syncTableEdit(input)));
   }
 
-  function calculate() {
+  async function calculate() {
     if (!snapshot) { toast("snapshot بازار هنوز آماده نیست"); return; }
     const draft = readDraft();
-    const result = portfolio.calculatePortfolio({holdings: draft.holdings, cash: draft.cash || 0, marketMedian: snapshot.market && snapshot.market.median, stocks: snapshot.stocks, catalog});
+    const fallbackRows = await loadFallbackScores(draft.holdings);
+    const marketRows = (Array.isArray(snapshot.stocks) ? snapshot.stocks : []).concat(Array.isArray(snapshot.leveraged) ? snapshot.leveraged : []);
+    const result = portfolio.calculatePortfolio({holdings: draft.holdings, cash: draft.cash || 0, marketMedian: snapshot.market && snapshot.market.median, stocks: marketRows, catalog, fallbackRows});
     renderResult(result); renderRows(result); saveDraft();
     if (result.totalScore !== null) toast("امتیاز پرتفو محاسبه شد");
   }

@@ -51,6 +51,25 @@ test('catalog symbols without a current snapshot are distinguishable from unknow
   assert.equal(result.totalScore, null);
 });
 
+test('historical and fund-report fallbacks provide explicit dated scores without industry rank', () => {
+  const result = P.calculatePortfolio({
+    holdings: [{symbol: 'طلا', value: 100}, {symbol: 'صندوق', value: 100}],
+    cash: 0,
+    marketMedian: 1,
+    stocks,
+    catalog: [{symbol: 'طلا'}, {symbol: 'صندوق'}],
+    fallbackRows: new Map([
+      ['طلا', {score: 0.88, source: 'history', historyTimestamp: '2026-10-21T12:27'}],
+      ['صندوق', {score: 1.5, source: 'fund_report', scoreDate: '۱۴۰۵/۰۶/۳۱', industry: 'صندوق سهامی'}],
+    ]),
+  });
+  assert.equal(result.totalScore, 1.19);
+  assert.equal(result.holdings[0].status, 'historical_score');
+  assert.equal(result.holdings[1].status, 'fund_report_score');
+  assert.equal(result.holdings[0].rank, null);
+  assert.equal(result.historical, 2);
+});
+
 test('industry rank puts higher score first and excludes non-equity industries', () => {
   const ranking = P.industryRanking([...stocks, {symbol: 'اوراق ۱', industry: 'اوراق بدهی', score: 99, trade_volume: 100}]);
   assert.deepEqual(ranking.get('الف'), {rank: 1, total: 3, industry: 'سیمان'});
