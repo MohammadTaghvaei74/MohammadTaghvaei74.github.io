@@ -134,10 +134,21 @@ def load_intraday_queue_rows(conn: sqlite3.Connection, trading_date: str, start_
     # universe (for example count=692 beside the normal count=320). Keep the
     # dominant valid universe; otherwise the chart draws artificial spikes.
     if has_count and raw:
-        from collections import Counter
+        from collections import Counter, defaultdict
         counts = Counter(row[3] for row in raw if row[3] is not None)
-        dominant = counts.most_common(1)[0][0] if counts else None
-        raw = [row for row in raw if dominant is None or row[3] == dominant]
+        target = counts.most_common(1)[0][0] if counts else None
+        by_minute = defaultdict(list)
+        for row in raw:
+            by_minute[str(row[0])[11:16]].append(row)
+        selected = []
+        for minute_rows in by_minute.values():
+            if target is None:
+                selected.append(minute_rows[-1])
+            else:
+                selected.append(minute_rows[-1] if all(row[3] is None for row in minute_rows) else min(
+                    minute_rows, key=lambda row: abs((row[3] if row[3] is not None else target) - target)
+                ))
+        raw = sorted(selected, key=lambda row: str(row[0]))
     return [
         {"timestamp": str(row[0]), "time": str(row[0])[11:16], "buy_value_hmt": row[1], "sell_value_hmt": row[2]}
         for row in raw if row[1] is not None or row[2] is not None
