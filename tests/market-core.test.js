@@ -54,6 +54,12 @@ test('chart uses exactly three medians, preserving absent cohorts', () => {
   assert.deepEqual(core.chartSeries({ daily: [{ median_score: 2 }] }), { market: [2], leaders: [null], rest: [null] });
 });
 
+test('chart scale expands integer grid to both series extrema', () => {
+  assert.deepEqual(core.chartScale([1.2, -4.3, null], [-0.5, 2.1]), { min: -5, max: 3, ticks: [-5, -4, -3, -2, -1, 0, 1, 2, 3] });
+  assert.deepEqual(core.chartExtrema([1.2, -4.3, null]), { min: -4.3, max: 1.2 });
+  assert.deepEqual(core.chartExtrema([null]), { min: null, max: null });
+});
+
 const realSnapshot = JSON.parse(fs.readFileSync(path.join(__dirname, '../market/data/market.json'), 'utf8'));
 test('current market snapshot validates and has no synthetic leader series', () => {
   assert.equal(core.validateSnapshot(realSnapshot), realSnapshot);

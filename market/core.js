@@ -93,7 +93,18 @@ function chartSeries(data) {
     rest: daily.map((row) => chartScore(row.rest_median_score)),
   };
 }
+function chartExtrema(values) {
+  const valid = (Array.isArray(values) ? values : []).map(number).filter((value) => value !== null);
+  return valid.length ? { min: Math.min(...valid), max: Math.max(...valid) } : { min: null, max: null };
+}
+function chartScale(...series) {
+  const extrema = chartExtrema(series.flat());
+  if (extrema.min === null) return { min: -3, max: 3, ticks: [-3, -2, -1, 0, 1, 2, 3] };
+  const min = Math.min(-3, Math.floor(extrema.min));
+  const max = Math.max(3, Math.ceil(extrema.max));
+  return { min, max, ticks: Array.from({ length: max - min + 1 }, (_, index) => min + index) };
+}
 
-const api = { TEHRAN_TIME_ZONE, number, faDigits, formatNumber, formatInteger, formatSigned, formatPercent, formatScore, formatMillion, formatBillion, formatMillionToman, formatBillionToman, closePercent, formatQueueBillion, sourceTimestamp, formatDate, findLeaders, allocation, validateSnapshot, chartSeries };
+const api = { TEHRAN_TIME_ZONE, number, faDigits, formatNumber, formatInteger, formatSigned, formatPercent, formatScore, formatMillion, formatBillion, formatMillionToman, formatBillionToman, closePercent, formatQueueBillion, sourceTimestamp, formatDate, findLeaders, allocation, validateSnapshot, chartSeries, chartExtrema, chartScale };
 if (typeof module !== "undefined") module.exports = api;
 if (typeof window !== "undefined") window.MarketCore = api;
