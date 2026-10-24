@@ -123,14 +123,24 @@ def load_intraday_queue_rows(conn: sqlite3.Connection, trading_date: str, start_
     available = {row[1] for row in conn.execute("PRAGMA table_info(market_snapshots)")}
     if not {"timestamp", "buy_value_hmt", "sell_value_hmt"}.issubset(available):
         return []
+    has_count = "count" in available
+    select_count = ",count" if has_count else ""
+    raw = list(conn.execute(
+        "SELECT timestamp,buy_value_hmt,sell_value_hmt" + select_count + " FROM market_snapshots "
+        "WHERE substr(timestamp,1,10)=? AND substr(timestamp,12,5)>=? ORDER BY timestamp",
+        (trading_date, start_time),
+    ))
+    # Some minutes contain a second aggregate snapshot built from a different
+    # universe (for example count=692 beside the normal count=320). Keep the
+    # dominant valid universe; otherwise the chart draws artificial spikes.
+    if has_count and raw:
+        from collections import Counter
+        counts = Counter(row[3] for row in raw if row[3] is not None)
+        dominant = counts.most_common(1)[0][0] if counts else None
+        raw = [row for row in raw if dominant is None or row[3] == dominant]
     return [
         {"timestamp": str(row[0]), "time": str(row[0])[11:16], "buy_value_hmt": row[1], "sell_value_hmt": row[2]}
-        for row in conn.execute(
-            "SELECT timestamp,buy_value_hmt,sell_value_hmt FROM market_snapshots "
-            "WHERE substr(timestamp,1,10)=? AND substr(timestamp,12,5)>=? ORDER BY timestamp",
-            (trading_date, start_time),
-        )
-        if row[1] is not None or row[2] is not None
+        for row in raw if row[1] is not None or row[2] is not None
     ]
 
 

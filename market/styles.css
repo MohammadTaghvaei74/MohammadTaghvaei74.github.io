@@ -10,7 +10,7 @@
 .chart-hit-area{fill:transparent;stroke:none;cursor:crosshair}
 .chart-hit-area:focus{outline:none;stroke:var(--lime);stroke-width:1;stroke-opacity:.55}
 .chart-crosshair{stroke:var(--lime);stroke-width:1;stroke-dasharray:4 4;opacity:.65}.chart-limit-positive{stroke:#5cae70;stroke-width:2}.chart-limit-negative{stroke:#c96b70;stroke-width:2}
-.chart-label{font-size:13px}
+.chart-label{font-size:17px;font-weight:600}
 .chart-tooltip{opacity:0;pointer-events:none;transition:opacity .12s ease}
 .chart-tooltip.active{opacity:1}
 .chart-tooltip rect{fill:#07131a;stroke:#fff;stroke-width:1;filter:drop-shadow(0 4px 8px rgba(0,0,0,.3))}
