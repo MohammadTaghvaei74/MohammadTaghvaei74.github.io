@@ -25,7 +25,7 @@
           <span class="sorena-logo-mark" aria-hidden="true"><svg viewBox="0 0 48 48" role="img"><path d="M5 36 15 20l8 8L34 10l9 26Z"/><path d="M7 40h34"/></svg></span>
           <span class="brand-copy"><b>SORENA WATCH</b><small>MARKET INTELLIGENCE / DATA DESK</small></span>
         </a>
-        <nav class="main-nav" aria-label="ناوبری اصلی"><a class="active" aria-current="page" href="#overview">نمای کلی</a><a href="signals/">سیگنال‌ها</a><a href="symbols/">سهام</a><a href="industries/">صنایع و سهام</a><a href="options/">آپشن</a><a href="#funds">صندوق‌ها</a><a href="portfolio/">امتیاز پرتفو</a></nav>
+        <nav class="main-nav" id="mobileMainNav" aria-label="ناوبری اصلی"><a class="active" aria-current="page" href="#overview">نمای کلی</a><a href="signals/">سیگنال‌ها</a><a href="symbols/">سهام</a><a href="industries/">صنایع و سهام</a><a href="options/">آپشن</a><a href="#funds">صندوق‌ها</a><a href="portfolio/">امتیاز پرتفو</a></nav><button class="mobile-menu-toggle" id="mobileMenuToggle" type="button" aria-expanded="false" aria-controls="mobileMainNav">☰ منو</button>
                     <div class="topbar-actions">
           <span class="market-state"><i></i><span id="marketState">داده زنده</span></span>
           <button class="refresh-button" id="refreshButton" type="button" aria-label="به‌روزرسانی داده">↻</button>
@@ -98,7 +98,7 @@
           <article class="table-panel industry-table-panel">
             <div class="table-scroll industry-table-scroll">
               <table class="industry-table" aria-label="رتبه‌بندی صنایع بر اساس میانه صنعت">
-                <thead><tr><th>اسم صنعت</th><th>جایگاه رتبه</th><th>تعداد سهام</th><th>میانه صنعت</th><th>ارزش معاملات کل</th><th>میانگین اختلاف آخرین و پایانی</th></tr><tr class="industry-column-filter-row" aria-label="فیلترهای ستون‌های صنایع"><th><input data-industry-filter="industry" type="search" placeholder="جست‌وجو"></th><th><span class="industry-filter-pair" dir="ltr"><select data-industry-op="rank" aria-label="شرط جایگاه"><option value="">شرط</option><option value="=">=</option><option value=">">&gt;</option><option value=">=">≥</option><option value="<">&lt;</option><option value="<=">≤</option></select><input data-industry-filter="rank" inputmode="numeric" placeholder="عدد" aria-label="مقدار جایگاه"></span></th><th><span class="industry-filter-pair" dir="ltr"><select data-industry-op="count" aria-label="شرط تعداد سهام"><option value="">شرط</option><option value="=">=</option><option value=">">&gt;</option><option value=">=">≥</option><option value="<">&lt;</option><option value="<=">≤</option></select><input data-industry-filter="count" inputmode="numeric" placeholder="عدد" aria-label="مقدار تعداد سهام"></span></th><th><span class="industry-filter-pair" dir="ltr"><select data-industry-op="median" aria-label="شرط میانه صنعت"><option value="">شرط</option><option value="=">=</option><option value=">">&gt;</option><option value=">=">≥</option><option value="<">&lt;</option><option value="<=">≤</option></select><input data-industry-filter="median" inputmode="decimal" placeholder="عدد" aria-label="مقدار میانه صنعت"></span></th><th><span class="industry-filter-pair" dir="ltr"><select data-industry-op="turnover" aria-label="شرط ارزش معاملات"><option value="">شرط</option><option value="=">=</option><option value=">">&gt;</option><option value=">=">≥</option><option value="<">&lt;</option><option value="<=">≤</option></select><input data-industry-filter="turnover" inputmode="decimal" placeholder="میلیارد" aria-label="مقدار ارزش معاملات"></span></th><th><span class="industry-filter-pair" dir="ltr"><select data-industry-op="diff" aria-label="شرط اختلاف آخرین و پایانی"><option value="">شرط</option><option value="=">=</option><option value=">">&gt;</option><option value=">=">≥</option><option value="<">&lt;</option><option value="<=">≤</option></select><input data-industry-filter="diff" inputmode="decimal" placeholder="درصد" aria-label="مقدار اختلاف"></span></th></tr></thead>
+                <thead><tr><th>اسم صنعت</th><th>جایگاه رتبه</th><th>تعداد سهام</th><th>میانه صنعت</th><th>ارزش معاملات کل</th><th>میانگین اختلاف آخرین و پایانی</th></tr><tr class="industry-column-filter-row" aria-label="دو فیلتر برای هر ستون"><th><input data-industry-filter="industry" data-slot="0" type="search" placeholder="جست‌وجوی نام صنعت"></th><th data-filter-cell="rank"></th><th data-filter-cell="count"></th><th data-filter-cell="median"></th><th data-filter-cell="turnover"></th><th data-filter-cell="diff"></th></tr></thead>
                 <tbody id="industriesGrid"></tbody>
               </table>
             </div>
@@ -124,5 +124,23 @@
     <script src="ranking.js?v=compact-focus-2" defer></script>
     <script src="sortable-tables.js?v=three-state-2" defer></script>
     <script src="comprehensive-table.js?v=master-table-2" defer></script>
+    <script>
+      (() => {
+        const topbar = document.querySelector('.topbar');
+        const toggle = document.getElementById('mobileMenuToggle');
+        const nav = document.getElementById('mobileMainNav');
+        if (!topbar || !toggle || !nav) return;
+        toggle.addEventListener('click', () => {
+          const open = topbar.classList.toggle('menu-open');
+          toggle.setAttribute('aria-expanded', String(open));
+        });
+        nav.addEventListener('click', (event) => {
+          if (event.target.closest('a')) {
+            topbar.classList.remove('menu-open');
+            toggle.setAttribute('aria-expanded', 'false');
+          }
+        });
+      })();
+    </script>
   </body>
 </html>

@@ -131,6 +131,16 @@
 }
 @media (prefers-reduced-motion: reduce) { .market-header .main-nav a::after, .topbar .main-nav a::after, .top .nav a::after { transition: none; } }
 
+/* Mobile/WebView menu: the website owns navigation, including legacy APK shells. */
+.mobile-menu-toggle { display: none; border: 1px solid #c6d6ca; border-radius: 10px; background: #fff; color: var(--ink, #102b30); padding: 9px 12px; font: 600 13px var(--fa, "Vazirmatn", sans-serif); cursor: pointer; white-space: nowrap; }
+@media (max-width: 720px) {
+  .mobile-menu-toggle { display: inline-flex; align-items: center; justify-content: center; gap: 5px; }
+  .topbar.menu-open { z-index: 100; }
+  .topbar.menu-open .main-nav { display: flex; position: absolute; top: 62px; right: 12px; left: 12px; height: auto; max-height: calc(100vh - 78px); overflow-y: auto; flex-direction: column; align-items: stretch; justify-content: flex-start; gap: 0; padding: 8px; border: 1px solid var(--line, #d6e1d9); border-radius: 12px; background: #fff; box-shadow: 0 12px 30px rgba(16,43,48,.18); }
+  .topbar.menu-open .main-nav a { height: 44px; justify-content: flex-start; padding: 0 12px; border-bottom: 1px solid #edf2ed; color: var(--ink, #102b30); }
+  .topbar.menu-open .main-nav a:last-child { border-bottom: 0; }
+}
+
 
 /* SORENA WATCH brand mark: option 4, a mountain/trend signal. */
 .sorena-logo-mark {
