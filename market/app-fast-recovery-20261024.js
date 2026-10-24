@@ -96,7 +96,7 @@
     const marketTimestamp = core.sourceTimestamp(data);
     const lastUpdate = $("#lastUpdate");
     if (lastUpdate) {
-      lastUpdate.textContent = core.formatDate(marketTimestamp);
+      lastUpdate.textContent = core.formatDate(marketTimestamp, true);
       lastUpdate.dateTime = marketTimestamp || "";
     }
     text("#updatedAt", core.formatDate(marketTimestamp));

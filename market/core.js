@@ -47,12 +47,12 @@ function formatQueueBillion(value) {
   return parsed === null || parsed <= 0 ? "—" : formatBillion(parsed, " B", 0);
 }
 function sourceTimestamp(data) { return data && data.market && data.market.timestamp || data && data.generated_at || null; }
-function formatDate(value) {
+function formatDate(value, includeSeconds = false) {
   if (!value) return "—";
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "—";
   const datePart = new Intl.DateTimeFormat("fa-IR", { timeZone: TEHRAN_TIME_ZONE, year: "numeric", month: "short", day: "numeric" }).format(date);
-  const timePart = new Intl.DateTimeFormat("fa-IR", { timeZone: TEHRAN_TIME_ZONE, hour: "2-digit", minute: "2-digit" }).format(date);
+  const timePart = new Intl.DateTimeFormat("fa-IR", { timeZone: TEHRAN_TIME_ZONE, hour: "2-digit", minute: "2-digit", ...(includeSeconds ? { second: "2-digit" } : {}) }).format(date);
   return `${datePart} · ${timePart}`;
 }
 function findLeaders(data) { return (Array.isArray(data && data.groups) ? data.groups : []).find((group) => String(group.group_name || "").includes("لیدر")) || null; }
