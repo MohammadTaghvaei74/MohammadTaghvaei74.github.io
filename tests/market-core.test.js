@@ -60,6 +60,13 @@ test('chart scale expands integer grid to both series extrema', () => {
   assert.deepEqual(core.chartExtrema([null]), { min: null, max: null });
 });
 
+test('score chart keeps semantic plus and minus three thresholds fixed', () => {
+  const source = fs.readFileSync(path.join(__dirname, '../market/app-fast-recovery-20261024-axis.js'), 'utf8');
+  assert.match(source, /tick === 3 \? "chart-limit-positive" : tick === -3 \? "chart-limit-negative"/);
+  assert.match(source, /y\(3\).*positiveBand/);
+  assert.match(source, /y\(-3\).*negativeBand/);
+});
+
 const realSnapshot = JSON.parse(fs.readFileSync(path.join(__dirname, '../market/data/market.json'), 'utf8'));
 test('current market snapshot validates and has no synthetic leader series', () => {
   assert.equal(core.validateSnapshot(realSnapshot), realSnapshot);
