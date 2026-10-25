@@ -70,7 +70,7 @@ def load_daily_chart_rows(conn: sqlite3.Connection, limit: int = 7) -> list[dict
     return daily_median_fields(conn, rows)
 
 
-def load_intraday_chart_rows(conn: sqlite3.Connection, trading_date: str, start_time: str = "09:15") -> list[dict[str, Any]]:
+def load_intraday_chart_rows(conn: sqlite3.Connection, trading_date: str, start_time: str = "09:00") -> list[dict[str, Any]]:
     """Return today's score movement, aggregated to one point per minute.
 
     The chart must not mix finalized prior days with the live session. A point is

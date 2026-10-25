@@ -44,20 +44,23 @@ def test_both_exporters_compute_three_raw_medians_with_unequal_cohort_sizes(tmp_
     conn.close()
 
 
-def test_intraday_chart_excludes_prior_days_and_pre_open_samples(tmp_path):
+def test_intraday_chart_uses_the_0900_session_and_excludes_prior_days(tmp_path):
     db = tmp_path / 'scores.db'
     conn = make_scores_db(db)
     seed_market(conn, '2026-10-19')
     add_scores(conn, '2026-10-18', [('فولاد', 99, 1, 1)], time='12:00:00')
+    add_scores(conn, '2026-10-19', [('فولاد', 88, 1, 1), ('A', 77, 1, 1)], time='08:59:00')
     add_scores(conn, '2026-10-19', [('فولاد', 4, 1, 1), ('A', 2, 1, 1)], time='09:10:00')
     add_scores(conn, '2026-10-19', [('فولاد', 3, 1, 1), ('A', 1, 1, 1)], time='09:15:00')
     add_scores(conn, '2026-10-19', [('فولاد', 5, 1, 1), ('A', 3, 1, 1)], time='10:00:00')
     conn.commit()
     rows = publish_snapshot.load_intraday_chart_rows(conn, '2026-10-19')
-    assert len(rows) == 46
-    assert rows[0]['time'] == '09:15'
+    assert len(rows) == 61
+    assert rows[0]['time'] == '09:00'
+    assert rows[0]['median_score'] is None
+    assert rows[10]['time'] == '09:10'
+    assert rows[10]['median_score'] == 3
     assert rows[rows.index(next(row for row in rows if row['time'] == '10:00'))]['median_score'] == 4
-    assert rows[0]['median_score'] == 2
     assert rows[-1]['time'] == '10:00'
     assert rows[-1]['median_score'] == 4
     conn.close()
