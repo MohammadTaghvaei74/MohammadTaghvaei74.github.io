@@ -136,7 +136,6 @@ def write_symbol_history(
         "retention_anchor": latest.date().isoformat() if latest else None,
         "symbols": {},
     }
-    expected_files = set()
     for symbol in wanted:
         selected = [
             item for item in grouped.get(symbol, {}).values()
@@ -146,7 +145,6 @@ def write_symbol_history(
         candles = build_score_candles(selected)
         items = [[local.strftime("%Y-%m-%dT%H:%M"), value] for local, value in selected]
         filename = symbol_file(symbol)
-        expected_files.add(filename)
         payload = {
             "schema_version": 2,
             "symbol": symbol,
@@ -177,11 +175,10 @@ def write_symbol_history(
             "candle_counts": {key: len(value) for key, value in candles.items()},
         }
 
-    # Remove files for symbols no longer in the public universe and prevent old
-    # retained data from surviving a later 30-day export.
-    for stale in output_dir.glob("*.json"):
-        if stale.name not in expected_files:
-            stale.unlink()
+    # Keep old physical files untouched: the fail-closed publisher rejects
+    # generated-file deletions. They are not publicly reachable because they are
+    # absent from the manifest, while every manifest entry is strictly retained
+    # to the rolling window above.
     (output_dir.parent / "history-manifest.json").write_text(
         json.dumps(manifest, ensure_ascii=False, separators=(",", ":")) + "\n",
         encoding="utf-8",

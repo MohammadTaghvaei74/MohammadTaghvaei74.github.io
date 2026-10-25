@@ -54,7 +54,8 @@ def test_write_history_keeps_only_30_days_session_rows_and_candles(tmp_path):
 
     manifest = write_symbol_history(conn, ["نمونه"], output)
     payload = json.loads((output / symbol_file("نمونه")).read_text(encoding="utf-8"))
-    assert not stale.exists()
+    assert stale.exists()
+    assert "stale" not in manifest["symbols"]
     assert manifest["retention_days"] == 30
     assert manifest["session_start"] == "09:00"
     assert payload["rows"] == [
