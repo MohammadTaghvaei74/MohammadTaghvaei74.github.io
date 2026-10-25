@@ -1,4 +1,4 @@
-"""Observed-score OHLC for the Tehran market window 09:15–12:30."""
+"""Observed-score OHLC for the Tehran market window 09:00–12:30."""
 import json
 import math
 import sqlite3
@@ -6,9 +6,9 @@ from datetime import datetime, time
 from zoneinfo import ZoneInfo
 
 TEHRAN = ZoneInfo("Asia/Tehran")
-WINDOW_START = time(9, 15)
+WINDOW_START = time(9, 0)
 WINDOW_END = time(12, 30)
-WINDOW_START_TEXT = "09:15"
+WINDOW_START_TEXT = "09:00"
 WINDOW_END_TEXT = "12:30"
 
 
@@ -22,7 +22,7 @@ def _tehran_time(raw):
 def build_candles(conn):
     tables = {r[0] for r in conn.execute("SELECT name FROM sqlite_master WHERE type='table'")}
     rows, seen = [], set()
-    expected = {f"{m // 60:02}:{m % 60:02}" for m in range(9 * 60 + 15, 12 * 60 + 31)}
+    expected = {f"{m // 60:02}:{m % 60:02}" for m in range(9 * 60, 12 * 60 + 31)}
     for table in ("stock_snapshots", "chart_snapshots"):
         if table not in tables:
             continue
@@ -66,13 +66,13 @@ def build_candles(conn):
                 observed_minutes=len(minutes), expected_minutes=len(expected),
                 window_start=WINDOW_START_TEXT, window_end=WINDOW_END_TEXT,
                 coverage="complete" if expected.issubset(minutes) else "partial",
-                coverage_basis="expected window 09:15–12:30 Asia/Tehran",
+                coverage_basis="expected window 09:00–12:30 Asia/Tehran",
                 trading_day_coverage="unknown", source=table,
             ))
     rows.sort(key=lambda r: (r["day"], r["symbol"]))
     return dict(
         schema_version=2, source="scores_history.db / valid stock_snapshots (chart_snapshots fallback)",
-        semantics="first/max/min/last valid observed score within 09:15–12:30 Asia/Tehran; no interpolation or daily-summary fallback",
+        semantics="first/max/min/last valid observed score within 09:00–12:30 Asia/Tehran; no interpolation or daily-summary fallback",
         window_start=WINDOW_START_TEXT, window_end=WINDOW_END_TEXT,
         coverage_basis="window coverage only; complete trading-day coverage is not asserted",
         row_count=len(rows), days=sorted({r["day"] for r in rows}), rows=rows,

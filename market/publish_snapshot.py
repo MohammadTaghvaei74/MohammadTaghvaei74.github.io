@@ -123,7 +123,7 @@ def build_intraday_symbols(conn: sqlite3.Connection, trading_date: str) -> dict:
         "schema_version": 1,
         "source": "scores_history.db / valid stock_snapshots",
         "trading_date": trading_date,
-        "window_start": "09:15",
+        "window_start": "09:00",
         "window_end": "12:30",
         "symbols": symbols,
     }
@@ -507,7 +507,7 @@ def main() -> None:
         candles = build_candles(conn)
         intraday_symbols = build_intraday_symbols(conn, market["generated_at"][:10])
         if write_symbol_history is not None:
-            source_rows = market.get("comprehensive_stocks") or market.get("stocks", [])
+            source_rows = comprehensive.get("rows") or market.get("stocks", [])
             symbols = {row.get("symbol") for row in source_rows if row.get("symbol")}
             try:
                 symbols.update(row[0] for row in conn.execute("SELECT DISTINCT symbol FROM history WHERE symbol IS NOT NULL"))

@@ -158,7 +158,7 @@ def load_intraday_queue_rows(conn: sqlite3.Connection, trading_date: str, start_
 def load_intraday_symbol_rows(
     conn: sqlite3.Connection,
     trading_date: str,
-    start_time: str = "09:15",
+    start_time: str = "09:00",
     end_time: str = "12:30",
 ) -> dict[str, list[dict[str, Any]]]:
     """Build observed minute points for every current symbol.

@@ -12,7 +12,7 @@ def db(rows):
     return conn
 
 
-def test_0914_excluded_0915_included_and_ohlc_uses_filtered_interval():
+def test_0900_included_and_ohlc_uses_filtered_interval():
     conn = db([
         ('2026-09-20', 'چفیبر', '2026-09-20T05:44:00Z', -1569),  # 09:14 Tehran
         ('2026-09-20', 'چفیبر', '2026-09-20T05:45:00Z', 10),     # 09:15 Tehran
@@ -21,20 +21,22 @@ def test_0914_excluded_0915_included_and_ohlc_uses_filtered_interval():
         ('2026-09-20', 'چفیبر', '2026-09-20T09:01:00Z', -777),   # 12:31 Tehran, outside window
     ])
     row = build_candles(conn)['rows'][0]
-    assert (row['open'], row['high'], row['low'], row['close']) == (10, 25, 10, 15)
-    assert row['first_timestamp'] == '2026-09-20T05:45:00Z'
-    assert row['window_start'] == '09:15'
+    assert (row['open'], row['high'], row['low'], row['close']) == (-1569, 25, -1569, 15)
+    assert row['first_timestamp'] == '2026-09-20T05:44:00Z'
+    assert row['window_start'] == '09:00'
     assert row['window_end'] == '12:30'
     assert row['coverage'] == 'partial'
-    assert row['coverage_basis'] == 'expected window 09:15–12:30 Asia/Tehran'
+    assert row['coverage_basis'] == 'expected window 09:00–12:30 Asia/Tehran'
 
 
-def test_timezone_normalization_and_no_post_start_samples_means_no_candle():
+def test_timezone_normalization_includes_the_new_session_start():
     conn = db([
         ('2026-09-20', 'AAA', '2026-09-20T09:14:59+03:30', 4),
         ('2026-09-20', 'AAA', '2026-09-20T05:44:59Z', 5),
     ])
-    assert build_candles(conn)['rows'] == []
+    row = build_candles(conn)['rows'][0]
+    assert row['window_start'] == '09:00'
+    assert row['observed_minutes'] == 1
 
 
 def test_complete_trading_day_is_distinguished_from_complete_window():
@@ -44,9 +46,9 @@ def test_complete_trading_day_is_distinguished_from_complete_window():
     ])
     row = build_candles(conn)['rows'][0]
     assert row['coverage'] == 'partial'
-    assert row['coverage_basis'] == 'expected window 09:15–12:30 Asia/Tehran'
+    assert row['coverage_basis'] == 'expected window 09:00–12:30 Asia/Tehran'
     assert row['trading_day_coverage'] == 'unknown'
-    assert row['observed_minutes'] == 3
+    assert row['observed_minutes'] == 4
 
 
 def test_invalid_and_nan_samples_do_not_enter_candle():
