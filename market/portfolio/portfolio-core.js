@@ -56,7 +56,8 @@ const PORTFOLIO_CORE = (() => {
       const fallback = fallbackFor(fallbackRows, clean);
       if (fallback && num(fallback.score) !== null) {
         const fallbackRow = {...fallback, symbol: clean, score: num(fallback.score), historical_fallback: true};
-        return {...holding, symbol: clean, value, row: fallbackRow, score: num(fallback.score), status: fallback.source === "fund_report" ? "fund_report_score" : "historical_score", contribution: null, rank: null};
+        const fallbackStatus = fallback.source === "untraded_zero" ? "untraded_zero" : fallback.source === "history_current" ? "history_current_score" : "historical_score";
+        return {...holding, symbol: clean, value, row: fallbackRow, score: num(fallback.score), status: fallbackStatus, contribution: null, rank: null};
       }
       return {...holding, symbol: clean, value, row: null, score: null, status: catalogHas(catalog, clean) ? "snapshot_missing" : "not_found", contribution: null, rank: null};
     }
@@ -97,7 +98,7 @@ const PORTFOLIO_CORE = (() => {
       holdings: resolved, cash: numericCash, investedValue, totalValue, totalScore, investedScore, marketMedian: market,
       gap: totalScore === null || market === null ? null : totalScore - market,
       coverage: validRows.length, entered: resolved.length, missing: missingRows.length,
-      historical: resolved.filter((item) => item.status === "historical_score" || item.status === "fund_report_score").length,
+      historical: resolved.filter((item) => item.status === "historical_score" || item.status === "history_current_score").length,
       cashWeight: totalValue > 0 ? numericCash / totalValue : null,
     };
   }

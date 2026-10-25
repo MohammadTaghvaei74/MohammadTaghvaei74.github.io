@@ -51,7 +51,7 @@ test('catalog symbols without a current snapshot are distinguishable from unknow
   assert.equal(result.totalScore, null);
 });
 
-test('historical and fund-report fallbacks provide explicit dated scores without industry rank', () => {
+test('history fallbacks provide explicit dated scores without industry rank', () => {
   const result = P.calculatePortfolio({
     holdings: [{symbol: 'طلا', value: 100}, {symbol: 'صندوق', value: 100}],
     cash: 0,
@@ -59,15 +59,33 @@ test('historical and fund-report fallbacks provide explicit dated scores without
     stocks,
     catalog: [{symbol: 'طلا'}, {symbol: 'صندوق'}],
     fallbackRows: new Map([
-      ['طلا', {score: 0.88, source: 'history', historyTimestamp: '2026-10-21T12:27'}],
-      ['صندوق', {score: 1.5, source: 'fund_report', scoreDate: '۱۴۰۵/۰۶/۳۱', industry: 'صندوق سهامی'}],
+      ['طلا', {score: -1.5, source: 'history_current', historyTimestamp: '2026-10-24T12:14'}],
+      ['صندوق', {score: 1.5, source: 'history_previous', historyTimestamp: '2026-10-23T12:30', industry: 'صندوق سهامی'}],
     ]),
   });
-  assert.equal(result.totalScore, 1.19);
-  assert.equal(result.holdings[0].status, 'historical_score');
-  assert.equal(result.holdings[1].status, 'fund_report_score');
+  assert.equal(result.totalScore, 0);
+  assert.equal(result.holdings[0].status, 'history_current_score');
+  assert.equal(result.holdings[1].status, 'historical_score');
   assert.equal(result.holdings[0].rank, null);
   assert.equal(result.historical, 2);
+});
+
+test('untraded share fallback is zero while its purchase value remains weighted', () => {
+  const result = P.calculatePortfolio({
+    holdings: [{symbol: 'شراز', value: 100}, {symbol: 'طلا', value: 100}],
+    cash: 0,
+    marketMedian: 0,
+    stocks,
+    catalog: [{symbol: 'شراز'}, {symbol: 'طلا'}],
+    fallbackRows: new Map([
+      ['شراز', {score: 0, source: 'untraded_zero', historyTimestamp: '2026-10-24'}],
+      ['طلا', {score: -2, source: 'history_current', historyTimestamp: '2026-10-24T12:30'}],
+    ]),
+  });
+  assert.equal(result.holdings[0].status, 'untraded_zero');
+  assert.equal(result.holdings[0].score, 0);
+  assert.equal(result.holdings[0].weight, 0.5);
+  assert.equal(result.totalScore, -1);
 });
 
 test('industry rank puts higher score first and excludes non-equity industries', () => {

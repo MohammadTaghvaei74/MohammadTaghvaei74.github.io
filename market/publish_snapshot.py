@@ -39,6 +39,7 @@ if __package__:
     from .comprehensive_table import build_comprehensive_rows
     from .industry_table import build_industry_table
     from .symbol_history import write_symbol_history
+    from .portfolio_special import build_portfolio_special
 else:
     from export_signals import export as export_signals
     from leveraged_snapshots import read_latest as read_leveraged
@@ -49,6 +50,7 @@ else:
     from comprehensive_table import build_comprehensive_rows
     from industry_table import build_industry_table
     from symbol_history import write_symbol_history
+    from portfolio_special import build_portfolio_special
 
 PUBLISHED_FILES = (
     "market/tsetmc_enrichment.py",
@@ -58,6 +60,7 @@ PUBLISHED_FILES = (
     "market/data/signals.json",
     "market/data/options.json",
     "market/data/funds.json",
+    "market/data/portfolio-special.json",
     "market/history/data/history.json",
     "market/history/data/score-candles.json",
     "market/history/data/market-score-history.xlsx",
@@ -76,6 +79,7 @@ INTRADAY_SYMBOLS_OUT = SITE / "market/symbols/data/intraday.json"
 SYMBOL_HISTORY_DIR = SITE / "market/symbols/data"
 COMPREHENSIVE_OUT = SITE / "market/data/comprehensive.json"
 FUND_OUT = SITE / "market/data/funds.json"
+PORTFOLIO_SPECIAL_OUT = SITE / "market/data/portfolio-special.json"
 FUND_SOURCE = Path("/root/bourse-alert/fund_report_public.json")
 TEHRAN = ZoneInfo("Asia/Tehran")
 
@@ -480,7 +484,7 @@ def main() -> None:
     if not is_publish_window():
         print("SKIP_OUTSIDE_MARKET_WINDOW")
         return
-    global DB, SITE, MARKET_OUT, COMPREHENSIVE_OUT, HISTORY_OUT, XLSX_OUT, INTRADAY_SYMBOLS_OUT, SYMBOL_HISTORY_DIR, FUND_OUT
+    global DB, SITE, MARKET_OUT, COMPREHENSIVE_OUT, HISTORY_OUT, XLSX_OUT, INTRADAY_SYMBOLS_OUT, SYMBOL_HISTORY_DIR, FUND_OUT, PORTFOLIO_SPECIAL_OUT
     DB = Path(os.environ.get("BOURSE_DB", str(DB)))
     event_db = Path(os.environ.get("EVENT_DB", "/root/bourse-alert/event_live.db"))
     SITE = Path(os.environ.get("SITE_REPO", str(SITE)))
@@ -493,8 +497,10 @@ def main() -> None:
     SYMBOL_HISTORY_DIR = SITE / "market/symbols/data"
     OPTIONS_OUT = SITE / "market/data/options.json"
     FUND_OUT = SITE / "market/data/funds.json"
+    PORTFOLIO_SPECIAL_OUT = SITE / "market/data/portfolio-special.json"
     with connect() as conn:
         market = build_market(conn)
+        portfolio_special = build_portfolio_special(conn, market["generated_at"])
         fund_report = load_fund_report()
         market["fund_report"] = fund_report
         comprehensive = {
@@ -519,6 +525,7 @@ def main() -> None:
     atomic_json(MARKET_OUT, market)
     atomic_json(COMPREHENSIVE_OUT, comprehensive)
     atomic_json(FUND_OUT, fund_report)
+    atomic_json(PORTFOLIO_SPECIAL_OUT, portfolio_special)
     atomic_json(HISTORY_OUT, history)
     atomic_json(SITE / "market/history/data/score-candles.json", candles)
     atomic_json(INTRADAY_SYMBOLS_OUT, intraday_symbols)
