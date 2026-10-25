@@ -6,7 +6,7 @@ import json
 import math
 import sqlite3
 import tempfile
-from datetime import datetime, time, timedelta
+from datetime import datetime, time
 from pathlib import Path
 from typing import Iterable
 from zoneinfo import ZoneInfo
@@ -94,12 +94,12 @@ def write_symbol_history(
     output_dir: Path,
     retention_days: int = RETENTION_DAYS,
 ) -> dict:
-    """Write each symbol's last 30 calendar days and its score candles.
+    """Write each symbol's last 30 trading days and its score candles.
 
     Source rows are deduplicated at minute precision; the last valid source row
-    wins. Missing minutes and missing timeframe buckets remain absent. The
-    retention anchor is the newest valid source observation in the database so a
-    delayed publisher does not accidentally erase the latest available day.
+    wins. Missing minutes and missing timeframe buckets remain absent. Trading
+    days are the distinct Tehran session dates present in the source, so a
+    weekend or market holiday never consumes one of the 30 retained slots.
     """
     wanted = sorted({str(symbol).strip() for symbol in symbols if str(symbol).strip()})
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -124,22 +124,30 @@ def write_symbol_history(
             if math.isfinite(value):
                 grouped.setdefault(str(symbol), {})[minute] = (local, value)
 
-    latest = max((local for rows in grouped.values() for local, _ in rows.values()), default=None)
-    cutoff = (latest.date() - timedelta(days=max(0, retention_days - 1))) if latest else None
+    session_dates = sorted({
+        local.date().isoformat()
+        for rows in grouped.values()
+        for local, _ in rows.values()
+        if _in_session(local)
+    })
+    retained_days = set(session_dates[-retention_days:]) if retention_days > 0 else set()
+    retention_anchor = session_dates[-1] if session_dates else None
     manifest = {
         "schema_version": 2,
         "source": "scores_history.db/history",
         "retention_days": retention_days,
+        "retention_unit": "trading_days",
+        "retained_trading_days": session_dates[-retention_days:] if retention_days > 0 else [],
         "session_start": "09:00",
         "session_end": "12:30",
         "candle_semantics": "first/max/min/last valid observed score; no interpolation",
-        "retention_anchor": latest.date().isoformat() if latest else None,
+        "retention_anchor": retention_anchor,
         "symbols": {},
     }
     for symbol in wanted:
         selected = [
             item for item in grouped.get(symbol, {}).values()
-            if cutoff is not None and cutoff <= item[0].date() <= latest.date() and _in_session(item[0])
+            if item[0].date().isoformat() in retained_days and _in_session(item[0])
         ]
         selected.sort(key=lambda item: item[0])
         candles = build_score_candles(selected)
@@ -150,6 +158,7 @@ def write_symbol_history(
             "symbol": symbol,
             "source": "scores_history.db/history",
             "retention_days": retention_days,
+            "retention_unit": "trading_days",
             "session_start": "09:00",
             "session_end": "12:30",
             "row_count": len(items),

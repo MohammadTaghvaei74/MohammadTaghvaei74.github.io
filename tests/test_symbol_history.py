@@ -35,7 +35,7 @@ def test_score_candles_use_first_max_min_last_and_leave_missing_buckets_absent()
     assert candles["1d"][0]["close"] == 9.0
 
 
-def test_write_history_keeps_only_30_days_session_rows_and_candles(tmp_path):
+def test_write_history_keeps_only_30_trading_days_session_rows_and_candles(tmp_path):
     conn = sqlite3.connect(":memory:")
     conn.execute("CREATE TABLE history(symbol TEXT, timestamp TEXT, score REAL)")
     conn.executemany("INSERT INTO history VALUES (?,?,?)", [
@@ -57,11 +57,31 @@ def test_write_history_keeps_only_30_days_session_rows_and_candles(tmp_path):
     assert stale.exists()
     assert "stale" not in manifest["symbols"]
     assert manifest["retention_days"] == 30
+    assert manifest["retention_unit"] == "trading_days"
+    assert manifest["retained_trading_days"] == ["2026-08-01", "2026-09-24", "2026-09-25", "2026-10-24"]
     assert manifest["session_start"] == "09:00"
     assert payload["rows"] == [
+        ["2026-08-01T10:00", 99.0],
+        ["2026-09-24T10:00", 98.0],
         ["2026-09-25T09:00", 2.0],
         ["2026-10-24T12:30", 7.0],
     ]
-    assert payload["candles"]["1d"][0]["day"] == "2026-09-25"
+    assert payload["candles"]["1d"][0]["day"] == "2026-08-01"
     assert payload["candles"]["1d"][-1]["close"] == 7.0
+    conn.close()
+
+
+def test_retention_counts_source_trading_dates_not_calendar_gap(tmp_path):
+    conn = sqlite3.connect(":memory:")
+    conn.execute("CREATE TABLE history(symbol TEXT, timestamp TEXT, score REAL)")
+    conn.executemany("INSERT INTO history VALUES (?,?,?)", [
+        ("نمونه", "2026-10-01T10:00:00+03:30", 1.0),
+        ("نمونه", "2026-10-10T10:00:00+03:30", 2.0),
+        ("نمونه", "2026-10-20T10:00:00+03:30", 3.0),
+    ])
+    output = tmp_path / "history"
+    manifest = write_symbol_history(conn, ["نمونه"], output, retention_days=2)
+    payload = json.loads((output / symbol_file("نمونه")).read_text(encoding="utf-8"))
+    assert manifest["retained_trading_days"] == ["2026-10-10", "2026-10-20"]
+    assert payload["rows"] == [["2026-10-10T10:00", 2.0], ["2026-10-20T10:00", 3.0]]
     conn.close()
