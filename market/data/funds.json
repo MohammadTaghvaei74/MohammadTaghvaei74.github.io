@@ -51,7 +51,19 @@
       "portfolio_holding_count": 13,
       "portfolio_quality": "Codal attachment extracted; disclosed asset-weight sum; TSETMC name-level matching still separate",
       "display_portfolio_date": "۱۴۰۵/۰۷/۰۸ ۱۰:۵۶:۲۱",
-      "display_portfolio_status": "فایل پرتفو از کدال استخراج شد"
+      "display_portfolio_status": "فایل پرتفو از کدال استخراج شد",
+      "portfolio_source": "codal",
+      "portfolio_source_label": "کدال",
+      "portfolio_source_url": "https://codal.ir/Reports/DownloadFile.aspx?id=8HbHAfEw05rX9sKR5fZhCg%3d%3d",
+      "portfolio_update_published_at": "۱۴۰۵/۰۷/۰۸ ۱۰:۵۶:۲۱",
+      "portfolio_update_status": "verified",
+      "portfolio_fallback_sources": [
+        "fund_manager_site",
+        "TSETMC_fund_page",
+        "web_search"
+      ],
+      "portfolio_source_note": "هویت صندوق داخل فایل Excel تأیید شد.",
+      "portfolio_date_basis": "codal_feed_report_period"
     },
     {
       "symbol": "دارونو",
@@ -82,7 +94,20 @@
       "portfolio_holding_count": 43,
       "portfolio_quality": "Codal multi-attachment Excel extracted; fund identity verified inside workbook; TSETMC name-level matching still separate",
       "display_portfolio_date": "22:16 1405/07/03",
-      "display_portfolio_status": "فایل پرتفو از پیوست چندصندوقی کدال استخراج شد"
+      "display_portfolio_status": "فایل پرتفو از پیوست چندصندوقی کدال استخراج شد",
+      "portfolio_last_update": "1405/06/31",
+      "portfolio_source": "codal",
+      "portfolio_source_label": "کدال",
+      "portfolio_source_url": "https://my.codal.ir/fa/statement/729063/attachment/",
+      "portfolio_update_published_at": "22:16 1405/07/03",
+      "portfolio_update_status": "verified",
+      "portfolio_fallback_sources": [
+        "fund_manager_site",
+        "TSETMC_fund_page",
+        "web_search"
+      ],
+      "portfolio_source_note": "هویت صندوق داخل فایل Excel تأیید شد.",
+      "portfolio_date_basis": "workbook_report_period"
     },
     {
       "symbol": "سیمانو",
@@ -113,7 +138,20 @@
       "portfolio_holding_count": 61,
       "portfolio_quality": "Codal multi-attachment Excel extracted; fund identity verified inside workbook; TSETMC name-level matching still separate",
       "display_portfolio_date": "22:16 1405/07/03",
-      "display_portfolio_status": "فایل پرتفو از پیوست چندصندوقی کدال استخراج شد"
+      "display_portfolio_status": "فایل پرتفو از پیوست چندصندوقی کدال استخراج شد",
+      "portfolio_last_update": "1405/06/31",
+      "portfolio_source": "codal",
+      "portfolio_source_label": "کدال",
+      "portfolio_source_url": "https://my.codal.ir/fa/statement/729063/attachment/",
+      "portfolio_update_published_at": "22:16 1405/07/03",
+      "portfolio_update_status": "verified",
+      "portfolio_fallback_sources": [
+        "fund_manager_site",
+        "TSETMC_fund_page",
+        "web_search"
+      ],
+      "portfolio_source_note": "هویت صندوق داخل فایل Excel تأیید شد.",
+      "portfolio_date_basis": "workbook_report_period"
     },
     {
       "symbol": "فارما کیان",
@@ -144,7 +182,20 @@
       "portfolio_holding_count": 39,
       "portfolio_quality": "Codal attachment extracted; disclosed asset-weight sum; TSETMC name-level matching still separate",
       "display_portfolio_date": "۱۴۰۵/۰۷/۰۸ ۱۳:۲۳:۰۵",
-      "display_portfolio_status": "فایل پرتفو از کدال استخراج شد"
+      "display_portfolio_status": "فایل پرتفو از کدال استخراج شد",
+      "portfolio_last_update": "۱۴۰۵/۰۶/۳۱",
+      "portfolio_source": "codal",
+      "portfolio_source_label": "کدال",
+      "portfolio_source_url": "https://codal.ir/Reports/DownloadFile.aspx?id=cPsvzX1o1xSUECRMfXOCWA%3d%3d",
+      "portfolio_update_published_at": "۱۴۰۵/۰۷/۰۸ ۱۳:۲۳:۰۵",
+      "portfolio_update_status": "verified",
+      "portfolio_fallback_sources": [
+        "fund_manager_site",
+        "TSETMC_fund_page",
+        "web_search"
+      ],
+      "portfolio_source_note": "هویت صندوق داخل فایل Excel تأیید شد.",
+      "portfolio_date_basis": "codal_feed_report_period"
     },
     {
       "symbol": "رشدی کیان",
@@ -186,7 +237,19 @@
       "portfolio_holding_count": 76,
       "portfolio_quality": "Codal attachment extracted; disclosed asset-weight sum; TSETMC name-level matching still separate",
       "display_portfolio_date": "۱۴۰۵/۰۷/۰۸ ۱۶:۱۱:۳۳",
-      "display_portfolio_status": "فایل پرتفو از کدال استخراج شد"
+      "display_portfolio_status": "فایل پرتفو از کدال استخراج شد",
+      "portfolio_source": "codal",
+      "portfolio_source_label": "کدال",
+      "portfolio_source_url": "https://codal.ir/Reports/DownloadFile.aspx?id=35rAJrEK8xExs2yx0AArHA%3d%3d",
+      "portfolio_update_published_at": "۱۴۰۵/۰۷/۰۸ ۱۶:۱۱:۳۳",
+      "portfolio_update_status": "verified",
+      "portfolio_fallback_sources": [
+        "fund_manager_site",
+        "TSETMC_fund_page",
+        "web_search"
+      ],
+      "portfolio_source_note": "هویت صندوق داخل فایل Excel تأیید شد.",
+      "portfolio_date_basis": "codal_feed_report_period"
     },
     {
       "symbol": "سیمان",
@@ -217,7 +280,20 @@
       "portfolio_holding_count": 30,
       "portfolio_quality": "Codal multi-attachment Excel extracted; fund identity verified inside workbook; TSETMC name-level matching still separate",
       "display_portfolio_date": "13:22 1405/07/08",
-      "display_portfolio_status": "فایل پرتفو از پیوست چندصندوقی کدال استخراج شد"
+      "display_portfolio_status": "فایل پرتفو از پیوست چندصندوقی کدال استخراج شد",
+      "portfolio_last_update": "1405/06/31",
+      "portfolio_source": "codal",
+      "portfolio_source_label": "کدال",
+      "portfolio_source_url": "https://my.codal.ir/fa/statement/730460/attachment/",
+      "portfolio_update_published_at": "13:22 1405/07/08",
+      "portfolio_update_status": "verified",
+      "portfolio_fallback_sources": [
+        "fund_manager_site",
+        "TSETMC_fund_page",
+        "web_search"
+      ],
+      "portfolio_source_note": "هویت صندوق داخل فایل Excel تأیید شد.",
+      "portfolio_date_basis": "workbook_report_period"
     },
     {
       "symbol": "معدن",
@@ -248,7 +324,20 @@
       "portfolio_holding_count": 37,
       "portfolio_quality": "Codal multi-attachment Excel extracted; fund identity verified inside workbook; TSETMC name-level matching still separate",
       "display_portfolio_date": "22:16 1405/07/03",
-      "display_portfolio_status": "فایل پرتفو از پیوست چندصندوقی کدال استخراج شد"
+      "display_portfolio_status": "فایل پرتفو از پیوست چندصندوقی کدال استخراج شد",
+      "portfolio_last_update": "1405/06/31",
+      "portfolio_source": "codal",
+      "portfolio_source_label": "کدال",
+      "portfolio_source_url": "https://my.codal.ir/fa/statement/729063/attachment/",
+      "portfolio_update_published_at": "22:16 1405/07/03",
+      "portfolio_update_status": "verified",
+      "portfolio_fallback_sources": [
+        "fund_manager_site",
+        "TSETMC_fund_page",
+        "web_search"
+      ],
+      "portfolio_source_note": "هویت صندوق داخل فایل Excel تأیید شد.",
+      "portfolio_date_basis": "workbook_report_period"
     },
     {
       "symbol": "مسگون",
@@ -279,7 +368,20 @@
       "portfolio_holding_count": 19,
       "portfolio_quality": "Codal multi-attachment Excel extracted; fund identity verified inside workbook; TSETMC name-level matching still separate",
       "display_portfolio_date": "09:57 1405/07/08",
-      "display_portfolio_status": "فایل پرتفو از پیوست چندصندوقی کدال استخراج شد"
+      "display_portfolio_status": "فایل پرتفو از پیوست چندصندوقی کدال استخراج شد",
+      "portfolio_last_update": "1405/06/31",
+      "portfolio_source": "codal",
+      "portfolio_source_label": "کدال",
+      "portfolio_source_url": "https://my.codal.ir/fa/statement/730366/attachment/",
+      "portfolio_update_published_at": "09:57 1405/07/08",
+      "portfolio_update_status": "verified",
+      "portfolio_fallback_sources": [
+        "fund_manager_site",
+        "TSETMC_fund_page",
+        "web_search"
+      ],
+      "portfolio_source_note": "هویت صندوق داخل فایل Excel تأیید شد.",
+      "portfolio_date_basis": "workbook_report_period"
     },
     {
       "symbol": "نمک",
@@ -310,7 +412,20 @@
       "portfolio_holding_count": 30,
       "portfolio_quality": "Codal multi-attachment Excel extracted; fund identity verified inside workbook; TSETMC name-level matching still separate",
       "display_portfolio_date": "09:56 1405/07/08",
-      "display_portfolio_status": "فایل پرتفو از پیوست چندصندوقی کدال استخراج شد"
+      "display_portfolio_status": "فایل پرتفو از پیوست چندصندوقی کدال استخراج شد",
+      "portfolio_last_update": "1405/06/31",
+      "portfolio_source": "codal",
+      "portfolio_source_label": "کدال",
+      "portfolio_source_url": "https://my.codal.ir/fa/statement/730366/attachment/",
+      "portfolio_update_published_at": "09:56 1405/07/08",
+      "portfolio_update_status": "verified",
+      "portfolio_fallback_sources": [
+        "fund_manager_site",
+        "TSETMC_fund_page",
+        "web_search"
+      ],
+      "portfolio_source_note": "هویت صندوق داخل فایل Excel تأیید شد.",
+      "portfolio_date_basis": "workbook_report_period"
     },
     {
       "symbol": "استیل",
@@ -352,7 +467,19 @@
       "portfolio_holding_count": 46,
       "portfolio_quality": "Codal attachment extracted; disclosed asset-weight sum; TSETMC name-level matching still separate",
       "display_portfolio_date": "۱۴۰۵/۰۷/۰۳ ۲۲:۱۷:۱۹",
-      "display_portfolio_status": "فایل پرتفو از کدال استخراج شد"
+      "display_portfolio_status": "فایل پرتفو از کدال استخراج شد",
+      "portfolio_source": "codal",
+      "portfolio_source_label": "کدال",
+      "portfolio_source_url": "https://codal.ir/Reports/DownloadFile.aspx?id=m0M9xyC2OXbgCmTeeqClSA%3d%3d",
+      "portfolio_update_published_at": "۱۴۰۵/۰۷/۰۳ ۲۲:۱۷:۱۹",
+      "portfolio_update_status": "verified",
+      "portfolio_fallback_sources": [
+        "fund_manager_site",
+        "TSETMC_fund_page",
+        "web_search"
+      ],
+      "portfolio_source_note": "هویت صندوق داخل فایل Excel تأیید شد.",
+      "portfolio_date_basis": "codal_feed_report_period"
     },
     {
       "symbol": "همسنگ",
@@ -383,7 +510,20 @@
       "portfolio_holding_count": 172,
       "portfolio_quality": "Codal attachment extracted; disclosed asset-weight sum; TSETMC name-level matching still separate",
       "display_portfolio_date": "۱۴۰۵/۰۷/۰۵ ۱۵:۱۹:۰۷",
-      "display_portfolio_status": "فایل پرتفو از کدال استخراج شد"
+      "display_portfolio_status": "فایل پرتفو از کدال استخراج شد",
+      "portfolio_last_update": "۱۴۰۵/۰۶/۳۱",
+      "portfolio_source": "codal",
+      "portfolio_source_label": "کدال",
+      "portfolio_source_url": "https://codal.ir/Reports/DownloadFile.aspx?id=ivOnckqnT8vlhwziyWVYpA%3d%3d",
+      "portfolio_update_published_at": "۱۴۰۵/۰۷/۰۵ ۱۵:۱۹:۰۷",
+      "portfolio_update_status": "verified",
+      "portfolio_fallback_sources": [
+        "fund_manager_site",
+        "TSETMC_fund_page",
+        "web_search"
+      ],
+      "portfolio_source_note": "هویت صندوق داخل فایل Excel تأیید شد.",
+      "portfolio_date_basis": "codal_feed_report_period"
     },
     {
       "symbol": "سرو",
@@ -425,7 +565,19 @@
       "portfolio_holding_count": 54,
       "portfolio_quality": "Codal attachment extracted; disclosed asset-weight sum; TSETMC name-level matching still separate",
       "display_portfolio_date": "۱۴۰۵/۰۷/۰۴ ۱۳:۴۳:۲۵",
-      "display_portfolio_status": "فایل پرتفو از کدال استخراج شد"
+      "display_portfolio_status": "فایل پرتفو از کدال استخراج شد",
+      "portfolio_source": "codal",
+      "portfolio_source_label": "کدال",
+      "portfolio_source_url": "https://codal.ir/Reports/DownloadFile.aspx?id=pkKX0DJ1BV7n8q5LMeQttw%3d%3d",
+      "portfolio_update_published_at": "۱۴۰۵/۰۷/۰۴ ۱۳:۴۳:۲۵",
+      "portfolio_update_status": "verified",
+      "portfolio_fallback_sources": [
+        "fund_manager_site",
+        "TSETMC_fund_page",
+        "web_search"
+      ],
+      "portfolio_source_note": "هویت صندوق داخل فایل Excel تأیید شد.",
+      "portfolio_date_basis": "codal_feed_report_period"
     },
     {
       "symbol": "هامون",
@@ -456,7 +608,20 @@
       "portfolio_holding_count": 62,
       "portfolio_quality": "Codal attachment extracted; disclosed asset-weight sum; TSETMC name-level matching still separate",
       "display_portfolio_date": "۱۴۰۵/۰۸/۰۲ ۱۳:۳۶:۲۳",
-      "display_portfolio_status": "فایل پرتفو از کدال استخراج شد"
+      "display_portfolio_status": "فایل پرتفو از کدال استخراج شد",
+      "portfolio_last_update": "۱۴۰۵/۰۷/۳۰",
+      "portfolio_source": "codal",
+      "portfolio_source_label": "کدال",
+      "portfolio_source_url": "https://codal.ir/Reports/DownloadFile.aspx?id=zrvivXoAVIQQQaQQQNjZanzxOOObOOO3DA%3d%3d",
+      "portfolio_update_published_at": "۱۴۰۵/۰۸/۰۲ ۱۳:۳۶:۲۳",
+      "portfolio_update_status": "verified",
+      "portfolio_fallback_sources": [
+        "fund_manager_site",
+        "TSETMC_fund_page",
+        "web_search"
+      ],
+      "portfolio_source_note": "هویت صندوق داخل فایل Excel تأیید شد.",
+      "portfolio_date_basis": "codal_feed_report_period"
     },
     {
       "symbol": "بانکپاد",
@@ -487,7 +652,20 @@
       "portfolio_holding_count": null,
       "portfolio_quality": "A Pasargad fixed-income attachment was found but rejected because workbook identity did not match Bankpad; verified Bankpad portfolio not found yet",
       "display_portfolio_date": null,
-      "display_portfolio_status": "پرتفوی تأییدشده پیدا نشد"
+      "display_portfolio_status": "پرتفوی تأییدشده پیدا نشد",
+      "portfolio_last_update": null,
+      "portfolio_source": null,
+      "portfolio_source_label": null,
+      "portfolio_source_url": null,
+      "portfolio_update_published_at": null,
+      "portfolio_update_status": "not_found",
+      "portfolio_fallback_sources": [
+        "fund_manager_site",
+        "TSETMC_fund_page",
+        "web_search"
+      ],
+      "portfolio_source_note": "در کدال تأیید نشد؛ در به‌روزرسانی ماهانه منابع جایگزین بررسی می‌شوند.",
+      "portfolio_date_basis": null
     },
     {
       "symbol": "فیروزه",
@@ -529,7 +707,19 @@
       "portfolio_holding_count": 46,
       "portfolio_quality": "Codal attachment extracted; disclosed asset-weight sum; TSETMC name-level matching still separate",
       "display_portfolio_date": "۱۴۰۵/۰۷/۰۷ ۱۲:۵۲:۰۹",
-      "display_portfolio_status": "فایل پرتفو از کدال استخراج شد"
+      "display_portfolio_status": "فایل پرتفو از کدال استخراج شد",
+      "portfolio_source": "codal",
+      "portfolio_source_label": "کدال",
+      "portfolio_source_url": "https://codal.ir/Reports/DownloadFile.aspx?id=jiK68pLxOOObOOOo2LX0xtDf49Zw%3d%3d",
+      "portfolio_update_published_at": "۱۴۰۵/۰۷/۰۷ ۱۲:۵۲:۰۹",
+      "portfolio_update_status": "verified",
+      "portfolio_fallback_sources": [
+        "fund_manager_site",
+        "TSETMC_fund_page",
+        "web_search"
+      ],
+      "portfolio_source_note": "هویت صندوق داخل فایل Excel تأیید شد.",
+      "portfolio_date_basis": "codal_feed_report_period"
     },
     {
       "symbol": "خودران",
@@ -560,7 +750,20 @@
       "portfolio_holding_count": 37,
       "portfolio_quality": "Codal multi-attachment Excel extracted; fund identity verified inside workbook; TSETMC name-level matching still separate",
       "display_portfolio_date": "22:16 1405/07/03",
-      "display_portfolio_status": "فایل پرتفو از پیوست چندصندوقی کدال استخراج شد"
+      "display_portfolio_status": "فایل پرتفو از پیوست چندصندوقی کدال استخراج شد",
+      "portfolio_last_update": "1405/06/31",
+      "portfolio_source": "codal",
+      "portfolio_source_label": "کدال",
+      "portfolio_source_url": "https://my.codal.ir/fa/statement/729063/attachment/",
+      "portfolio_update_published_at": "22:16 1405/07/03",
+      "portfolio_update_status": "verified",
+      "portfolio_fallback_sources": [
+        "fund_manager_site",
+        "TSETMC_fund_page",
+        "web_search"
+      ],
+      "portfolio_source_note": "هویت صندوق داخل فایل Excel تأیید شد.",
+      "portfolio_date_basis": "workbook_report_period"
     },
     {
       "symbol": "سلام",
@@ -602,7 +805,19 @@
       "portfolio_holding_count": 66,
       "portfolio_quality": "Codal attachment extracted; disclosed asset-weight sum; TSETMC name-level matching still separate",
       "display_portfolio_date": "۱۴۰۵/۰۷/۰۷ ۱۶:۵۱:۴۳",
-      "display_portfolio_status": "فایل پرتفو از کدال استخراج شد"
+      "display_portfolio_status": "فایل پرتفو از کدال استخراج شد",
+      "portfolio_source": "codal",
+      "portfolio_source_label": "کدال",
+      "portfolio_source_url": "https://codal.ir/Reports/DownloadFile.aspx?id=OOObOOO8t5Aiikbk7ml8d4OOObOOOvKAgw%3d%3d",
+      "portfolio_update_published_at": "۱۴۰۵/۰۷/۰۷ ۱۶:۵۱:۴۳",
+      "portfolio_update_status": "verified",
+      "portfolio_fallback_sources": [
+        "fund_manager_site",
+        "TSETMC_fund_page",
+        "web_search"
+      ],
+      "portfolio_source_note": "هویت صندوق داخل فایل Excel تأیید شد.",
+      "portfolio_date_basis": "codal_feed_report_period"
     },
     {
       "symbol": "آذرین",
@@ -644,7 +859,19 @@
       "portfolio_holding_count": 24,
       "portfolio_quality": "Codal attachment extracted; disclosed asset-weight sum; TSETMC name-level matching still separate",
       "display_portfolio_date": "۱۴۰۵/۰۷/۰۶ ۱۶:۰۶:۱۱",
-      "display_portfolio_status": "فایل پرتفو از کدال استخراج شد"
+      "display_portfolio_status": "فایل پرتفو از کدال استخراج شد",
+      "portfolio_source": "codal",
+      "portfolio_source_label": "کدال",
+      "portfolio_source_url": "https://codal.ir/Reports/DownloadFile.aspx?id=H4wU1wNBoiWH1lxU7jhRFg%3d%3d",
+      "portfolio_update_published_at": "۱۴۰۵/۰۷/۰۶ ۱۶:۰۶:۱۱",
+      "portfolio_update_status": "verified",
+      "portfolio_fallback_sources": [
+        "fund_manager_site",
+        "TSETMC_fund_page",
+        "web_search"
+      ],
+      "portfolio_source_note": "هویت صندوق داخل فایل Excel تأیید شد.",
+      "portfolio_date_basis": "codal_feed_report_period"
     },
     {
       "symbol": "دی سهام",
@@ -686,7 +913,19 @@
       "portfolio_holding_count": 25,
       "portfolio_quality": "Codal attachment extracted; disclosed asset-weight sum; TSETMC name-level matching still separate",
       "display_portfolio_date": "۱۴۰۵/۰۷/۲۸ ۱۵:۲۹:۴۲",
-      "display_portfolio_status": "فایل پرتفو از کدال استخراج شد"
+      "display_portfolio_status": "فایل پرتفو از کدال استخراج شد",
+      "portfolio_source": "codal",
+      "portfolio_source_label": "کدال",
+      "portfolio_source_url": "https://codal.ir/Reports/DownloadFile.aspx?id=FnLkZVVI3wnA1OSI0KxmvA%3d%3d",
+      "portfolio_update_published_at": "۱۴۰۵/۰۷/۲۸ ۱۵:۲۹:۴۲",
+      "portfolio_update_status": "verified",
+      "portfolio_fallback_sources": [
+        "fund_manager_site",
+        "TSETMC_fund_page",
+        "web_search"
+      ],
+      "portfolio_source_note": "هویت صندوق داخل فایل Excel تأیید شد.",
+      "portfolio_date_basis": "codal_feed_report_period"
     },
     {
       "symbol": "جوانه کوچک",
@@ -728,7 +967,19 @@
       "portfolio_holding_count": 121,
       "portfolio_quality": "Codal attachment extracted; disclosed asset-weight sum; TSETMC name-level matching still separate",
       "display_portfolio_date": "۱۴۰۵/۰۷/۰۸ ۱۷:۳۶:۳۷",
-      "display_portfolio_status": "فایل پرتفو از کدال استخراج شد"
+      "display_portfolio_status": "فایل پرتفو از کدال استخراج شد",
+      "portfolio_source": "codal",
+      "portfolio_source_label": "کدال",
+      "portfolio_source_url": "https://codal.ir/Reports/DownloadFile.aspx?id=w3DgXa8gzB6P5LrZ1SOOObOOOLGw%3d%3d",
+      "portfolio_update_published_at": "۱۴۰۵/۰۷/۰۸ ۱۷:۳۶:۳۷",
+      "portfolio_update_status": "verified",
+      "portfolio_fallback_sources": [
+        "fund_manager_site",
+        "TSETMC_fund_page",
+        "web_search"
+      ],
+      "portfolio_source_note": "هویت صندوق داخل فایل Excel تأیید شد.",
+      "portfolio_date_basis": "codal_feed_report_period"
     },
     {
       "symbol": "آلیاژ",
@@ -759,7 +1010,20 @@
       "portfolio_holding_count": 30,
       "portfolio_quality": "Codal multi-attachment Excel extracted; fund identity verified inside workbook; TSETMC name-level matching still separate",
       "display_portfolio_date": "19:33 1405/06/07",
-      "display_portfolio_status": "فایل پرتفو از پیوست چندصندوقی کدال استخراج شد"
+      "display_portfolio_status": "فایل پرتفو از پیوست چندصندوقی کدال استخراج شد",
+      "portfolio_last_update": "1405/05/31",
+      "portfolio_source": "codal",
+      "portfolio_source_label": "کدال",
+      "portfolio_source_url": "https://my.codal.ir/fa/statement/725696/attachment/",
+      "portfolio_update_published_at": "19:33 1405/06/07",
+      "portfolio_update_status": "verified",
+      "portfolio_fallback_sources": [
+        "fund_manager_site",
+        "TSETMC_fund_page",
+        "web_search"
+      ],
+      "portfolio_source_note": "هویت صندوق داخل فایل Excel تأیید شد.",
+      "portfolio_date_basis": "workbook_report_period"
     },
     {
       "symbol": "هم تراز",
@@ -801,7 +1065,19 @@
       "portfolio_holding_count": 231,
       "portfolio_quality": "Codal attachment extracted; disclosed asset-weight sum; TSETMC name-level matching still separate",
       "display_portfolio_date": "۱۴۰۵/۰۸/۰۲ ۱۶:۱۰:۰۱",
-      "display_portfolio_status": "فایل پرتفو از کدال استخراج شد"
+      "display_portfolio_status": "فایل پرتفو از کدال استخراج شد",
+      "portfolio_source": "codal",
+      "portfolio_source_label": "کدال",
+      "portfolio_source_url": "https://codal.ir/Reports/DownloadFile.aspx?id=2KS2WHlqGS6d4jIs8c4Srw%3d%3d",
+      "portfolio_update_published_at": "۱۴۰۵/۰۸/۰۲ ۱۶:۱۰:۰۱",
+      "portfolio_update_status": "verified",
+      "portfolio_fallback_sources": [
+        "fund_manager_site",
+        "TSETMC_fund_page",
+        "web_search"
+      ],
+      "portfolio_source_note": "هویت صندوق داخل فایل Excel تأیید شد.",
+      "portfolio_date_basis": "codal_feed_report_period"
     },
     {
       "symbol": "ارزش",
@@ -843,7 +1119,19 @@
       "portfolio_holding_count": 68,
       "portfolio_quality": "Codal attachment extracted; disclosed asset-weight sum; TSETMC name-level matching still separate",
       "display_portfolio_date": "۱۴۰۵/۰۷/۰۷ ۰۹:۵۲:۰۴",
-      "display_portfolio_status": "فایل پرتفو از کدال استخراج شد"
+      "display_portfolio_status": "فایل پرتفو از کدال استخراج شد",
+      "portfolio_source": "codal",
+      "portfolio_source_label": "کدال",
+      "portfolio_source_url": "https://codal.ir/Reports/DownloadFile.aspx?id=tWr6fWj5PdReifh5xF6eow%3d%3d",
+      "portfolio_update_published_at": "۱۴۰۵/۰۷/۰۷ ۰۹:۵۲:۰۴",
+      "portfolio_update_status": "verified",
+      "portfolio_fallback_sources": [
+        "fund_manager_site",
+        "TSETMC_fund_page",
+        "web_search"
+      ],
+      "portfolio_source_note": "هویت صندوق داخل فایل Excel تأیید شد.",
+      "portfolio_date_basis": "codal_feed_report_period"
     },
     {
       "symbol": "سیمانا",
@@ -874,7 +1162,20 @@
       "portfolio_holding_count": 36,
       "portfolio_quality": "Codal multi-attachment Excel extracted; fund identity verified inside workbook; TSETMC name-level matching still separate",
       "display_portfolio_date": "11:28 1405/07/05",
-      "display_portfolio_status": "فایل پرتفو از پیوست چندصندوقی کدال استخراج شد"
+      "display_portfolio_status": "فایل پرتفو از پیوست چندصندوقی کدال استخراج شد",
+      "portfolio_last_update": "1405/06/31",
+      "portfolio_source": "codal",
+      "portfolio_source_label": "کدال",
+      "portfolio_source_url": "https://my.codal.ir/fa/statement/729294/attachment/",
+      "portfolio_update_published_at": "11:28 1405/07/05",
+      "portfolio_update_status": "verified",
+      "portfolio_fallback_sources": [
+        "fund_manager_site",
+        "TSETMC_fund_page",
+        "web_search"
+      ],
+      "portfolio_source_note": "هویت صندوق داخل فایل Excel تأیید شد.",
+      "portfolio_date_basis": "workbook_report_period"
     },
     {
       "symbol": "هم وزن",
@@ -905,7 +1206,20 @@
       "portfolio_holding_count": 300,
       "portfolio_quality": "Codal attachment extracted; disclosed asset-weight sum; TSETMC name-level matching still separate",
       "display_portfolio_date": "۱۴۰۵/۰۷/۰۵ ۱۴:۵۳:۵۳",
-      "display_portfolio_status": "فایل پرتفو از کدال استخراج شد"
+      "display_portfolio_status": "فایل پرتفو از کدال استخراج شد",
+      "portfolio_last_update": "۱۴۰۶/۰۶/۳۱",
+      "portfolio_source": "codal",
+      "portfolio_source_label": "کدال",
+      "portfolio_source_url": "https://codal.ir/Reports/DownloadFile.aspx?id=7qATR1mzYootqcRPiGjLCQ%3d%3d",
+      "portfolio_update_published_at": "۱۴۰۵/۰۷/۰۵ ۱۴:۵۳:۵۳",
+      "portfolio_update_status": "verified",
+      "portfolio_fallback_sources": [
+        "fund_manager_site",
+        "TSETMC_fund_page",
+        "web_search"
+      ],
+      "portfolio_source_note": "هویت صندوق داخل فایل Excel تأیید شد.",
+      "portfolio_date_basis": "codal_feed_report_period"
     },
     {
       "symbol": "اکتان",
@@ -936,7 +1250,20 @@
       "portfolio_holding_count": 45,
       "portfolio_quality": "Codal multi-attachment Excel extracted; fund identity verified inside workbook; TSETMC name-level matching still separate",
       "display_portfolio_date": "22:16 1405/07/03",
-      "display_portfolio_status": "فایل پرتفو از پیوست چندصندوقی کدال استخراج شد"
+      "display_portfolio_status": "فایل پرتفو از پیوست چندصندوقی کدال استخراج شد",
+      "portfolio_last_update": "1405/06/31",
+      "portfolio_source": "codal",
+      "portfolio_source_label": "کدال",
+      "portfolio_source_url": "https://my.codal.ir/fa/statement/729063/attachment/",
+      "portfolio_update_published_at": "22:16 1405/07/03",
+      "portfolio_update_status": "verified",
+      "portfolio_fallback_sources": [
+        "fund_manager_site",
+        "TSETMC_fund_page",
+        "web_search"
+      ],
+      "portfolio_source_note": "هویت صندوق داخل فایل Excel تأیید شد.",
+      "portfolio_date_basis": "workbook_report_period"
     },
     {
       "symbol": "فارمانی",
@@ -978,7 +1305,19 @@
       "portfolio_holding_count": 41,
       "portfolio_quality": "Codal attachment extracted; disclosed asset-weight sum; TSETMC name-level matching still separate",
       "display_portfolio_date": "۱۴۰۵/۰۷/۰۵ ۱۶:۰۶:۳۲",
-      "display_portfolio_status": "فایل پرتفو از کدال استخراج شد"
+      "display_portfolio_status": "فایل پرتفو از کدال استخراج شد",
+      "portfolio_source": "codal",
+      "portfolio_source_label": "کدال",
+      "portfolio_source_url": "https://codal.ir/Reports/DownloadFile.aspx?id=mKiCaIQxbPSbE78EvrNozw%3d%3d",
+      "portfolio_update_published_at": "۱۴۰۵/۰۷/۰۵ ۱۶:۰۶:۳۲",
+      "portfolio_update_status": "verified",
+      "portfolio_fallback_sources": [
+        "fund_manager_site",
+        "TSETMC_fund_page",
+        "web_search"
+      ],
+      "portfolio_source_note": "هویت صندوق داخل فایل Excel تأیید شد.",
+      "portfolio_date_basis": "codal_feed_report_period"
     },
     {
       "symbol": "متال",
@@ -1020,7 +1359,19 @@
       "portfolio_holding_count": 33,
       "portfolio_quality": "Codal attachment extracted; disclosed asset-weight sum; TSETMC name-level matching still separate",
       "display_portfolio_date": "۱۴۰۵/۰۷/۰۵ ۱۱:۳۰:۳۵",
-      "display_portfolio_status": "فایل پرتفو از کدال استخراج شد"
+      "display_portfolio_status": "فایل پرتفو از کدال استخراج شد",
+      "portfolio_source": "codal",
+      "portfolio_source_label": "کدال",
+      "portfolio_source_url": "https://codal.ir/Reports/DownloadFile.aspx?id=wuj2NwVefv8dMqfNCTgkLA%3d%3d",
+      "portfolio_update_published_at": "۱۴۰۵/۰۷/۰۵ ۱۱:۳۰:۳۵",
+      "portfolio_update_status": "verified",
+      "portfolio_fallback_sources": [
+        "fund_manager_site",
+        "TSETMC_fund_page",
+        "web_search"
+      ],
+      "portfolio_source_note": "هویت صندوق داخل فایل Excel تأیید شد.",
+      "portfolio_date_basis": "codal_feed_report_period"
     },
     {
       "symbol": "انار",
@@ -1062,7 +1413,19 @@
       "portfolio_holding_count": 26,
       "portfolio_quality": "Codal attachment extracted; disclosed asset-weight sum; TSETMC name-level matching still separate",
       "display_portfolio_date": "۱۴۰۵/۰۷/۰۶ ۱۵:۳۵:۲۵",
-      "display_portfolio_status": "فایل پرتفو از کدال استخراج شد"
+      "display_portfolio_status": "فایل پرتفو از کدال استخراج شد",
+      "portfolio_source": "codal",
+      "portfolio_source_label": "کدال",
+      "portfolio_source_url": "https://codal.ir/Reports/DownloadFile.aspx?id=Ex6qTvIvQQQaQQQMVOOObOOOYtzDQHhHXw%3d%3d",
+      "portfolio_update_published_at": "۱۴۰۵/۰۷/۰۶ ۱۵:۳۵:۲۵",
+      "portfolio_update_status": "verified",
+      "portfolio_fallback_sources": [
+        "fund_manager_site",
+        "TSETMC_fund_page",
+        "web_search"
+      ],
+      "portfolio_source_note": "هویت صندوق داخل فایل Excel تأیید شد.",
+      "portfolio_date_basis": "codal_feed_report_period"
     },
     {
       "symbol": "آرام",
@@ -1093,7 +1456,20 @@
       "portfolio_holding_count": 86,
       "portfolio_quality": "Codal attachment extracted; disclosed asset-weight sum; TSETMC name-level matching still separate",
       "display_portfolio_date": "۱۴۰۵/۰۷/۰۱ ۱۶:۰۲:۳۱",
-      "display_portfolio_status": "فایل پرتفو از کدال استخراج شد"
+      "display_portfolio_status": "فایل پرتفو از کدال استخراج شد",
+      "portfolio_last_update": "۱۴۰۵/۰۶/۳۱",
+      "portfolio_source": "codal",
+      "portfolio_source_label": "کدال",
+      "portfolio_source_url": "https://codal.ir/Reports/DownloadFile.aspx?id=kuAmCyK7RNfBoNUy1pxppQ%3d%3d",
+      "portfolio_update_published_at": "۱۴۰۵/۰۷/۰۱ ۱۶:۰۲:۳۱",
+      "portfolio_update_status": "verified",
+      "portfolio_fallback_sources": [
+        "fund_manager_site",
+        "TSETMC_fund_page",
+        "web_search"
+      ],
+      "portfolio_source_note": "هویت صندوق داخل فایل Excel تأیید شد.",
+      "portfolio_date_basis": "codal_feed_report_period"
     },
     {
       "symbol": "فلزا",
@@ -1124,7 +1500,20 @@
       "portfolio_holding_count": 56,
       "portfolio_quality": "Codal multi-attachment Excel extracted; fund identity verified inside workbook; TSETMC name-level matching still separate",
       "display_portfolio_date": "14:13 1405/05/12",
-      "display_portfolio_status": "فایل پرتفو از پیوست چندصندوقی کدال استخراج شد"
+      "display_portfolio_status": "فایل پرتفو از پیوست چندصندوقی کدال استخراج شد",
+      "portfolio_last_update": "1405/04/31",
+      "portfolio_source": "codal",
+      "portfolio_source_label": "کدال",
+      "portfolio_source_url": "https://my.codal.ir/fa/statement/721650/attachment/",
+      "portfolio_update_published_at": "14:13 1405/05/12",
+      "portfolio_update_status": "verified",
+      "portfolio_fallback_sources": [
+        "fund_manager_site",
+        "TSETMC_fund_page",
+        "web_search"
+      ],
+      "portfolio_source_note": "هویت صندوق داخل فایل Excel تأیید شد.",
+      "portfolio_date_basis": "workbook_report_period"
     },
     {
       "symbol": "بنکوداریوش",
@@ -1155,7 +1544,20 @@
       "portfolio_holding_count": 30,
       "portfolio_quality": "Codal multi-attachment Excel extracted; fund identity verified inside workbook; TSETMC name-level matching still separate",
       "display_portfolio_date": "15:32 1405/08/02",
-      "display_portfolio_status": "فایل پرتفو از پیوست چندصندوقی کدال استخراج شد"
+      "display_portfolio_status": "فایل پرتفو از پیوست چندصندوقی کدال استخراج شد",
+      "portfolio_last_update": "1405/07/30",
+      "portfolio_source": "codal",
+      "portfolio_source_label": "کدال",
+      "portfolio_source_url": "https://my.codal.ir/fa/statement/733039/attachment/",
+      "portfolio_update_published_at": "15:32 1405/08/02",
+      "portfolio_update_status": "verified",
+      "portfolio_fallback_sources": [
+        "fund_manager_site",
+        "TSETMC_fund_page",
+        "web_search"
+      ],
+      "portfolio_source_note": "هویت صندوق داخل فایل Excel تأیید شد.",
+      "portfolio_date_basis": "workbook_report_period"
     },
     {
       "symbol": "اعتبارسهام",
@@ -1186,7 +1588,20 @@
       "portfolio_holding_count": 59,
       "portfolio_quality": "Codal attachment extracted; disclosed asset-weight sum; TSETMC name-level matching still separate",
       "display_portfolio_date": "۱۴۰۵/۰۷/۰۶ ۰۹:۴۶:۴۱",
-      "display_portfolio_status": "فایل پرتفو از کدال استخراج شد"
+      "display_portfolio_status": "فایل پرتفو از کدال استخراج شد",
+      "portfolio_last_update": "۱۴۰۵/۰۶/۳۱",
+      "portfolio_source": "codal",
+      "portfolio_source_label": "کدال",
+      "portfolio_source_url": "https://codal.ir/Reports/DownloadFile.aspx?id=ULOj3CPMdWN9M0QQQaQQQ0WuC0gw%3d%3d",
+      "portfolio_update_published_at": "۱۴۰۵/۰۷/۰۶ ۰۹:۴۶:۴۱",
+      "portfolio_update_status": "verified",
+      "portfolio_fallback_sources": [
+        "fund_manager_site",
+        "TSETMC_fund_page",
+        "web_search"
+      ],
+      "portfolio_source_note": "هویت صندوق داخل فایل Excel تأیید شد.",
+      "portfolio_date_basis": "codal_feed_report_period"
     },
     {
       "symbol": "سیمانیا",
@@ -1217,7 +1632,20 @@
       "portfolio_holding_count": 33,
       "portfolio_quality": "Codal attachment extracted; disclosed asset-weight sum; TSETMC name-level matching still separate",
       "display_portfolio_date": "۱۴۰۵/۰۷/۰۵ ۱۲:۳۸:۰۵",
-      "display_portfolio_status": "فایل پرتفو از کدال استخراج شد"
+      "display_portfolio_status": "فایل پرتفو از کدال استخراج شد",
+      "portfolio_last_update": "۱۴۰۵/۰۶/۳۱",
+      "portfolio_source": "codal",
+      "portfolio_source_label": "کدال",
+      "portfolio_source_url": "https://codal.ir/Reports/DownloadFile.aspx?id=AZNF9mVrDgg4TkmOxleYtQ%3d%3d",
+      "portfolio_update_published_at": "۱۴۰۵/۰۷/۰۵ ۱۲:۳۸:۰۵",
+      "portfolio_update_status": "verified",
+      "portfolio_fallback_sources": [
+        "fund_manager_site",
+        "TSETMC_fund_page",
+        "web_search"
+      ],
+      "portfolio_source_note": "هویت صندوق داخل فایل Excel تأیید شد.",
+      "portfolio_date_basis": "codal_feed_report_period"
     },
     {
       "symbol": "سمان",
@@ -1248,7 +1676,20 @@
       "portfolio_holding_count": 40,
       "portfolio_quality": "Codal attachment extracted; disclosed asset-weight sum; TSETMC name-level matching still separate",
       "display_portfolio_date": "۱۴۰۵/۰۷/۱۸ ۱۷:۳۸:۰۸",
-      "display_portfolio_status": "فایل پرتفو از کدال استخراج شد"
+      "display_portfolio_status": "فایل پرتفو از کدال استخراج شد",
+      "portfolio_last_update": "۱۴۰۵/۰۶/۳۱",
+      "portfolio_source": "codal",
+      "portfolio_source_label": "کدال",
+      "portfolio_source_url": "https://codal.ir/Reports/DownloadFile.aspx?id=A4AmrCA8Of6QQQQaQQQoWxbOhpVg%3d%3d",
+      "portfolio_update_published_at": "۱۴۰۵/۰۷/۱۸ ۱۷:۳۸:۰۸",
+      "portfolio_update_status": "verified",
+      "portfolio_fallback_sources": [
+        "fund_manager_site",
+        "TSETMC_fund_page",
+        "web_search"
+      ],
+      "portfolio_source_note": "هویت صندوق داخل فایل Excel تأیید شد.",
+      "portfolio_date_basis": "codal_feed_report_period"
     },
     {
       "symbol": "پتروپاداش",
@@ -1279,9 +1720,37 @@
       "portfolio_holding_count": 46,
       "portfolio_quality": "Codal attachment extracted; disclosed asset-weight sum; TSETMC name-level matching still separate",
       "display_portfolio_date": "۱۴۰۵/۰۷/۱۱ ۱۱:۴۴:۰۱",
-      "display_portfolio_status": "فایل پرتفو از کدال استخراج شد"
+      "display_portfolio_status": "فایل پرتفو از کدال استخراج شد",
+      "portfolio_last_update": "۱۴۰۵/۰۶/۳۱",
+      "portfolio_source": "codal",
+      "portfolio_source_label": "کدال",
+      "portfolio_source_url": "https://codal.ir/Reports/DownloadFile.aspx?id=StbAIROOObOOOumMR7qjHVXgJxNw%3d%3d",
+      "portfolio_update_published_at": "۱۴۰۵/۰۷/۱۱ ۱۱:۴۴:۰۱",
+      "portfolio_update_status": "verified",
+      "portfolio_fallback_sources": [
+        "fund_manager_site",
+        "TSETMC_fund_page",
+        "web_search"
+      ],
+      "portfolio_source_note": "هویت صندوق داخل فایل Excel تأیید شد.",
+      "portfolio_date_basis": "codal_feed_report_period"
     }
   ],
   "status": "ready",
-  "portfolio_coverage_note": "23 Codal portfolio workbooks extracted from the latest matched notices. Disclosed asset-weight sum is calculated from portfolio sheets; TSETMC name-level matching is tracked separately."
+  "portfolio_coverage_note": "23 Codal portfolio workbooks extracted from the latest matched notices. Disclosed asset-weight sum is calculated from portfolio sheets; TSETMC name-level matching is tracked separately.",
+  "portfolio_contract": {
+    "refresh_cadence": "monthly",
+    "refresh_day": "15th day of each month",
+    "liquidity_basis": "latest 20 completed TSETMC sessions",
+    "liquidity_rule": "strictly greater than 20 billion toman",
+    "portfolio_source_priority": [
+      "codal",
+      "fund_manager_site",
+      "TSETMC_fund_page",
+      "web_search"
+    ],
+    "last_portfolio_update_field": "portfolio_last_update",
+    "publication_timestamp_field": "portfolio_update_published_at",
+    "preserve_last_good_snapshot": true
+  }
 }
