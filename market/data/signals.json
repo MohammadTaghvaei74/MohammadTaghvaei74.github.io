@@ -1,1 +1,1 @@
-{"schema_version":1,"status":"unavailable","source":"telegram_event_delivery","generated_at":"replay:2026-10-13","last_signal_at":null,"items":[],"count":0,"has_more":false,"health":{"last_ok_at":"2026-10-25T09:40:00+03:30"},"message":"no corroborated sent signal data is available"}
+{"schema_version":1,"status":"unavailable","source":"telegram_event_delivery","generated_at":"replay:2026-10-13","last_signal_at":null,"items":[],"count":0,"has_more":false,"health":{"last_ok_at":"2026-10-25T09:42:00+03:30"},"message":"no corroborated sent signal data is available"}
