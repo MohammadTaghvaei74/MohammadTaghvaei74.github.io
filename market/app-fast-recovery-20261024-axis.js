@@ -526,11 +526,18 @@
     renderOptions(options || data.options || emptyOptions());
   }
 
+const LIVE_DATA_ORIGIN = "https://94-101-184-98.sslip.io/market/";
+  function liveDataUrl(path) {
+    const url = new URL(path, LIVE_DATA_ORIGIN);
+    url.searchParams.set("ts", String(Date.now()));
+    return url.href;
+  }
+
   async function fetchJson(path, cacheMode = "no-store") {
     const controller = new AbortController();
     const timeout = window.setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
     try {
-      const response = await fetch(path, { cache: cacheMode, signal: controller.signal });
+      const response = await fetch(liveDataUrl(path), { cache: "no-store", signal: controller.signal });
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       return await response.json();
     } catch (error) {
