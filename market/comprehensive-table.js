@@ -124,9 +124,24 @@
     else { sortKey = null; sortDirection = "none"; }
     render();
   }
-  function downloadXlsx() {
+  let xlsxPromise = null;
+  function ensureXlsx() {
+    if (window.XLSX) return Promise.resolve(window.XLSX);
+    if (xlsxPromise) return xlsxPromise;
+    xlsxPromise = new Promise((resolve, reject) => {
+      const script = document.createElement("script");
+      script.src = "https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js";
+      script.async = true;
+      script.onload = () => window.XLSX ? resolve(window.XLSX) : reject(new Error("SheetJS did not initialize"));
+      script.onerror = () => reject(new Error("SheetJS CDN unavailable"));
+      document.head.appendChild(script);
+    });
+    return xlsxPromise;
+  }
+  async function downloadXlsx() {
     const exportRows = lastRendered.map((row) => ({"نماد": row.symbol, "امتیاز": row.score, "مجموع امتیاز ۱۰ روز اخیر": row.score_10d_total, "میانگین ارزش (میلیارد تومان)": num(row.avg_trade_value_toman) == null ? null : num(row.avg_trade_value_toman) / 1e9, "اختلاف آخرین و پایانی (درصد)": row.last_close_diff_pct, "صف (میلیارد تومان)": num(row.queue_value_toman) == null ? null : num(row.queue_value_toman) / 1e9, "صنعت": row.industry, "سرانه خرید": num(row.buy_per_capita_toman) == null ? null : num(row.buy_per_capita_toman) / 1e6, "قدرت": row.buyer_power, "جایگاه بازار (درصد)": positionPercent(row.score_rank, row.score_rank_total), "جایگاه صنعت (درصد)": positionPercent(row.industry_score_rank, row.industry_score_rank_total), "خ حقوقی (درصد)": row.legal_buy_pct, "ف حقوقی (درصد)": row.legal_sell_pct}));
     if (!exportRows.length) return;
+    try { await ensureXlsx(); } catch (error) { console.warn("SheetJS unavailable; using HTML export", error); }
     if (window.XLSX) { const book = XLSX.utils.book_new(); const sheet = XLSX.utils.json_to_sheet(exportRows); XLSX.utils.book_append_sheet(book, sheet, "جدول جامع"); XLSX.writeFile(book, "جدول-جامع-بازار.xlsx"); return; }
     const headers = Object.keys(exportRows[0]); const html = `<html><meta charset="utf-8"><table><tr>${headers.map((h) => `<th>${esc(h)}</th>`).join("")}</tr>${exportRows.map((r) => `<tr>${headers.map((h) => `<td>${esc(r[h])}</td>`).join("")}</tr>`).join("")}</table></html>`; const blob = new Blob(["\ufeff", html], {type: "application/vnd.ms-excel"}); const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = "جدول-جامع-بازار.xls"; link.click(); setTimeout(() => URL.revokeObjectURL(link.href), 1000);
   }
