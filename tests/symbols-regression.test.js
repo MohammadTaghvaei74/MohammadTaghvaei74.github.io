@@ -12,6 +12,11 @@ test('symbol dossier uses one score chart with candle/line modes and no raw minu
   assert.match(source,/data-low=/);
   assert.match(source,/data-close=/);
   assert.match(source,/score-grid-line/);
+  assert.match(source,/mode === 'line' \? \[row\.close\]/);
+  assert.match(source,/timeframe === '1m' && mode === 'candle'/);
+  assert.match(source,/data-range=/);
+  assert.match(source,/const xFor =/);
+  assert.match(source,/wrapBox/);
   assert.doesNotMatch(source,/minuteTable\(/);
   assert.doesNotMatch(source,/priceCandles\(/);
   assert.doesNotMatch(source,/id="minuteData"/);

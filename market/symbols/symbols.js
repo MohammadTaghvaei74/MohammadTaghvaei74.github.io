@@ -15,11 +15,14 @@
   const billion = (value) => money(value, 1e9, ' B', 0);
   const million = (value) => money(value, 1e6, ' M');
   const millionBare = (value) => money(value, 1e6, '');
-  const hmt = (value) => { const n = num(value); if (n === null) return —; const digits = n < 0.1 ? 3 : n < 1 ? 2 : 1; return C.format(n, digits) +  همت; };
+  const hmt = (value) => { const n = num(value); if (n === null) return '—'; const digits = n < 0.1 ? 3 : n < 1 ? 2 : 1; return C.format(n, digits) + ' همت'; };
   const signed = (value, digits = 1) => { const n = num(value); return n === null ? '—' : (n > 0 ? '+' : n < 0 ? '−' : '') + C.format(Math.abs(n), digits); };
   const rank = (value, total) => { const n = num(value), t = num(total); return n === null || t === null || !t ? '—' : C.digits(n) + ' از ' + C.digits(t); };
   const fmtTime = (raw) => { const d = new Date(raw); return Number.isNaN(d.getTime()) ? '—' : d.toLocaleDateString('fa-IR', { timeZone:'Asia/Tehran', year:'numeric', month:'2-digit', day:'2-digit' }) + ' · ' + d.toLocaleTimeString('fa-IR', { timeZone:'Asia/Tehran', hour:'2-digit', minute:'2-digit' }); };
   const faDate = (day) => { const d = new Date(String(day) + 'T12:00:00Z'); return Number.isNaN(d.getTime()) ? '—' : d.toLocaleDateString('fa-IR-u-ca-persian', { timeZone:'UTC', year:'numeric', month:'2-digit', day:'2-digit' }); };
+  const faTime = (value) => C.digits(String(value || '').slice(0, 5));
+  const addMinutes = (value, minutes) => { const match = String(value || '').match(/(\d{2}):(\d{2})$/); if (!match) return '—'; const total = Number(match[1]) * 60 + Number(match[2]) + minutes; return String(Math.floor(total / 60)).padStart(2, '0') + ':' + String(total % 60).padStart(2, '0'); };
+  const candleRange = (row, timeframe) => { if (timeframe === '1d') return faDate(row.day); const start = String(row.time || '').slice(11, 16); const width = timeframe === '1m' ? 1 : timeframe === '30m' ? 30 : 15; return faTime(start) + ' تا ' + faTime(addMinutes(start, width)); };
   const load = (url) => Promise.resolve().then(() => { const controller = typeof AbortController === 'function' ? new AbortController() : null; const options = controller ? { cache:'no-store', signal:controller.signal } : { cache:'no-store' }; return fetch(url + (url.includes('?') ? '&' : '?') + 'ts=' + Date.now(), options); }).then((r) => { if (!r.ok) throw Error('HTTP ' + r.status); return r.json(); });
   const download = (data, type, name) => { const url = URL.createObjectURL(new Blob([data], {type})); const a = document.createElement('a'); a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 2000); };
   const csv = (rows) => rows.map((row) => row.map((v) => '"' + String(v === null || v === undefined ? '' : v).replace(/"/g, '""') + '"').join(',')).join('\r\n');
@@ -30,58 +33,63 @@
     const source = Array.isArray(candlesByFrame && candlesByFrame[timeframe]) ? candlesByFrame[timeframe] : [];
     const days = Array.from(new Set(source.map((row) => row && row.day).filter(Boolean))).sort();
     const activeDay = timeframe === '1d' ? null : (days.includes(day) ? day : days[days.length - 1]);
-    let rows = timeframe === '1d' ? source : source.filter((row) => row.day === activeDay);
-    if (timeframe !== '1d' && activeDay) {
-      const width = timeframe === '1m' ? 1 : timeframe === '30m' ? 30 : 15;
-      const byTime = new Map(rows.map((row) => [String(row.time).slice(11, 16), row]));
+    const sourceRows = timeframe === '1d' ? source : source.filter((row) => row.day === activeDay);
+    let rows = sourceRows;
+    if (timeframe !== '1d' && timeframe !== '1m' && activeDay) {
+      const width = timeframe === '30m' ? 30 : 15;
+      const byTime = new Map(sourceRows.map((row) => [String(row.time).slice(11, 16), row]));
       const slots = [];
-      for (let minute = 9 * 60; minute < 12 * 60 + 30; minute += width) {
-        slots.push(String(Math.floor(minute / 60)).padStart(2, '0') + ':' + String(minute % 60).padStart(2, '0'));
-      }
+      for (let minute = 9 * 60; minute < 12 * 60 + 30; minute += width) slots.push(String(Math.floor(minute / 60)).padStart(2, '0') + ':' + String(minute % 60).padStart(2, '0'));
       rows = slots.map((time) => byTime.get(time) || null);
     }
     const observed = rows.filter(Boolean);
     const options = days.slice().reverse().map((value) => '<option value="' + esc(value) + '" ' + (value === activeDay ? 'selected' : '') + '>' + esc(faDate(value)) + '</option>').join('');
     const timeframeButtons = ['1m', '15m', '30m', '1d'].map((key) => '<button type="button" data-score-timeframe="' + key + '" class="' + (key === timeframe ? 'active' : '') + '">' + (key === '1m' ? '۱ دقیقه' : key === '15m' ? '۱۵ دقیقه' : key === '30m' ? '۳۰ دقیقه' : '۱ روزه') + '</button>').join('');
-    const modeButtons = ['candle', 'line'].map((key) => '<button type="button" data-score-mode="' + key + '" class="' + (key === mode ? 'active' : '') + '">' + (key === 'candle' ? 'کندل' : 'خطی') + '</button>').join('');
+    const modeButtons = ['candle', 'line'].map((key) => '<button type="button" data-score-mode="' + key + '" class="' + (key === mode ? 'active' : '') + '"' + (timeframe === '1m' && key === 'candle' ? ' disabled aria-disabled="true"' : '') + '>' + (key === 'candle' ? 'کندل' : 'خطی') + '</button>').join('');
     const controls = '<div class="score-candle-controls"><div class="score-control-group"><span class="score-control-label">تایم‌فریم</span><div class="score-timeframes">' + timeframeButtons + '</div></div><div class="score-control-group"><span class="score-control-label">نوع نمودار</span><div class="score-chart-modes">' + modeButtons + '</div></div>' + (timeframe === '15m' || timeframe === '30m' ? '<label class="score-day-label">روز <select id="scoreDay">' + options + '</select></label>' : '') + '</div>';
-    if (!observed.length) return '<div class="symbol-chart"><div class="symbol-chart-head"><b>نمودار امتیاز سهم</b><small>داده معتبر برای این بازه موجود نیست.</small></div>' + controls + '<p class="meta">برای این سهم در جلسه ۰۹:۰۰ تا ۱۲:۳۰ نمونه‌ای ثبت نشده است.</p></div>';
+    const title = timeframe === '1d' ? 'امتیاز روزانه · ۳۰ روز اخیر' : 'امتیاز · ' + (timeframe === '1m' ? '۱ دقیقه‌ای · روز جاری' : timeframe === '15m' ? '۱۵ دقیقه‌ای' : '۳۰ دقیقه‌ای') + ' · ' + (activeDay ? esc(faDate(activeDay)) : 'آخرین روز');
+    if (timeframe === '1m' && mode === 'candle') return '<div class="symbol-chart score-chart-root" data-chart-width="980"><div class="symbol-chart-head"><b>' + title + '</b><small>در تایم‌فریم ۱ دقیقه فقط حالت خطی نمایش داده می‌شود.</small></div>' + controls + '<p class="meta">نمودار کندلی برای داده‌های یک‌دقیقه‌ای غیرفعال است.</p></div>';
+    if (!observed.length) return '<div class="symbol-chart score-chart-root" data-chart-width="980"><div class="symbol-chart-head"><b>' + title + '</b><small>داده معتبر برای این بازه موجود نیست.</small></div>' + controls + '<p class="meta">برای این سهم در جلسه ۰۹:۰۰ تا ۱۲:۳۰ نمونه‌ای ثبت نشده است.</p></div>';
 
-    const W = 980, H = 360, left = 78, right = 950, top = 24, bottom = 68;
-    const values = observed.flatMap((row) => [row.open, row.high, row.low, row.close].map(num)).filter((value) => value !== null);
+    const W = 980, H = 360, left = 92, right = 950, top = 24, bottom = 68;
+    const values = observed.flatMap((row) => mode === 'line' ? [row.close] : [row.open, row.high, row.low, row.close]).map(num).filter((value) => value !== null);
     let lo = Math.min(...values), hi = Math.max(...values); if (lo === hi) { lo -= 1; hi += 1; }
-    const rawStep = (hi - lo) / 5, magnitude = Math.pow(10, Math.floor(Math.log10(rawStep))), normalized = rawStep / magnitude;
+    const rawStep = (hi - lo) / 5, magnitude = Math.pow(10, Math.floor(Math.log10(rawStep || 1))), normalized = rawStep / magnitude;
     const nice = normalized <= 1 ? 1 : normalized <= 2 ? 2 : normalized <= 5 ? 5 : 10;
-    const tickStep = nice * magnitude, axisLo = Math.floor(lo / tickStep) * tickStep, axisHi = Math.ceil(hi / tickStep) * tickStep;
-    lo = axisLo; hi = axisHi;
+    const tickStep = nice * magnitude;
+    const ticks = [lo];
+    for (let tick = Math.ceil(lo / tickStep) * tickStep; tick < hi - tickStep * 0.0001; tick += tickStep) if (tick > lo + tickStep * 0.0001) ticks.push(tick);
+    if (Math.abs(ticks[ticks.length - 1] - hi) > tickStep * 0.0001) ticks.push(hi);
     const x = (index) => left + index * (right - left) / Math.max(1, rows.length - 1);
+    const xFor = (row, index) => {
+      if (timeframe !== '1m' || mode !== 'line') return x(index);
+      const match = String(row && row.time || '').match(/(\d{2}):(\d{2})$/);
+      if (!match) return x(index);
+      const sessionMinute = Number(match[1]) * 60 + Number(match[2]) - (9 * 60);
+      return left + Math.max(0, Math.min(210, sessionMinute)) * (right - left) / 210;
+    };
     const y = (value) => H - bottom - (value - lo) * (H - bottom - top) / (hi - lo);
     const tickText = (value) => C.format(value, Math.abs(value - Math.round(value)) < 0.0001 ? 0 : 1);
-    let grid = '';
-    for (let tick = axisLo; tick <= axisHi + tickStep / 2; tick += tickStep) {
-      const yy = y(tick);
-      grid += '<line x1="' + left + '" x2="' + right + '" y1="' + yy + '" y2="' + yy + '" class="score-grid-line"/><text x="' + (left - 12) + '" y="' + (yy + 4) + '" text-anchor="end" class="score-axis-label">' + esc(tickText(tick)) + '</text>';
-    }
+    const grid = ticks.map((tick) => { const yy = y(tick); return '<line x1="' + left + '" x2="' + right + '" y1="' + yy + '" y2="' + yy + '" class="score-grid-line"/><text x="' + (left - 14) + '" y="' + (yy + 5) + '" text-anchor="end" class="score-axis-label">' + esc(tickText(tick)) + '</text>'; }).join('');
     const step = (right - left) / Math.max(1, rows.length - 1), bodyWidth = Math.max(3, Math.min(22, step * 0.62));
-    let plots = '', linePaths = '', hitAreas = '';
-    let segment = [];
+    let plots = '', linePaths = '', hitAreas = '', segment = [];
     const flushSegment = () => { if (segment.length > 1) linePaths += '<path d="' + segment.join(' ') + '" class="score-close-line"/>'; segment = []; };
     rows.forEach((row, index) => {
       if (!row) { flushSegment(); return; }
       const o = num(row.open), h = num(row.high), l = num(row.low), c = num(row.close);
       if ([o, h, l, c].some((value) => value === null)) { flushSegment(); return; }
-      const cx = x(index), bodyTop = y(Math.max(o, c)), bodyBottom = y(Math.min(o, c)), rising = c >= o;
-      const label = timeframe === '1d' ? faDate(row.day) : String(row.time).slice(11, 16);
+      const cx = xFor(row, index), bodyTop = y(Math.max(o, c)), bodyBottom = y(Math.min(o, c)), rising = c >= o;
+      const label = timeframe === '1d' ? faDate(row.day) : faTime(String(row.time).slice(11, 16));
+      const range = candleRange(row, timeframe);
       if (mode === 'line') segment.push((segment.length ? 'L' : 'M') + cx.toFixed(2) + ' ' + y(c).toFixed(2));
       else plots += '<g class="daily-candle ' + (rising ? 'up' : 'down') + '"><line x1="' + cx + '" x2="' + cx + '" y1="' + y(h) + '" y2="' + y(l) + '"/><rect x="' + (cx - bodyWidth / 2) + '" y="' + bodyTop + '" width="' + bodyWidth + '" height="' + Math.max(3, bodyBottom - bodyTop) + '" rx="2"/></g>';
-      hitAreas += '<rect class="score-hit-area" data-score-index="' + index + '" data-score-x="' + cx + '" data-score-y="' + y(c) + '" data-open="' + o + '" data-high="' + h + '" data-low="' + l + '" data-close="' + c + '" data-label="' + esc(label) + '" x="' + (cx - Math.max(8, step / 2)) + '" y="' + top + '" width="' + Math.max(16, step) + '" height="' + (H - bottom - top) + '"/>';
+      hitAreas += '<rect class="score-hit-area" data-score-index="' + index + '" data-score-x="' + cx + '" data-score-y="' + y(c) + '" data-open="' + o + '" data-high="' + h + '" data-low="' + l + '" data-close="' + c + '" data-label="' + esc(label) + '" data-range="' + esc(range) + '" x="' + (cx - Math.max(8, step / 2)) + '" y="' + top + '" width="' + Math.max(16, step) + '" height="' + (H - bottom - top) + '"/>';
     });
     flushSegment();
     const labelIndexes = rows.map((_, index) => index).filter((index) => index === 0 || index === rows.length - 1 || index === Math.floor(rows.length / 2));
-    const labels = labelIndexes.map((index) => { const row = rows[index]; const label = row ? (timeframe === '1d' ? faDate(row.day) : String(row.time).slice(11, 16)) : ''; return '<text x="' + x(index) + '" y="' + (H - 22) + '" text-anchor="middle" class="score-time-label">' + esc(label) + '</text>'; }).join('');
-    const title = timeframe === '1d' ? 'امتیاز روزانه · ۳۰ روز اخیر' : 'امتیاز · ' + (timeframe === '1m' ? '۱ دقیقه‌ای · روز جاری' : timeframe === '15m' ? '۱۵ دقیقه‌ای' : '۳۰ دقیقه‌ای') + ' · ' + (activeDay ? esc(faDate(activeDay)) : 'آخرین روز');
+    const labels = labelIndexes.map((index) => { const row = rows[index]; const label = row ? (timeframe === '1d' ? faDate(row.day) : faTime(String(row.time).slice(11, 16))) : ''; return '<text x="' + (row ? xFor(row, index) : x(index)) + '" y="' + (H - 22) + '" text-anchor="middle" class="score-time-label">' + esc(label) + '</text>'; }).join('');
     const tip = '<div class="score-tooltip" hidden></div>';
-    return '<div class="symbol-chart score-chart-root" data-chart-width="' + W + '"><div class="symbol-chart-head"><b>' + title + '</b><small>' + (mode === 'line' ? 'مقدار بسته‌شدن هر کندل به هم وصل شده؛ شکاف‌های بدون داده حفظ شده‌اند' : 'باز / بیشینه / کمینه / بسته از نمونه‌های واقعی؛ بدون پرکردن شکاف‌ها') + '</small></div>' + controls + '<div class="score-chart-wrap"><svg viewBox="0 0 ' + W + ' ' + H + '" class="daily-candle-chart score-candle-chart" role="img" aria-label="' + esc(title) + '">' + grid + '<line class="score-crosshair-x" x1="0" x2="0" y1="' + top + '" y2="' + (H - bottom) + '"/><line class="score-crosshair-y" x1="' + left + '" x2="' + right + '" y1="0" y2="0"/>' + plots + linePaths + hitAreas + labels + '</svg>' + tip + '</div></div>';
+    return '<div class="symbol-chart score-chart-root" data-chart-width="' + W + '"><div class="symbol-chart-head"><b>' + title + '</b><small>' + (mode === 'line' ? 'مقدار بسته‌شدن نمونه‌های واقعی به هم وصل شده؛ شکاف‌ها حفظ شده‌اند' : 'باز / بیشینه / کمینه / بسته از نمونه‌های واقعی؛ بدون پرکردن شکاف‌ها') + '</small></div>' + controls + '<div class="score-chart-wrap"><svg viewBox="0 0 ' + W + ' ' + H + '" class="daily-candle-chart score-candle-chart" role="img" aria-label="' + esc(title) + '">' + grid + '<line class="score-crosshair-x" x1="0" x2="0" y1="' + top + '" y2="' + (H - bottom) + '"/><line class="score-crosshair-y" x1="' + left + '" x2="' + right + '" y1="0" y2="0"/>' + plots + linePaths + hitAreas + labels + '</svg>' + tip + '</div></div>';
   }
 
   function bindScoreInteractions(root) {
@@ -92,10 +100,14 @@
       const hit = event.currentTarget;
       if (!hit.dataset.open) { hide(); return; }
       const label = hit.dataset.label || '';
-      tooltip.innerHTML = '<b>' + esc(label) + '</b><span><i>O</i> ' + esc(score(hit.dataset.open)) + '</span><span><i>H</i> ' + esc(score(hit.dataset.high)) + '</span><span><i>L</i> ' + esc(score(hit.dataset.low)) + '</span><span><i>C</i> ' + esc(score(hit.dataset.close)) + '</span>';
-      const svgBox = svg.getBoundingClientRect(), rootBox = root.getBoundingClientRect();
-      tooltip.style.left = Math.max(80, Math.min(rootBox.width - 80, (Number(hit.dataset.scoreX) / Number(root.dataset.chartWidth)) * svgBox.width + (svgBox.left - rootBox.left))) + 'px';
-      tooltip.style.top = '8px'; tooltip.hidden = false;
+      tooltip.innerHTML = '<b>' + esc(label) + '</b><strong>' + esc(hit.dataset.range || '') + '</strong><span><i>O</i> ' + esc(score(hit.dataset.open)) + '</span><span><i>H</i> ' + esc(score(hit.dataset.high)) + '</span><span><i>L</i> ' + esc(score(hit.dataset.low)) + '</span><span><i>C</i> ' + esc(score(hit.dataset.close)) + '</span>';
+      const svgBox = svg.getBoundingClientRect(), wrap = tooltip.offsetParent || root, wrapBox = wrap.getBoundingClientRect();
+      tooltip.hidden = false;
+      const pointX = (Number(hit.dataset.scoreX) / Number(root.dataset.chartWidth)) * svgBox.width + (svgBox.left - wrapBox.left);
+      const pointY = (Number(hit.dataset.scoreY) / 360) * svgBox.height + (svgBox.top - wrapBox.top);
+      const tipWidth = tooltip.offsetWidth, tipHeight = tooltip.offsetHeight;
+      tooltip.style.left = Math.max(8, Math.min(wrapBox.width - tipWidth - 8, pointX + 14)) + 'px';
+      tooltip.style.top = Math.max(8, Math.min(wrapBox.height - tipHeight - 8, pointY - tipHeight - 12)) + 'px';
       crossX.setAttribute('x1', hit.dataset.scoreX); crossX.setAttribute('x2', hit.dataset.scoreX); crossX.style.opacity = '1';
       crossY.setAttribute('y1', hit.dataset.scoreY); crossY.setAttribute('y2', hit.dataset.scoreY); crossY.style.opacity = '1';
     };
@@ -108,7 +120,7 @@
     const available = Array.isArray(candlesByFrame[scoreView.timeframe]) && candlesByFrame[scoreView.timeframe].length;
     if (!available && scoreView.timeframe !== '1d' && Array.isArray(candlesByFrame['1d']) && candlesByFrame['1d'].length) scoreView = { timeframe: '1d', day: null, mode: scoreView.mode };
     $('#scoreChart').innerHTML = scoreCandles(candlesByFrame, scoreView.timeframe, scoreView.day, scoreView.mode);
-    $('#scoreChart').querySelectorAll('[data-score-timeframe]').forEach((button) => { button.onclick = () => { scoreView = { timeframe: button.dataset.scoreTimeframe, day: scoreView.day, mode: scoreView.mode }; renderScorePanel(payload); }; });
+    $('#scoreChart').querySelectorAll('[data-score-timeframe]').forEach((button) => { button.onclick = () => { scoreView = { timeframe: button.dataset.scoreTimeframe, day: scoreView.day, mode: button.dataset.scoreTimeframe === '1m' ? 'line' : scoreView.mode }; renderScorePanel(payload); }; });
     $('#scoreChart').querySelectorAll('[data-score-mode]').forEach((button) => { button.onclick = () => { scoreView = { timeframe: scoreView.timeframe, day: scoreView.day, mode: button.dataset.scoreMode }; renderScorePanel(payload); }; });
     const daySelect = $('#scoreDay'); if (daySelect) daySelect.onchange = () => { scoreView.day = daySelect.value; renderScorePanel(payload); };
     bindScoreInteractions($('#scoreChart .score-chart-root'));
