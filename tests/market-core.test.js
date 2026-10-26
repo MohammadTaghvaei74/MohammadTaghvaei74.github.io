@@ -42,7 +42,8 @@ test('allocation labels match the two slider ends', () => {
 test('snapshot validation requires arrays and uses market source timestamp', () => {
   const valid = { schema_version: 1, source: 'x', generated_at: 'not-used', market: { timestamp: '2026-10-14T12:30:00+03:30' }, groups: [], top_stocks: [], leveraged: [], industries: [], daily: [] };
   assert.equal(core.validateSnapshot(valid), valid);
-  assert.throws(() => core.validateSnapshot({ ...valid, schema_version: 2 }), /schema|نسخه|نامعتبر/);
+  const v2 = { ...valid, schema_version: 2, stocks: [], top_buy_queue: [], industry_table: [], intraday: [], queue_intraday: [] };
+  assert.equal(core.validateSnapshot(v2), v2);
   assert.equal(core.sourceTimestamp(valid), valid.market.timestamp);
   assert.match(core.formatDate(valid.market.timestamp), /۱۴۰۵/);
   assert.throws(() => core.validateSnapshot({ ...valid, market: { timestamp: 'bad' } }), /timestamp/);

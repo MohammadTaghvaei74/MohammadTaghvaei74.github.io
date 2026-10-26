@@ -70,11 +70,13 @@ function validateSnapshot(data) {
   if (!data || typeof data !== "object" || Array.isArray(data)) throw new Error("ساختار snapshot نامعتبر است.");
   for (const key of ["schema_version", "source", "generated_at", "market"]) if (!(key in data)) throw new Error(`فیلد الزامی «${key}» وجود ندارد.`);
   if (!data.market || typeof data.market !== "object" || Array.isArray(data.market)) throw new Error("ساختار market نامعتبر است.");
-  for (const key of ["groups", "top_stocks", "leveraged", "industries", "daily"]) {
+  const requiredArrays = ["groups", "top_stocks", "leveraged", "industries", "daily"];
+  if (number(data.schema_version) >= 2) requiredArrays.push("stocks", "top_buy_queue", "industry_table", "intraday", "queue_intraday");
+  for (const key of requiredArrays) {
     if (!Array.isArray(data[key])) throw new Error(`فیلد «${key}» باید آرایه باشد.`);
     if (data[key].some((row) => !row || typeof row !== "object" || Array.isArray(row))) throw new Error(`ساختار ردیف «${key}» نامعتبر است.`);
   }
-  if (number(data.schema_version) !== 1 || !data.source || !data.generated_at) throw new Error("نسخه یا متادیتای snapshot نامعتبر است.");
+  if (![1, 2].includes(number(data.schema_version)) || !data.source || !data.generated_at) throw new Error("نسخه یا متادیتای snapshot نامعتبر است.");
   if (!sourceTimestamp(data) || Number.isNaN(new Date(sourceTimestamp(data)).getTime())) throw new Error("timestamp منبع نامعتبر است.");
   return data;
 }
