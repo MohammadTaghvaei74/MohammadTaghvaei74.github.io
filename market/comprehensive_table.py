@@ -118,6 +118,10 @@ def build_comprehensive_rows(stocks: list[dict[str, Any]], latest: str, conn) ->
         symbol = str(row.get("symbol") or "")
         samples = samples_by_symbol.get(symbol, [])
         scores = [sample["score"] for sample in samples]
+        # Keep the public row contract stable even when optional enrichment is
+        # unavailable. The UI can then distinguish null from a missing field.
+        for field in ("buy_per_capita_toman", "buyer_power", "legal_buy_pct", "legal_sell_pct"):
+            row.setdefault(field, None)
         buy_queue = _finite(row.get("buy_queue_value_toman"))
         sell_queue = _finite(row.get("sell_queue_value_toman"))
         if buy_queue is not None and buy_queue > 0:
@@ -136,7 +140,7 @@ def build_comprehensive_rows(stocks: list[dict[str, Any]], latest: str, conn) ->
             "avg_trade_value_toman": avg_value,
             "queue_value_toman": queue_value,
             "last_close_diff_pct": close_diff,
-            "score_10d_total": sum(scores) if len(scores) == expected_samples else None,
+            "score_10d_total": sum(scores) if expected_samples and len(scores) == expected_samples else None,
             "score_10d_sample_count": len(scores),
             "score_10d_expected_count": expected_samples,
             "score_10d_days": len({sample["day"] for sample in samples}),
