@@ -223,16 +223,9 @@
       market: points.map((row) => row.median_score),
     };
     const actualValues = [series.leaders, series.market].flat().map(numeric).filter((value) => value !== null);
-    const extremaLabel = $("#chartExtrema");
-    const leaderExtrema = core.chartExtrema(series.leaders);
-    const marketExtrema = core.chartExtrema(series.market);
-    if (extremaLabel) {
-      const extremaText = (label, extrema) => `${label}: کمینه ${extrema.min === null ? "—" : signed(extrema.min, 2)} · بیشینه ${extrema.max === null ? "—" : signed(extrema.max, 2)}`;
-      extremaLabel.textContent = `${extremaText("لیدرها", leaderExtrema)}  |  ${extremaText("کل بازار", marketExtrema)}`;
-    }
-    const width = 1200, height = 460, pad = { top: 4, right: 24, bottom: 24, left: 62 };
+    const width = 1200, height = 560, pad = { top: 8, right: 24, bottom: 30, left: 62 };
     if (!actualValues.length) {
-      svg.innerHTML = `<text class="chart-empty" x="380" y="145" text-anchor="middle">دادهٔ امروز از ۰۹:۰۵ هنوز موجود نیست.</text>`;
+      svg.innerHTML = `<text class="chart-empty" x="600" y="180" text-anchor="middle">دادهٔ امروز از ۰۹:۰۵ هنوز موجود نیست.</text>`;
       return;
     }
     const scale = core.chartScale(series.leaders, series.market);
