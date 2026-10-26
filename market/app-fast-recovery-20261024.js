@@ -414,11 +414,9 @@
     const element = $("#fundReportRows");
     if (!element) return;
     const n = (value, digits = 1) => numeric(value) === null ? "—" : core.faDigits(Number(value).toLocaleString("fa-IR", {minimumFractionDigits: digits, maximumFractionDigits: digits}));
-    const pct = (value) => numeric(value) === null ? "—" : `<strong>${n(Number(value) * 100, 0)}</strong> <span class="percent-unit">٪</span>`;
-    element.innerHTML = rows.map((row, index) => `<tr><td>${core.faDigits(index + 1)}</td><td><b>${escapeHtml(row.symbol || "—")}</b>${String(row.description || "").includes("اهرمی") ? ' <span class="fund-leveraged">🔥</span>' : ""}</td><td>${n(row.portfolio_score)}</td><td>${n(row.board_score)}</td><td>${n(row.score_diff)}</td><td>${numeric(row.bubble_pct) === null ? "—" : `<strong>${n(row.bubble_pct)}</strong> <span class="percent-unit">٪</span>`}</td><td>${n(row.liquidity, 0)}</td><td>${pct(row.matched_weight)}</td><td>${escapeHtml(row.portfolio_last_update || row.report_date || "—")}</td></tr>`).join("") || `<tr><td colspan="9">گزارش صندوق‌ها هنوز آماده نیست.</td></tr>`;
-    text("#fundReportCount", rows.length ? `${core.faDigits(rows.length)} صندوق واجد شرایط` : "—");
-    const generated = payload.generated_at ? core.formatDate(payload.generated_at) : "—";
-    text("#fundReportMeta", payload.status === "ready" ? `به‌روزرسانی: ${generated} · آستانه میانگین ارزش: بیشتر از ۲۰ میلیارد تومان · پوشش فقط اطلاع‌رسانی است · مرتب‌سازی اختلاف امتیاز` : "گزارش صندوق‌ها هنوز آماده نیست.");
+    const faText = (value) => value === null || value === undefined || value === "" ? "—" : core.faDigits(String(value));
+    const scoreMarkup = (value) => numeric(value) === null ? "—" : `<bdi dir="ltr">${escapeHtml(core.formatSigned(value, 1))}</bdi>`;
+    element.innerHTML = rows.map((row, index) => `<tr><td>${core.faDigits(index + 1)}</td><td><b>${escapeHtml(row.symbol || "—")}</b>${String(row.description || "").includes("اهرمی") ? ' <span class="fund-leveraged">🔥</span>' : ""}</td><td>${n(row.liquidity, 1)}</td><td>${faText(row.portfolio_last_update || row.report_date)}</td><td>${scoreMarkup(row.portfolio_score)}</td><td>${scoreMarkup(row.board_score)}</td><td>${scoreMarkup(row.score_diff)}</td></tr>`).join("") || `<tr><td colspan="7">گزارش صندوق‌ها هنوز آماده نیست.</td></tr>`;
   }
 
   function renderOptions(options) {
