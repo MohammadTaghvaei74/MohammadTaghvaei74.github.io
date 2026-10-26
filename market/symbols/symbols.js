@@ -15,7 +15,7 @@
   const billion = (value) => money(value, 1e9, ' B', 0);
   const million = (value) => money(value, 1e6, ' M');
   const millionBare = (value) => money(value, 1e6, '');
-  const hmt = (value) => money(value, 1e12, ' همت');
+  const hmt = (value) => { const n = num(value); if (n === null) return —; const digits = n < 0.1 ? 3 : n < 1 ? 2 : 1; return C.format(n, digits) +  همت; };
   const signed = (value, digits = 1) => { const n = num(value); return n === null ? '—' : (n > 0 ? '+' : n < 0 ? '−' : '') + C.format(Math.abs(n), digits); };
   const rank = (value, total) => { const n = num(value), t = num(total); return n === null || t === null || !t ? '—' : C.digits(n) + ' از ' + C.digits(t); };
   const fmtTime = (raw) => { const d = new Date(raw); return Number.isNaN(d.getTime()) ? '—' : d.toLocaleDateString('fa-IR', { timeZone:'Asia/Tehran', year:'numeric', month:'2-digit', day:'2-digit' }) + ' · ' + d.toLocaleTimeString('fa-IR', { timeZone:'Asia/Tehran', hour:'2-digit', minute:'2-digit' }); };
