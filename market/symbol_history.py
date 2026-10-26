@@ -85,6 +85,16 @@ def build_score_candles(rows: list[tuple[datetime, float]]) -> dict[str, list[di
         _ohlc(values, day=day, label=day)
         for day, values in sorted(daily.items())
     ]
+
+    # One-minute bars are intentionally limited to the newest retained trading
+    # day. The live intraday asset supplies the current session while this
+    # compact history fallback keeps the same contract available after close.
+    latest_day = max(daily) if daily else None
+    result["1m"] = [
+        _ohlc([(local, value)], day=latest_day, label=local.strftime("%Y-%m-%dT%H:%M"))
+        for local, value in rows
+        if latest_day and local.strftime("%Y-%m-%d") == latest_day
+    ]
     return result
 
 

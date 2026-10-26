@@ -35,6 +35,21 @@ def test_score_candles_use_first_max_min_last_and_leave_missing_buckets_absent()
     assert candles["1d"][0]["close"] == 9.0
 
 
+def test_one_minute_candles_are_last_retained_day_only_and_preserve_ohlc():
+    rows = [
+        (local("2026-10-20T09:00"), 1.0),
+        (local("2026-10-20T09:01"), 3.0),
+        (local("2026-10-21T09:00"), 7.0),
+        (local("2026-10-21T09:01"), 6.0),
+    ]
+    candles = build_score_candles(rows)
+    assert [(row["time"], row["open"], row["high"], row["low"], row["close"])
+            for row in candles["1m"]] == [
+        ("2026-10-21T09:00", 7.0, 7.0, 7.0, 7.0),
+        ("2026-10-21T09:01", 6.0, 6.0, 6.0, 6.0),
+    ]
+
+
 def test_write_history_keeps_only_30_trading_days_session_rows_and_candles(tmp_path):
     conn = sqlite3.connect(":memory:")
     conn.execute("CREATE TABLE history(symbol TEXT, timestamp TEXT, score REAL)")
