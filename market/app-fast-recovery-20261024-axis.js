@@ -523,9 +523,10 @@
   }
 
 const LIVE_DATA_ORIGIN = "https://94-101-184-98.sslip.io/market/";
-  function liveDataUrl(path) {
+  function liveDataUrl(path, cacheMode = "no-store") {
     const url = new URL(path, LIVE_DATA_ORIGIN);
-    url.searchParams.set("ts", String(Date.now()));
+    if (cacheMode === "no-store") url.searchParams.set("ts", String(Date.now()));
+    else url.searchParams.delete("ts");
     return url.href;
   }
 
@@ -533,7 +534,7 @@ const LIVE_DATA_ORIGIN = "https://94-101-184-98.sslip.io/market/";
     const controller = new AbortController();
     const timeout = window.setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
     try {
-      const response = await fetch(liveDataUrl(path), { cache: "no-store", signal: controller.signal });
+      const response = await fetch(liveDataUrl(path, cacheMode), { cache: cacheMode, signal: controller.signal });
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       return await response.json();
     } catch (error) {
@@ -585,9 +586,16 @@ const LIVE_DATA_ORIGIN = "https://94-101-184-98.sslip.io/market/";
       render(data, emptyOptions());
       text("#sourceStatus", `منبع: ${currentData.source} · زمان منبع: ${core.formatDate(core.sourceTimestamp(currentData))}`);
       lastLoadAt = Date.now();
-      void fetchComprehensiveInBackground();
-      void fetchFundReportInBackground();
-      void fetchOptionsInBackground();
+      // Keep the first useful paint isolated from large secondary feeds.
+      // They are loaded only after the browser has had a chance to paint and
+      // only on pages that actually render the corresponding surface.
+      const loadSecondaryFeeds = () => {
+        if (document.querySelector("#comprehensiveRows")) void fetchComprehensiveInBackground();
+        if (document.querySelector("#fundReportRows")) void fetchFundReportInBackground();
+        if (document.querySelector("#optionsPairs")) void fetchOptionsInBackground();
+      };
+      if ("requestIdleCallback" in window) window.requestIdleCallback(loadSecondaryFeeds, {timeout: 1200});
+      else window.setTimeout(loadSecondaryFeeds, 150);
       if (showToast) toast("داده داشبورد به‌روزرسانی شد");
     } catch (error) {
       const message = error instanceof Error ? error.message : "خطای ناشناخته در دریافت داده.";
