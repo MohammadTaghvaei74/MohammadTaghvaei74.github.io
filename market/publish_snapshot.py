@@ -133,13 +133,27 @@ def build_intraday_symbols(conn: sqlite3.Connection, trading_date: str) -> dict:
     }
 
 
+def normalize_fund_score_units(payload: dict) -> dict:
+    # Publication boundary guard for legacy percentage-vs-fraction mix.
+    rows = payload.get('rows') if isinstance(payload, dict) else None
+    if not isinstance(rows, list): return payload
+    for row in rows:
+        if not isinstance(row, dict) or not isinstance(row.get('matched_weight'), (int, float)) or row['matched_weight'] <= 1: continue
+        for key in ('matched_weight', 'total_equity_weight'):
+            if isinstance(row.get(key), (int, float)): row[key] /= 100.0
+        if isinstance(row.get('portfolio_score'), (int, float)): row['portfolio_score'] /= 100.0
+        if isinstance(row.get('score_diff'), (int, float)): row['score_diff'] = row['portfolio_score'] - float(row.get('board_score') or 0)
+        row['portfolio_score_unit_normalized'] = True
+    return payload
+
+
 def load_fund_report() -> dict:
     if not FUND_SOURCE.exists():
         return {'schema_version': 1, 'status': 'unavailable', 'rows': [], 'row_count': 0}
     try:
         payload = json.loads(FUND_SOURCE.read_text(encoding='utf-8'))
         rows = payload.get('rows') if isinstance(payload, dict) else []
-        return {**payload, 'status': 'ready' if isinstance(rows, list) else 'unavailable', 'rows': rows if isinstance(rows, list) else []}
+        return normalize_fund_score_units({**payload, 'status': 'ready' if isinstance(rows, list) else 'unavailable', 'rows': rows if isinstance(rows, list) else []})
     except (OSError, ValueError, TypeError) as exc:
         return {'schema_version': 1, 'status': 'unavailable', 'rows': [], 'row_count': 0, 'error': str(exc)}
 

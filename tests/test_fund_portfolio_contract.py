@@ -32,3 +32,12 @@ def test_monthly_fund_portfolio_contract():
     assert bankpad["portfolio_update_status"] == "not_found"
     assert bankpad["portfolio_last_update"] is None
     assert bankpad["portfolio_disclosed_weight_pct"] is None
+
+
+def test_dara_score_is_not_percentage_scaled():
+    payload = json.loads(FEED.read_text(encoding="utf-8"))
+    dara = next(row for row in payload["rows"] if row["symbol"] == "دارا یکم")
+    assert 0 <= dara["matched_weight"] <= 1
+    assert 0 <= dara["total_equity_weight"] <= 1
+    assert -10 <= dara["portfolio_score"] <= 10
+    assert abs(dara["portfolio_score"] - (-2.7502353072805766)) < 1e-9
