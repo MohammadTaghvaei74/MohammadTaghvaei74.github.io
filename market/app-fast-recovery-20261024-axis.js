@@ -230,18 +230,21 @@
       svg.innerHTML = `<text class="chart-empty" x="600" y="180" text-anchor="middle">دادهٔ امروز از ۰۹:۰۵ هنوز موجود نیست.</text>`;
       return;
     }
-    const scale = core.chartScale(series.leaders, series.market);
+    const min = Math.min(...actualValues);
+    const max = Math.max(...actualValues);
+    const chartMax = max === min ? max + 0.01 : max;
     const min = scale.min;
     const max = scale.max === scale.min ? scale.max + 0.01 : scale.max;
     const x = (index) => pad.left + index * (width - pad.left - pad.right) / Math.max(days.length - 1, 1);
-    const y = (value) => pad.top + (max - value) * (height - pad.top - pad.bottom) / (max - min);
+    const y = (value) => pad.top + (chartMax - value) * (height - pad.top - pad.bottom) / (chartMax - min);
     const marketPath = pathFor(series.market, x, y);
     const leadersPath = pathFor(series.leaders, x, y);
 
     const zeroY = y(0);
     // Do not bridge missing samples with a filled area.
     const areaPath = marketPath && series.market.every((value) => value !== null) ? `${marketPath} L ${x(days.length - 1)},${zeroY} L ${x(0)},${zeroY} Z` : "";
-    const grid = scale.ticks.map((tick) => `<line class="${tick === 3 ? "chart-limit-positive" : tick === -3 ? "chart-limit-negative" : tick === 0 ? "chart-zero" : "chart-grid-line"}" x1="${pad.left}" x2="${width - pad.right}" y1="${y(tick)}" y2="${y(tick)}"/><text class="chart-label" x="${pad.left - 11}" y="${y(tick) + 5}" text-anchor="end">${core.faDigits(tick)}</text>`).join("");
+    const ticks = [min, min + (chartMax - min) / 2, chartMax];
+    const grid = ticks.map((tick, index) => `<line class="${index === 0 ? "chart-zero" : "chart-grid-line"}" x1="${pad.left}" x2="${width - pad.right}" y1="${y(tick)}" y2="${y(tick)}"/><text class="chart-label" x="${pad.left - 11}" y="${y(tick) + 6}" text-anchor="end">${core.formatNumber(tick, 1)}</text>`).join("");
     const labels = days.map((point, index) => {
       const time = String(point.time || "").slice(0, 5);
       return /:(00|30)$/.test(time) || index === days.length - 1 ? `<text class="chart-label" x="${x(index)}" y="${height - 8}" text-anchor="middle">${escapeHtml(core.faDigits(time))}</text>` : "";
