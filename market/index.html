@@ -57,7 +57,7 @@
           <div class="section-heading"><div><span class="section-index">02</span><h2>صندوق‌های سهامی</h2></div></div>
           <article class="table-panel fund-report-panel">
             <div class="table-title"><div><h3>صندوق‌های سهامی با نقدشوندگی بالا</h3></div></div>
-            <div class="table-scroll fund-report-scroll"><table class="fund-report-table" aria-label="صندوق‌های سهامی"><thead><tr><th>رتبه</th><th>صندوق</th><th>میانگین ارزش روزانه</th><th>آخرین به‌روزرسانی پرتفو</th><th>امتیاز پرتفو</th><th>امتیاز تابلو</th><th>اختلاف</th></tr></thead><tbody id="fundReportRows"></tbody></table></div>
+            <div class="table-scroll fund-report-scroll"><table class="fund-report-table" aria-label="صندوق‌های سهامی"><thead><tr><th>رتبه</th><th>صندوق</th><th>میانگین ارزش روزانه</th><th>آخرین به‌روزرسانی پرتفو</th><th>حباب</th><th>امتیاز پرتفو</th><th>امتیاز تابلو</th><th>اختلاف</th></tr></thead><tbody id="fundReportRows"></tbody></table></div>
           </article>
         </section>
 
@@ -117,11 +117,12 @@
             <a href="options/"><span aria-hidden="true">◈</span><b>آپشن</b></a>
             </nav>
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
     <script src="core.js?v=intraday-charts-1" defer></script>
-    <script src="app-fast-recovery-20261024-axis.js?v=fund-table-clean-2" defer></script>
+    <script src="app-fast-recovery-20261024-axis.js?v=fund-table-bubble-tse-1" defer></script>
     <script src="ranking.js?v=compact-focus-2" defer></script>
     <script src="sortable-tables.js?v=three-state-2" defer></script>
-    <script src="comprehensive-table.js?v=lazy-xlsx-1" defer></script>
+    <script src="comprehensive-table.js?v=feedback-layout-3" defer></script>
     <script>
       (() => {
         const topbar = document.querySelector('.topbar');
