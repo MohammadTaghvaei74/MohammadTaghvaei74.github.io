@@ -88,6 +88,29 @@
     const label = type === "billion" ? formatBillion(value) : type === "million0" ? (num(value) == null ? "—" : digits(Math.round(num(value) / 1e6).toLocaleString("fa-IR"))) : type === "pct1" ? signedPctMarkup(value, 1) : type === "pct0" ? signedPctMarkup(value, 0) : type === "position" ? (num(value) == null ? "—" : `<strong>${digits(num(value))}</strong> <span class="percent-unit">٪</span>`) : type === "industry" ? (value || "—") : type === "score" ? signedScore(value) : format(value, type === "power" ? 1 : 1);
     return `<td data-sort-value="${sortValue == null ? "" : esc(sortValue)}"><bdi>${label.indexOf("<") >= 0 ? label : esc(label)}</bdi></td>`;
   }
+  function mergeSnapshotRows(detail) {
+    const sourceRows = Array.isArray(detail.comprehensive_stocks) ? detail.comprehensive_stocks : [];
+    const fallbackRows = Array.isArray(detail.stocks) ? detail.stocks : [];
+    const fallbackBySymbol = new Map(fallbackRows.map((row) => [String(row.symbol || ""), row]));
+    return sourceRows.map((row) => {
+      const fallback = fallbackBySymbol.get(String(row.symbol || "")) || {};
+      const merged = {...fallback, ...row};
+      ["buy_per_capita_toman", "buyer_power", "legal_buy_pct", "legal_sell_pct"].forEach((key) => {
+        if (merged[key] == null && fallback[key] != null) merged[key] = fallback[key];
+      });
+      if (merged.avg_trade_value_toman == null) merged.avg_trade_value_toman = merged.avg15_trade_value_toman;
+      if (merged.queue_value_toman == null) {
+        const buy = num(merged.buy_queue_value_toman), sell = num(merged.sell_queue_value_toman);
+        merged.queue_value_toman = buy != null && buy > 0 ? buy : sell != null && sell > 0 ? -sell : buy != null || sell != null ? 0 : null;
+      }
+      if (merged.last_close_diff_pct == null) {
+        const close = num(merged.close_price), last = num(merged.last_price);
+        merged.last_close_diff_pct = close != null && close !== 0 && last != null ? (last - close) / close * 100 : null;
+      }
+      return merged;
+    });
+  }
+
   function render() {
     const display = displayedRows();
     lastRendered = display;
@@ -134,5 +157,5 @@
   if (clearButton) clearButton.addEventListener("click", () => { table.querySelectorAll(".column-filter").forEach((input) => { input.value = ""; }); table.querySelectorAll(".filter-operator").forEach((select) => { select.value = ""; }); table.querySelectorAll(".extra-filter-pair").forEach((pair) => pair.remove()); Object.keys(filters).forEach((key) => { filters[key] = {conditions: [{operator: "", value: ""}]}; }); render(); });
   const downloadButton = document.querySelector("#downloadComprehensiveXlsx");
   if (downloadButton) downloadButton.addEventListener("click", downloadXlsx);
-  window.addEventListener("market:snapshot", (event) => { const detail = event && event.detail ? event.detail : {}; rows = Array.isArray(detail.comprehensive_stocks) ? detail.comprehensive_stocks : []; const ranked = rows.filter((row) => num(row.score) != null).sort((a, b) => num(b.score) - num(a.score) || String(a.symbol || "").localeCompare(String(b.symbol || ""), "fa")); const groups = new Map(); ranked.forEach((row, index) => { if (row.score_rank == null) row.score_rank = index + 1; if (row.score_rank_total == null) row.score_rank_total = ranked.length; const industry = String(row.industry || ""); if (industry) { if (!groups.has(industry)) groups.set(industry, []); groups.get(industry).push(row); } }); groups.forEach((members) => members.forEach((row, index) => { if (row.industry_score_rank == null) row.industry_score_rank = index + 1; if (row.industry_score_rank_total == null) row.industry_score_rank_total = members.length; })); defaultOrder = rows.slice(); rows.forEach((row, index) => { row._defaultIndex = index; }); render(); });
+  window.addEventListener("market:snapshot", (event) => { const detail = event && event.detail ? event.detail : {}; rows = mergeSnapshotRows(detail); const ranked = rows.filter((row) => num(row.score) != null).sort((a, b) => num(b.score) - num(a.score) || String(a.symbol || "").localeCompare(String(b.symbol || ""), "fa")); const groups = new Map(); ranked.forEach((row, index) => { if (row.score_rank == null) row.score_rank = index + 1; if (row.score_rank_total == null) row.score_rank_total = ranked.length; const industry = String(row.industry || ""); if (industry) { if (!groups.has(industry)) groups.set(industry, []); groups.get(industry).push(row); } }); groups.forEach((members) => members.forEach((row, index) => { if (row.industry_score_rank == null) row.industry_score_rank = index + 1; if (row.industry_score_rank_total == null) row.industry_score_rank_total = members.length; })); defaultOrder = rows.slice(); rows.forEach((row, index) => { row._defaultIndex = index; }); render(); });
 })();

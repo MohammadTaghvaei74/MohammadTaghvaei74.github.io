@@ -565,7 +565,7 @@ const LIVE_DATA_ORIGIN = "https://94-101-184-98.sslip.io/market/";
 
   async function fetchComprehensiveInBackground() {
     try {
-      const comprehensive = await fetchJson("data/comprehensive.json", "default");
+      const comprehensive = await fetchJson("data/comprehensive.json?cb=" + String(Date.now()), "no-store");
       if (currentData && typeof window.dispatchEvent === "function") {
         const detail = {...currentData, comprehensive_stocks: Array.isArray(comprehensive.rows) ? comprehensive.rows : [], comprehensive_meta: comprehensive.meta || {}};
         const event = typeof window.CustomEvent === "function" ? new window.CustomEvent("market:snapshot", {detail}) : null;
