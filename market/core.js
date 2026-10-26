@@ -71,7 +71,7 @@ function validateSnapshot(data) {
   for (const key of ["schema_version", "source", "generated_at", "market"]) if (!(key in data)) throw new Error(`فیلد الزامی «${key}» وجود ندارد.`);
   if (!data.market || typeof data.market !== "object" || Array.isArray(data.market)) throw new Error("ساختار market نامعتبر است.");
   const requiredArrays = ["groups", "top_stocks", "leveraged", "industries", "daily"];
-  if (number(data.schema_version) >= 2) requiredArrays.push("stocks", "top_buy_queue", "industry_table", "intraday", "queue_intraday");
+  if (number(data.schema_version) >= 2) requiredArrays.push("stocks", "top_buy_queue", "intraday", "queue_intraday");
   for (const key of requiredArrays) {
     if (!Array.isArray(data[key])) throw new Error(`فیلد «${key}» باید آرایه باشد.`);
     if (data[key].some((row) => !row || typeof row !== "object" || Array.isArray(row))) throw new Error(`ساختار ردیف «${key}» نامعتبر است.`);
