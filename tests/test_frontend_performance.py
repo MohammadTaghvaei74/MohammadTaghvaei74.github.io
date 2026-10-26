@@ -19,7 +19,7 @@ class FrontendPerformanceContractTests(unittest.TestCase):
         self.assertNotIn('void fetchOptionsInBackground();\n      if (showToast)', APP)
 
     def test_sheetjs_is_non_blocking(self):
-        self.assertIn('xlsx.full.min.js" defer></script>', INDEX)
+        self.assertNotIn('cdn.sheetjs.com', INDEX)
 
 
 if __name__ == "__main__":
