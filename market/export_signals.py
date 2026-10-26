@@ -13,7 +13,7 @@ from typing import Any
 
 SCHEMA_VERSION = 1
 SOURCE = "telegram_event_delivery"
-LIMIT = 10000
+LIMIT = 100
 SIGNAL_MAX_AGE = timedelta(hours=36)
 HEALTH_MAX_AGE = timedelta(minutes=15)
 FUTURE_TOLERANCE = timedelta(minutes=5)
@@ -47,7 +47,7 @@ def _connect(db_path: str | os.PathLike[str]) -> sqlite3.Connection:
 def _category(event_key: str) -> str:
     prefix = event_key.split(":", 1)[0].lower()
     if prefix == "gap":
-        return "allocation"
+        return "pressure"
     return prefix if prefix in CATEGORIES else "other"
 
 
@@ -133,10 +133,9 @@ def build_payload(db_path: str | os.PathLike[str]) -> dict[str, Any]:
         return _empty(f"signal feed unavailable: {exc.__class__.__name__}")
 
     parsed = []
-    today = datetime.now(ZoneInfo("Asia/Tehran")).date()
     for row in rows:
         stamped = _timestamp(row["timestamp"])
-        if stamped is None or stamped.astimezone(ZoneInfo("Asia/Tehran")).date() != today:
+        if stamped is None:
             continue
         item = _parse_sent(row, row["delivery_provider_message_id"])
         if item is not None:

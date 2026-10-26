@@ -21,6 +21,8 @@ def is_common_stock(row: dict) -> bool:
     instrument_type = str(row.get("instrument_type") or "").strip().upper()
     if not symbol or instrument_type in NON_COMMON_TYPES:
         return False
+    if not instrument_type:
+        return not re.search(r"[0-9۰-۹]", symbol)
     # Contract/certificate/bond/option tickers in this feed carry a numeric
     # suffix. Keep spaces allowed because a small number of valid share names
     # are written with a space by the provider (for example فن آوا).

@@ -191,7 +191,7 @@ def build_market(conn: sqlite3.Connection) -> dict:
     stocks, seen = [], set()
     for row in rows:
         item = dict(row)
-        if item["symbol"] in seen or not filter_common_stocks([item]):
+        if item["symbol"] in seen or (item.get("instrument_type") is not None and not filter_common_stocks([item])):
             continue
         stocks.append(item)
         seen.add(item["symbol"])
