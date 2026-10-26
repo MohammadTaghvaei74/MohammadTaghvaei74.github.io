@@ -476,13 +476,9 @@
     const element = $("#fundReportRows");
     if (!element) return;
     const n = (value, digits = 1) => numeric(value) === null ? "—" : core.faDigits(Number(value).toLocaleString("fa-IR", {minimumFractionDigits: digits, maximumFractionDigits: digits}));
-    const pct = (value) => numeric(value) === null ? "—" : `<strong>${n(Number(value) * 100, 0)}</strong> <span class="percent-unit">٪</span>`;
-    const sourceLabel = (row) => row.portfolio_source_label || (row.portfolio_source === "codal" ? "کدال" : row.portfolio_source === "fund_manager_site" ? "سایت مدیر صندوق" : row.portfolio_source === "TSETMC_fund_page" ? "TSETMC" : row.portfolio_source === "web_search" ? "منبع وب" : "پیدا نشد");
-        const coverage = (row) => numeric(row.portfolio_disclosed_weight_pct) === null ? "—" : `<strong>${n(row.portfolio_disclosed_weight_pct, 1)}</strong> <span class="percent-unit">٪</span>`;
-        element.innerHTML = rows.map((row, index) => `<tr><td>${core.faDigits(index + 1)}</td><td><b>${escapeHtml(row.symbol || "—")}</b>${String(row.description || "").includes("اهرمی") ? ' <span class="fund-leveraged">🔥</span>' : ""}</td><td>${n(row.avg_daily_value_billion_toman, 1)} <small>میلیارد</small></td><td>${n(row.liquidity_valid_days, 0)}</td><td>${escapeHtml(sourceLabel(row))}</td><td>${escapeHtml(row.portfolio_last_update || "—")}</td><td>${coverage(row)}</td><td>${escapeHtml(row.portfolio_quality || row.portfolio_source_note || "—")}</td><td>${n(row.portfolio_score)}</td><td>${n(row.board_score)}</td><td>${n(row.score_diff)}</td></tr>`).join("") || `<tr><td colspan="11">گزارش صندوق‌ها هنوز آماده نیست.</td></tr>`;
-    text("#fundReportCount", rows.length ? `${core.faDigits(rows.length)} صندوق واجد شرایط` : "—");
-    const generated = payload.generated_at ? core.formatDate(payload.generated_at) : "—";
-    text("#fundReportMeta", payload.status === "ready" ? `به‌روزرسانی: ${generated} · بازبینی ماهانه · شرط: میانگین ۲۰ روز معاملاتی کامل TSETMC بیشتر از ۲۰ میلیارد تومان · منبع پرتفو کدال یا منبع جایگزین تأییدشده است · صندوقی حذف نمی‌شود` : "گزارش صندوق‌ها هنوز آماده نیست.");
+    const faText = (value) => value === null || value === undefined || value === "" ? "—" : core.faDigits(String(value));
+    const scoreMarkup = (value) => numeric(value) === null ? "—" : `<bdi dir="ltr">${escapeHtml(core.formatSigned(value, 1))}</bdi>`;
+    element.innerHTML = rows.map((row, index) => `<tr><td>${core.faDigits(index + 1)}</td><td><b>${escapeHtml(row.symbol || "—")}</b>${String(row.description || "").includes("اهرمی") ? ' <span class="fund-leveraged">🔥</span>' : ""}</td><td>${n(row.liquidity, 1)}</td><td>${faText(row.portfolio_last_update || row.report_date)}</td><td>${scoreMarkup(row.portfolio_score)}</td><td>${scoreMarkup(row.board_score)}</td><td>${scoreMarkup(row.score_diff)}</td></tr>`).join("") || `<tr><td colspan="7">گزارش صندوق‌ها هنوز آماده نیست.</td></tr>`;
   }
 
   function renderOptions(options) {
@@ -585,7 +581,7 @@ const LIVE_DATA_ORIGIN = "https://94-101-184-98.sslip.io/market/";
     try {
       // Critical path: render the 179KB market snapshot immediately. The heavy
       // options feed must never delay the first useful paint.
-      const data = core.validateSnapshot(await fetchJson("data/market.json", "default"));
+      const data = core.validateSnapshot(await fetchJson("data/market.json", "no-store"));
       render(data, emptyOptions());
       text("#sourceStatus", `منبع: ${currentData.source} · زمان منبع: ${core.formatDate(core.sourceTimestamp(currentData))}`);
       lastLoadAt = Date.now();
