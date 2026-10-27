@@ -59,7 +59,6 @@ PUBLISHED_FILES = (
     "market/data/comprehensive.json",
     "market/data/signals.json",
     "market/data/options.json",
-    "market/data/funds.json",
     "market/data/portfolio-special.json",
     "market/history/data/history.json",
     "market/history/data/score-candles.json",
@@ -453,7 +452,7 @@ def assert_safe_worktree(status_lines: list[str]) -> None:
         # the site tree. Ignore only this exact cache; all other unexpected
         # files remain fail-closed.
         safe_path = path in PUBLISHED_FILES or path == "market/symbols/data/" or path.startswith("market/symbols/data/history/")
-        runtime_cache = path == "market/data/options_history.sqlite"
+        runtime_cache = path in {"market/data/options_history.sqlite", "market/data/funds.json"}
         unsafe_status = "U" in (index_status, worktree_status) or "D" in (index_status, worktree_status) or index_status == "R" or worktree_status == "R" or " -> " in path
         if (not safe_path and not runtime_cache) or unsafe_status:
             unrelated.append(line)
@@ -538,7 +537,8 @@ def main() -> None:
     options_payload = export_from_scores_db(DB, OPTIONS_OUT)
     atomic_json(MARKET_OUT, market)
     atomic_json(COMPREHENSIVE_OUT, comprehensive)
-    atomic_json(FUND_OUT, fund_report)
+    if os.environ.get("SKIP_FUNDS_PUBLISH") != "1":
+        atomic_json(FUND_OUT, fund_report)
     atomic_json(PORTFOLIO_SPECIAL_OUT, portfolio_special)
     atomic_json(HISTORY_OUT, history)
     atomic_json(SITE / "market/history/data/score-candles.json", candles)

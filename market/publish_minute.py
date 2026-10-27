@@ -18,7 +18,6 @@ TEHRAN = ZoneInfo("Asia/Tehran")
 PUBLISH_FILES = [
     "market/data/market.json",
     "market/data/comprehensive.json",
-    "market/data/funds.json",
     "market/data/portfolio-special.json",
     "market/data/signals.json",
     "market/publish_minute.py",
@@ -42,7 +41,8 @@ def write_live_payload(root: Path, market: dict, comprehensive: dict, funds: dic
     """Write minute surfaces atomically without touching the daily options feed."""
     p.atomic_json(root / "market/data/market.json", market)
     p.atomic_json(root / "market/data/comprehensive.json", comprehensive)
-    p.atomic_json(root / "market/data/funds.json", funds)
+    if os.environ.get("SKIP_FUNDS_PUBLISH") != "1":
+        p.atomic_json(root / "market/data/funds.json", funds)
     if portfolio_special is not None:
         p.atomic_json(root / "market/data/portfolio-special.json", portfolio_special)
     p.atomic_json(root / "market/data/signals.json", signals)
@@ -60,6 +60,9 @@ def main() -> int:
     # Market-cap enrichment is unrelated to this table and would add ~800
     # extra provider calls to every minute publication.
     os.environ["SKIP_TSETMC_MARKET_CAP"] = "1"
+    # Client-type enrichment is refreshed by the dedicated enrichment path;
+    # do not block the one-minute publisher on hundreds of provider calls.
+    os.environ["SKIP_TSETMC_ENRICHMENT"] = "1"
     with p.connect() as conn:
         market = p.build_market(conn)
         market["published_at"] = datetime.now(TEHRAN).isoformat()
