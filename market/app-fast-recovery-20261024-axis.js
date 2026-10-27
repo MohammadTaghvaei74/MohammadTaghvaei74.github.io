@@ -482,6 +482,7 @@
       turnoverFilter.op = "";
       turnoverFilter.value = "";
     }
+    bindIndustryColumnFilters();
     if (currentData) renderIndustries(currentData);
   });
   bindIndustryColumnFilters();
