@@ -12,6 +12,25 @@
   let sortKey = null;
   let sortDirection = "none";
   let lastRendered = [];
+  let activePreset = null;
+  const presets = {
+    headline: {
+      score: [[">=", "4"], ["<=", "7"]],
+      score_position_pct: [["<", "20"]],
+      industry_score_position_pct: [["<", "30"]],
+      avg_trade_value_toman: [[">", "30"]],
+      queue_value_toman: [[">", "30"]],
+      legal_sell_pct: [[">", "40"]]
+    },
+    "tomorrow-match": {
+      score: [[">=", "3.5"], ["<=", "5"]],
+      score_position_pct: [["<", "30"]],
+      industry_score_position_pct: [["<", "30"]],
+      avg_trade_value_toman: [[">", "30"]],
+      queue_value_toman: [[">", "20"]],
+      legal_buy_pct: [[">", "30"]]
+    }
+  };
   const fa = "۰۱۲۳۴۵۶۷۸۹";
   const ar = "٠١٢٣٤٥٦٧٨٩";
   const esc = (value) => String(value == null ? "—" : value).replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -117,6 +136,7 @@
     body.innerHTML = display.map((row) => `<tr><td class="comprehensive-symbol"><a href="symbols/?symbol=${encodeURIComponent(row.symbol || "")}">${esc(row.symbol)}</a></td>${metricCell(row.industry, "industry", row.industry)}${metricCell(row.score, "score", row.score)}${metricCell(row.score_10d_total, "score", row.score_10d_total)}${metricCell(positionPercent(row.score_rank, row.score_rank_total), "position", positionPercent(row.score_rank, row.score_rank_total))}${metricCell(positionPercent(row.industry_score_rank, row.industry_score_rank_total), "position", positionPercent(row.industry_score_rank, row.industry_score_rank_total))}${metricCell(row.avg_trade_value_toman, "billion", row.avg_trade_value_toman)}${metricCell(row.last_close_diff_pct, "pct1", row.last_close_diff_pct)}${metricCell(row.queue_value_toman, "billion", row.queue_value_toman)}${metricCell(row.buy_per_capita_toman, "million0", row.buy_per_capita_toman)}${metricCell(row.buyer_power, "power", row.buyer_power)}${metricCell(row.legal_buy_pct, "pct0", row.legal_buy_pct)}${metricCell(row.legal_sell_pct, "pct0", row.legal_sell_pct)}</tr>`).join("") || `<tr><td colspan="13" class="comprehensive-empty">با این فیلتر داده‌ای پیدا نشد.</td></tr>`;
     const count = document.querySelector("#comprehensiveCount"); if (count) count.textContent = `${digits(display.length.toLocaleString("fa-IR"))} نماد از ${digits(rows.length.toLocaleString("fa-IR"))}`;
     table.querySelectorAll("thead tr:first-child th").forEach((header) => { const active = header.dataset.sortKey === sortKey && sortDirection !== "none"; header.setAttribute("aria-sort", active ? (sortDirection === "asc" ? "ascending" : "descending") : "none"); header.dataset.sortState = active ? sortDirection : "none"; });
+    document.querySelectorAll("[data-comprehensive-preset]").forEach((button) => { const selected = button.dataset.comprehensivePreset === activePreset; button.setAttribute("aria-pressed", selected ? "true" : "false"); });
   }
   function sortBy(key) {
     if (sortKey !== key) { sortKey = key; sortDirection = "desc"; }
@@ -159,7 +179,8 @@
     pair.querySelector("select").addEventListener("change", syncFilters);
     pair.querySelector(".remove-filter").addEventListener("click", () => { pair.remove(); syncFilters(); });
   }
-  function syncFilters() {
+  function syncFilters(preservePreset = false) {
+    if (!preservePreset) activePreset = null;
     table.querySelectorAll(".comprehensive-filter-row th").forEach((th) => { const key = th.dataset.filterKey; if (!key) return; filters[key] = {conditions: Array.from(th.querySelectorAll(".filter-pair")).map((pair) => { const select = pair.querySelector("select"); const input = pair.querySelector("input"); return {operator: select ? select.value : "", value: input ? input.value : ""}; })}; });
     render();
   }
@@ -168,8 +189,34 @@
     th.querySelectorAll(".column-filter,.filter-operator").forEach((control) => control.addEventListener(control.classList.contains("column-filter") ? "input" : "change", syncFilters));
     const add = document.createElement("button"); add.type = "button"; add.className = "add-filter"; add.textContent = "+ شرط"; add.setAttribute("aria-label", "اضافه کردن شرط"); add.addEventListener("click", () => addConditionControl(key, th)); th.appendChild(add);
   });
+  function clearFilterControls() {
+    table.querySelectorAll(".column-filter").forEach((input) => { input.value = ""; });
+    table.querySelectorAll(".filter-operator").forEach((select) => { select.value = ""; });
+    table.querySelectorAll(".extra-filter-pair").forEach((pair) => pair.remove());
+    Object.keys(filters).forEach((key) => { filters[key] = {conditions: [{operator: "", value: ""}]}; });
+  }
+  function setPresetCondition(key, index, operator, value) {
+    const host = table.querySelector(`.comprehensive-filter-row th[data-filter-key="${key}"]`);
+    if (!host) return;
+    let pairs = Array.from(host.querySelectorAll(".filter-pair"));
+    while (pairs.length <= index) { addConditionControl(key, host); pairs = Array.from(host.querySelectorAll(".filter-pair")); }
+    const pair = pairs[index];
+    const select = pair.querySelector(".filter-operator");
+    const input = pair.querySelector(".column-filter");
+    if (select) select.value = operator;
+    if (input) input.value = value;
+  }
+  function applyPreset(name) {
+    const preset = presets[name];
+    if (!preset) return;
+    clearFilterControls();
+    Object.entries(preset).forEach(([key, conditions]) => conditions.forEach(([operator, value], index) => setPresetCondition(key, index, operator, value)));
+    activePreset = name;
+    syncFilters(true);
+  }
   const clearButton = document.querySelector("#clearComprehensiveFilters");
-  if (clearButton) clearButton.addEventListener("click", () => { table.querySelectorAll(".column-filter").forEach((input) => { input.value = ""; }); table.querySelectorAll(".filter-operator").forEach((select) => { select.value = ""; }); table.querySelectorAll(".extra-filter-pair").forEach((pair) => pair.remove()); Object.keys(filters).forEach((key) => { filters[key] = {conditions: [{operator: "", value: ""}]}; }); render(); });
+  if (clearButton) clearButton.addEventListener("click", () => { clearFilterControls(); activePreset = null; syncFilters(true); });
+  document.querySelectorAll("[data-comprehensive-preset]").forEach((button) => { button.addEventListener("click", () => applyPreset(button.dataset.comprehensivePreset)); });
   const downloadButton = document.querySelector("#downloadComprehensiveXlsx");
   if (downloadButton) downloadButton.addEventListener("click", downloadXlsx);
   window.addEventListener("market:snapshot", (event) => { const detail = event && event.detail ? event.detail : {}; rows = mergeSnapshotRows(detail); const ranked = rows.filter((row) => num(row.score) != null).sort((a, b) => num(b.score) - num(a.score) || String(a.symbol || "").localeCompare(String(b.symbol || ""), "fa")); const groups = new Map(); ranked.forEach((row, index) => { if (row.score_rank == null) row.score_rank = index + 1; if (row.score_rank_total == null) row.score_rank_total = ranked.length; const industry = String(row.industry || ""); if (industry) { if (!groups.has(industry)) groups.set(industry, []); groups.get(industry).push(row); } }); groups.forEach((members) => members.forEach((row, index) => { if (row.industry_score_rank == null) row.industry_score_rank = index + 1; if (row.industry_score_rank_total == null) row.industry_score_rank_total = members.length; })); defaultOrder = rows.slice(); rows.forEach((row, index) => { row._defaultIndex = index; }); render(); });
