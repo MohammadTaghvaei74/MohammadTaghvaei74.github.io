@@ -417,7 +417,7 @@
       const rank = numeric(row.rank) || index + 1;
       const rankPercent = numeric(row.rank_position_pct) || Math.round(rank / totalIndustries * 100);
       const moneyWhere = activeIndustryPreset !== "money-where" || (rankPercent < 20 && numeric(row.turnover_toman) !== null && row.turnover_toman / 1000000000 > 500);
-      return moneyWhere && (!query || name.toLocaleLowerCase("fa").indexOf(query) >= 0) && matchesTwo(rank, industryColumnFilters.rank, 1) && matchesTwo(row.count, industryColumnFilters.count, 1) && matchesTwo(row.median, industryColumnFilters.median, 1) && matchesTwo(row.turnover_toman, industryColumnFilters.turnover, 1000000000) && matchesTwo(row.avg_last_close_diff_pct, industryColumnFilters.diff, 1);
+      return moneyWhere && (!query || name.toLocaleLowerCase("fa").indexOf(query) >= 0) && matchesTwo(rankPercent, industryColumnFilters.rank, 1) && matchesTwo(row.count, industryColumnFilters.count, 1) && matchesTwo(row.median, industryColumnFilters.median, 1) && matchesTwo(row.turnover_toman, industryColumnFilters.turnover, 1000000000) && matchesTwo(row.avg_last_close_diff_pct, industryColumnFilters.diff, 1);
     });
     const markup = visibleRows.map((row, index) => {
       const score = numeric(row.median !== undefined ? row.median : row.median_score);
@@ -469,6 +469,19 @@
   const industryPresetButton = document.querySelector('[data-industry-preset="money-where"]');
   if (industryPresetButton) industryPresetButton.addEventListener("click", () => {
     activeIndustryPreset = activeIndustryPreset === "money-where" ? null : "money-where";
+    const rankFilter = industryColumnFilters.rank[0];
+    const turnoverFilter = industryColumnFilters.turnover[0];
+    if (activeIndustryPreset === "money-where") {
+      rankFilter.op = "<";
+      rankFilter.value = "20";
+      turnoverFilter.op = ">";
+      turnoverFilter.value = "500";
+    } else {
+      rankFilter.op = "";
+      rankFilter.value = "";
+      turnoverFilter.op = "";
+      turnoverFilter.value = "";
+    }
     if (currentData) renderIndustries(currentData);
   });
   bindIndustryColumnFilters();
