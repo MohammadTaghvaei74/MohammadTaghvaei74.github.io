@@ -10,6 +10,7 @@
   let loading = false;
   let refreshTimer = null;
   let industryFilterBound = false;
+  let activeIndustryPreset = null;
   const industryColumnFilters = {industry: [{op: "contains", value: ""}], rank: [{op: "", value: ""}, {op: "", value: ""}], count: [{op: "", value: ""}, {op: "", value: ""}], median: [{op: "", value: ""}, {op: "", value: ""}], turnover: [{op: "", value: ""}, {op: "", value: ""}], diff: [{op: "", value: ""}, {op: "", value: ""}]};
   const industryFilterJoin = {rank: "and", count: "and", median: "and", turnover: "and", diff: "and"};
 
@@ -414,7 +415,9 @@
     const visibleRows = rows.filter((row, index) => {
       const name = String(row.industry || "");
       const rank = numeric(row.rank) || index + 1;
-      return (!query || name.toLocaleLowerCase("fa").indexOf(query) >= 0) && matchesTwo(rank, industryColumnFilters.rank, 1) && matchesTwo(row.count, industryColumnFilters.count, 1) && matchesTwo(row.median, industryColumnFilters.median, 1) && matchesTwo(row.turnover_toman, industryColumnFilters.turnover, 1000000000) && matchesTwo(row.avg_last_close_diff_pct, industryColumnFilters.diff, 1);
+      const rankPercent = numeric(row.rank_position_pct) || Math.round(rank / totalIndustries * 100);
+      const moneyWhere = activeIndustryPreset !== "money-where" || (rankPercent < 20 && numeric(row.turnover_toman) !== null && row.turnover_toman / 1000000000 > 500);
+      return moneyWhere && (!query || name.toLocaleLowerCase("fa").indexOf(query) >= 0) && matchesTwo(rank, industryColumnFilters.rank, 1) && matchesTwo(row.count, industryColumnFilters.count, 1) && matchesTwo(row.median, industryColumnFilters.median, 1) && matchesTwo(row.turnover_toman, industryColumnFilters.turnover, 1000000000) && matchesTwo(row.avg_last_close_diff_pct, industryColumnFilters.diff, 1);
     });
     const markup = visibleRows.map((row, index) => {
       const score = numeric(row.median !== undefined ? row.median : row.median_score);
@@ -460,7 +463,14 @@
     });
     const textInput = table.querySelector('[data-industry-filter="industry"]');
     if (textInput) textInput.value = industryColumnFilters.industry[0].value;
+    const presetButton = document.querySelector('[data-industry-preset="money-where"]');
+    if (presetButton) presetButton.setAttribute("aria-pressed", activeIndustryPreset === "money-where" ? "true" : "false");
   }
+  const industryPresetButton = document.querySelector('[data-industry-preset="money-where"]');
+  if (industryPresetButton) industryPresetButton.addEventListener("click", () => {
+    activeIndustryPreset = activeIndustryPreset === "money-where" ? null : "money-where";
+    if (currentData) renderIndustries(currentData);
+  });
   bindIndustryColumnFilters();
 
   const optionsNumber = (value, digits = 0) => { const parsed = numeric(value); return parsed === null ? "—" : core.faDigits(parsed.toLocaleString("fa-IR", { maximumFractionDigits: digits, minimumFractionDigits: digits })); };
