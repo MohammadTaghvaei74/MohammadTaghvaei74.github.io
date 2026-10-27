@@ -22,6 +22,7 @@
   const faDate = (day) => { const d = new Date(String(day) + 'T12:00:00Z'); return Number.isNaN(d.getTime()) ? '—' : d.toLocaleDateString('fa-IR-u-ca-persian', { timeZone:'UTC', year:'numeric', month:'2-digit', day:'2-digit' }); };
   const faTime = (value) => C.digits(String(value || '').slice(0, 5));
   const addMinutes = (value, minutes) => { const match = String(value || '').match(/(\d{2}):(\d{2})$/); if (!match) return '—'; const total = Number(match[1]) * 60 + Number(match[2]) + minutes; return String(Math.floor(total / 60)).padStart(2, '0') + ':' + String(total % 60).padStart(2, '0'); };
+  const tehranDay = () => { const parts = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Tehran', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(new Date()); const get = (type) => parts.find((part) => part.type === type)?.value; return get('year') + '-' + get('month') + '-' + get('day'); };
   const candleRange = (row, timeframe) => { if (timeframe === '1d') return faDate(row.day); const start = String(row.time || '').slice(11, 16); const width = timeframe === '1m' ? 1 : timeframe === '30m' ? 30 : 15; return faTime(start) + ' تا ' + faTime(addMinutes(start, width)); };
   const load = (url) => Promise.resolve().then(() => { const controller = typeof AbortController === 'function' ? new AbortController() : null; const options = controller ? { cache:'no-store', signal:controller.signal } : { cache:'no-store' }; return fetch(url + (url.includes('?') ? '&' : '?') + 'ts=' + Date.now(), options); }).then((r) => { if (!r.ok) throw Error('HTTP ' + r.status); return r.json(); });
   const download = (data, type, name) => { const url = URL.createObjectURL(new Blob([data], {type})); const a = document.createElement('a'); a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 2000); };
@@ -32,7 +33,8 @@
   function scoreCandles(candlesByFrame, timeframe, day, mode) {
     const source = Array.isArray(candlesByFrame && candlesByFrame[timeframe]) ? candlesByFrame[timeframe] : [];
     const days = Array.from(new Set(source.map((row) => row && row.day).filter(Boolean))).sort();
-    const activeDay = timeframe === '1d' ? null : (days.includes(day) ? day : days[days.length - 1]);
+    const currentDay = tehranDay();
+    const activeDay = timeframe === '1d' ? null : timeframe === '1m' ? (days.includes(currentDay) ? currentDay : null) : (days.includes(day) ? day : days[days.length - 1]);
     const sourceRows = timeframe === '1d' ? source : source.filter((row) => row.day === activeDay);
     let rows = sourceRows;
     if (timeframe !== '1d' && timeframe !== '1m' && activeDay) {
@@ -47,7 +49,7 @@
     const timeframeButtons = ['1m', '15m', '30m', '1d'].map((key) => '<button type="button" data-score-timeframe="' + key + '" class="' + (key === timeframe ? 'active' : '') + '">' + (key === '1m' ? '۱ دقیقه' : key === '15m' ? '۱۵ دقیقه' : key === '30m' ? '۳۰ دقیقه' : '۱ روزه') + '</button>').join('');
     const modeButtons = ['candle', 'line'].map((key) => '<button type="button" data-score-mode="' + key + '" class="' + (key === mode ? 'active' : '') + '"' + (timeframe === '1m' && key === 'candle' ? ' disabled aria-disabled="true"' : '') + '>' + (key === 'candle' ? 'کندل' : 'خطی') + '</button>').join('');
     const controls = '<div class="score-candle-controls"><div class="score-control-group"><span class="score-control-label">تایم‌فریم</span><div class="score-timeframes">' + timeframeButtons + '</div></div><div class="score-control-group"><span class="score-control-label">نوع نمودار</span><div class="score-chart-modes">' + modeButtons + '</div></div>' + (timeframe === '15m' || timeframe === '30m' ? '<label class="score-day-label">روز <select id="scoreDay">' + options + '</select></label>' : '') + '</div>';
-    const title = timeframe === '1d' ? 'امتیاز روزانه · ۳۰ روز اخیر' : 'امتیاز · ' + (timeframe === '1m' ? '۱ دقیقه‌ای · روز جاری' : timeframe === '15m' ? '۱۵ دقیقه‌ای' : '۳۰ دقیقه‌ای') + ' · ' + (activeDay ? esc(faDate(activeDay)) : 'آخرین روز');
+    const title = timeframe === '1d' ? 'امتیاز روزانه · ۳۰ روز اخیر' : 'امتیاز · ' + (timeframe === '1m' ? (activeDay ? '۱ دقیقه‌ای · روز جاری' : '۱ دقیقه‌ای · امروز هنوز داده‌ای ثبت نشده') : timeframe === '15m' ? '۱۵ دقیقه‌ای' : '۳۰ دقیقه‌ای') + ' · ' + (activeDay ? esc(faDate(activeDay)) : 'آخرین روز');
     if (timeframe === '1m' && mode === 'candle') return '<div class="symbol-chart score-chart-root" data-chart-width="980"><div class="symbol-chart-head"><b>' + title + '</b><small>در تایم‌فریم ۱ دقیقه فقط حالت خطی نمایش داده می‌شود.</small></div>' + controls + '<p class="meta">نمودار کندلی برای داده‌های یک‌دقیقه‌ای غیرفعال است.</p></div>';
     if (!observed.length) return '<div class="symbol-chart score-chart-root" data-chart-width="980"><div class="symbol-chart-head"><b>' + title + '</b><small>داده معتبر برای این بازه موجود نیست.</small></div>' + controls + '<p class="meta">برای این سهم در جلسه ۰۹:۰۰ تا ۱۲:۳۰ نمونه‌ای ثبت نشده است.</p></div>';
 
