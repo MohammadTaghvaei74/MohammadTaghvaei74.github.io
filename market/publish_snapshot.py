@@ -86,6 +86,8 @@ TEHRAN = ZoneInfo("Asia/Tehran")
 def is_publish_window(now: datetime | None = None) -> bool:
     """Allow market-data publication only during the Tehran market window."""
     now = now or datetime.now(TEHRAN)
+    if os.environ.get("FORCE_HEAVY_PUBLISH") == "1":
+        return now.weekday() in (0, 1, 2, 5, 6)
     # Iran cash market operates Saturday through Wednesday.
     if now.weekday() not in (0, 1, 2, 5, 6):
         return False
