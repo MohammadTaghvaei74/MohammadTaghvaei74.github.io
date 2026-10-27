@@ -233,8 +233,6 @@
     const min = Math.min(...actualValues);
     const max = Math.max(...actualValues);
     const chartMax = max === min ? max + 0.01 : max;
-    const min = scale.min;
-    const max = scale.max === scale.min ? scale.max + 0.01 : scale.max;
     const x = (index) => pad.left + index * (width - pad.left - pad.right) / Math.max(days.length - 1, 1);
     const y = (value) => pad.top + (chartMax - value) * (height - pad.top - pad.bottom) / (chartMax - min);
     const marketPath = pathFor(series.market, x, y);
@@ -477,8 +475,9 @@
     const faText = (value) => value === null || value === undefined || value === "" ? "—" : core.faDigits(String(value));
     const scoreMarkup = (value) => numeric(value) === null ? "—" : `<bdi dir="ltr">${escapeHtml(core.formatSigned(value, 1))}</bdi>`;
     const bubbleMarkup = (value) => numeric(value) === null ? "—" : `<bdi dir="ltr">${escapeHtml(core.formatSigned(value, 1))}٪</bdi>`;
+    const historyBubbleMarkup = (value) => numeric(value) === null ? "—" : `<bdi dir="ltr">${escapeHtml(core.formatSigned(value, 2))}٪</bdi>`;
     const boardMarkup = (value) => numeric(value) === null ? "—" : `<bdi dir="ltr">${escapeHtml(core.formatSigned(value, 2))}</bdi>`;
-    element.innerHTML = rows.map((row, index) => `<tr><td>${core.faDigits(index + 1)}</td><td><b>${escapeHtml(row.symbol || "—")}</b>${String(row.description || "").includes("اهرمی") ? ' <span class="fund-leveraged">🔥</span>' : ""}</td><td>${n(row.liquidity, 1)}</td><td>${faText(row.portfolio_last_update || row.report_date)}</td><td>${bubbleMarkup(row.bubble_pct)}</td><td>${scoreMarkup(row.portfolio_score)}</td><td>${boardMarkup(row.board_score)}</td><td>${scoreMarkup(row.score_diff)}</td></tr>`).join("") || `<tr><td colspan="8">گزارش صندوق‌ها هنوز آماده نیست.</td></tr>`;
+    element.innerHTML = rows.map((row, index) => `<tr><td>${core.faDigits(index + 1)}</td><td><b>${escapeHtml(row.symbol || "—")}</b>${String(row.description || "").includes("اهرمی") ? ' <span class="fund-leveraged">🔥</span>' : ""}</td><td>${n(row.liquidity, 1)}</td><td>${faText(row.portfolio_last_update || row.report_date)}</td><td>${bubbleMarkup(row.bubble_pct)}</td><td>${historyBubbleMarkup(row.bubble_min_30d)}</td><td>${historyBubbleMarkup(row.bubble_max_30d)}</td><td>${scoreMarkup(row.portfolio_score)}</td><td>${boardMarkup(row.board_score)}</td><td>${scoreMarkup(row.score_diff)}</td></tr>`).join("") || `<tr><td colspan="10">گزارش صندوق‌ها هنوز آماده نیست.</td></tr>`;
   }
 
   function renderOptions(options) {
