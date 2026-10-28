@@ -78,3 +78,28 @@ def test_intraday_symbol_rows_are_observed_minute_bars_and_keep_missing_prices_n
     assert [bar['score'] for bar in bars['فولاد']] == [4.0, 6.0]
     assert bars['فولاد'][0]['price_open'] is None
     conn.close()
+
+
+def test_queue_count_uses_last_snapshot_per_symbol_and_counts_each_side(tmp_path):
+    db = tmp_path / 'scores.db'
+    conn = make_scores_db(db)
+
+
+    conn.executemany(
+        'INSERT INTO stock_snapshots(trading_date,timestamp,valid,symbol,buy_queue_value_toman,sell_queue_value_toman) VALUES (?,?,?,?,?,?)',
+        [
+            ('2026-10-27', '2026-10-27T09:15:00+03:30', 1, 'AAA', 10, 0),
+            ('2026-10-27', '2026-10-27T09:15:10+03:30', 1, 'AAA', 0, 20),
+            ('2026-10-27', '2026-10-27T09:15:20+03:30', 1, 'BBB', 30, 40),
+            ('2026-10-27', '2026-10-27T09:16:00+03:30', 1, 'AAA', 10, 0),
+            ('2026-10-27', '2026-10-27T09:16:00+03:30', 1, 'BBB', 0, 40),
+            ('2026-10-27', '2026-10-27T09:16:00+03:30', 0, 'CCC', 50, 50),
+        ],
+    )
+    conn.commit()
+    rows = publish_snapshot.load_intraday_queue_count_rows(conn, '2026-10-27')
+    assert rows == [
+        {'timestamp': '2026-10-27T09:15:20+03:30', 'time': '09:15', 'buy_queue_count': 1, 'sell_queue_count': 2},
+        {'timestamp': '2026-10-27T09:16:00+03:30', 'time': '09:16', 'buy_queue_count': 1, 'sell_queue_count': 1},
+    ]
+    conn.close()

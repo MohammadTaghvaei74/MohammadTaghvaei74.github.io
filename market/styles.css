@@ -159,6 +159,7 @@ th[role="button"][aria-sort="descending"]:after{content:"↓";color:var(--blue);
 @media(max-width:1050px){.top-charts{grid-template-columns:1fr}}
 @media(max-width:720px){.top-charts{margin-top:10px}.top-charts .chart-wrap{height:230px}}
 .allocation-bar,.compact-signal-panel{display:none!important}
+.queue-count-section{margin-top:22px}.queue-count-panel{padding:12px 18px 10px}.queue-count-panel .chart-wrap{height:360px;margin-top:0}.queue-count-panel .chart-legend{padding-top:4px;gap:14px;font-size:13px}@media(max-width:720px){.queue-count-section{margin-top:10px}.queue-count-panel .chart-wrap{height:230px}}
 
 @media (max-width: 720px) {
   .compact-signal-panel { min-height: 0; padding: 15px 13px; }
