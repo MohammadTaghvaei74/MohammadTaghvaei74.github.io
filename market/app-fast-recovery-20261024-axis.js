@@ -248,42 +248,6 @@
   }
 
 
-  function movingAverage(values, period) {
-    return values.map((value, index) => {
-      if (numeric(value) === null || index + 1 < period) return null;
-      const window = values.slice(index + 1 - period, index + 1).map(numeric);
-      return window.every((item) => item !== null) ? window.reduce((sum, item) => sum + item, 0) / period : null;
-    });
-  }
-
-  function renderTurnoverChart(data) {
-    const svg = $("#turnoverChart");
-    if (!svg) return;
-    const days = [...(Array.isArray(data.daily) ? data.daily : [])].reverse();
-    const values = days.map((row) => {
-      const toman = numeric(row.final_turnover_toman);
-      return toman === null || toman < 0 ? null : toman / 1e12;
-    });
-    const ma5 = movingAverage(values, 5);
-    const ma20 = movingAverage(values, 20);
-    const actual = [...values, ...ma5, ...ma20].filter((value) => value !== null);
-    const width = 900, height = 310, pad = { top: 22, right: 20, bottom: 42, left: 58 };
-    if (!actual.length) {
-      svg.innerHTML = `<text class="chart-empty" x="450" y="155" text-anchor="middle">تاریخچه ارزش معاملات معتبر موجود نیست.</text>`;
-      text("#turnoverStatus", "داده معتبر کافی نیست");
-      return;
-    }
-    const max = Math.max(...actual, 1) * 1.12;
-    const x = (index) => pad.left + index * (width - pad.left - pad.right) / Math.max(days.length - 1, 1);
-    const y = (value) => pad.top + (max - value) * (height - pad.top - pad.bottom) / max;
-    const path = (series) => series.map((value, index) => numeric(value) === null ? "" : `${index && numeric(series[index - 1]) !== null ? "L" : "M"}${x(index).toFixed(1)},${y(value).toFixed(1)}`).filter(Boolean).join(" ");
-    const ticks = [0, max / 2, max].map((tick) => `<line class="chart-grid-line" x1="${pad.left}" x2="${width - pad.right}" y1="${y(tick)}" y2="${y(tick)}"/><text class="chart-label" x="${pad.left - 10}" y="${y(tick) + 4}" text-anchor="end">${core.faDigits(tick.toLocaleString("fa-IR", { maximumFractionDigits: 1 }))}</text>`).join("");
-    const labels = days.map((day, index) => `<text class="chart-label" x="${x(index)}" y="${height - 10}" text-anchor="middle">${escapeHtml(core.faDigits(String(day.trading_date || "").slice(5)))}</text>`).join("");
-    const points = values.map((value, index) => numeric(value) === null ? "" : `<circle class="turnover-point" cx="${x(index)}" cy="${y(value)}" r="3"/>`).join("");
-    svg.innerHTML = `${ticks}${labels}<path class="turnover-path" d="${path(values)}"/><path class="ma5-path" d="${path(ma5)}"/><path class="ma20-path" d="${path(ma20)}"/>${points}`;
-    text("#turnoverStatus", `${core.faDigits(values.filter((value) => value !== null).length)} روز کامل و تأییدشده`);
-  }
-
   function renderQueueChart(data) {
     const svg = $("#queueChart");
     if (!svg) return;
@@ -305,7 +269,8 @@
   function renderChart(data) {
     const svg = $("#marketChart");
     if (!svg) return;
-    // Include the full observed session; preserve genuine gaps without inventing samples.
+    // The market score view must include the full observed session, including
+    // the opening hour. Missing observations remain gaps; no values are made up.
     const points = densifyIntraday(Array.isArray(data.intraday) ? data.intraday : [], "09:00");
     const days = points;
     const series = {
@@ -316,13 +281,13 @@
     const actualValues = [series.leaders, series.market].flat().map(numeric).filter((value) => value !== null);
     const width = 1200, height = 560, pad = { top: 8, right: 24, bottom: 30, left: 62 };
     if (!actualValues.length) {
-      svg.innerHTML = `<text class="chart-empty" x="600" y="180" text-anchor="middle">دادهٔ امروز از ۰۹:۰۰ هنوز موجود نیست.</text>`;
+      svg.innerHTML = `<text class="chart-empty" x="600" y="180" text-anchor="middle">دادهٔ امروز از ۰۹:۰۵ هنوز موجود نیست.</text>`;
       return;
     }
-    // Fixed market frame: -3 (sell queue) to +3 (buy queue).
-    // The boundary lines therefore remain exactly on the plot edges.
-    const min = -3;
-    const max = 3;
+    // Keep the semantic market frame stable: -3 (sell queue) to +3 (buy
+    // queue) is always visible, while genuine outliers may extend the frame.
+    const min = Math.min(-3, ...actualValues.map((value) => Math.floor(value)));
+    const max = Math.max(3, ...actualValues.map((value) => Math.ceil(value)));
     const x = (index) => pad.left + index * (width - pad.left - pad.right) / Math.max(days.length - 1, 1);
     const y = (value) => pad.top + (max - value) * (height - pad.top - pad.bottom) / Math.max(max - min, 1e-9);
     const marketPath = pathFor(series.market, x, y);
@@ -363,12 +328,23 @@
         const market = numeric(series.market[index]);
         const leaders = numeric(series.leaders[index]);
         tooltip.innerHTML = `<strong>ساعت ${core.faDigits(String(point.time || "—").slice(0, 5))}</strong><span class="market-value">کل بازار: ${market === null ? "—" : escapeHtml(signed(market, 2))}</span><span class="leader-value">لیدرها: ${leaders === null ? "—" : escapeHtml(signed(leaders, 2))}</span>`;
+        tooltip.hidden = false;
+        const anchor = market === null ? (leaders === null ? 0 : leaders) : market;
         const box = svg.getBoundingClientRect();
         const wrapBox = chartWrap.getBoundingClientRect();
-        tooltip.hidden = false;
-        tooltip.style.left = `${(x(index) / width) * box.width + (box.left - wrapBox.left)}px`;
-        const anchor = market === null ? (leaders === null ? 0 : leaders) : market;
-        tooltip.style.top = `${(y(anchor) / height) * box.height + (box.top - wrapBox.top)}px`;
+        const anchorX = (x(index) / width) * box.width + (box.left - wrapBox.left);
+        const anchorY = (y(anchor) / height) * box.height + (box.top - wrapBox.top);
+        const gap = 14;
+        const edge = 8;
+        const tooltipWidth = tooltip.offsetWidth;
+        const tooltipHeight = tooltip.offsetHeight;
+        const rightX = anchorX + gap;
+        const leftX = anchorX - tooltipWidth - gap;
+        const preferredX = rightX + tooltipWidth <= chartWrap.clientWidth - edge ? rightX : leftX;
+        const maxX = Math.max(edge, chartWrap.clientWidth - tooltipWidth - edge);
+        const maxY = Math.max(edge, chartWrap.clientHeight - tooltipHeight - edge);
+        tooltip.style.left = `${Math.max(edge, Math.min(preferredX, maxX))}px`;
+        tooltip.style.top = `${Math.max(edge, Math.min(anchorY - tooltipHeight / 2, maxY))}px`;
       }
     };
     const hideTooltip = () => {
@@ -626,7 +602,6 @@
   function render(data, options) {
     currentData = data;
     renderMetrics(data);
-    renderTurnoverChart(data);
     renderQueueChart(data);
     renderQueueCountChart(data);
     renderChart(data);
