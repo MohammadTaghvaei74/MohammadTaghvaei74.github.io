@@ -274,7 +274,7 @@
     signedPct: signedPercent, signedPct1: signedPercentOne, signedScore: signedScore,
     summaryColumns: SUMMARY_COLUMNS, operatorOptions: OPERATOR_OPTIONS,
     textOperatorOptions: TEXT_OPERATOR_OPTIONS,
-    escapeHtml: escapeHtml, sourceState: sourceState
+    escapeHtml: escapeHtml, percentMarkup: percentMarkup, sourceState: sourceState
   };
 });
 
@@ -411,7 +411,7 @@ if (typeof window !== "undefined") {
       text($("industryCaption"), "میانه امتیاز " + E.formatNumber(group.score, 1) + " · " + E.formatNumber(group.count, 0) + " نماد");
       var rows = E.sortStocks(group.stocks, state.direction);
       body.innerHTML = rows.length ? rows.map(function (stock, index) {
-        return "<tr><td>" + E.formatNumber(index + 1, 0) + "</td><th scope=\"row\"><a class=\"stock-symbol-link\" href=\"../symbols/?symbol=" + encodeURIComponent(stock.symbol) + "\">" + E.escapeHtml(stock.symbol) + "</a></th><td>" + E.formatNumber(stock.score, 1) + "</td><td class=\"" + (E.finite(stock.last_pct) && stock.last_pct >= 0 ? "up" : "down") + "\">" + percentMarkup(stock.last_pct, 0) + "</td><td>" + (E.finite(stock.trade_value_toman) ? E.formatBillion(stock.trade_value_toman) + " میلیارد" : "—") + "</td></tr>";
+        return "<tr><td>" + E.formatNumber(index + 1, 0) + "</td><th scope=\"row\"><a class=\"stock-symbol-link\" href=\"../symbols/?symbol=" + encodeURIComponent(stock.symbol) + "\">" + E.escapeHtml(stock.symbol) + "</a></th><td>" + E.formatNumber(stock.score, 1) + "</td><td class=\"" + (E.finite(stock.last_pct) && stock.last_pct >= 0 ? "up" : "down") + "\">" + E.percentMarkup(stock.last_pct, 0) + "</td><td>" + (E.finite(stock.trade_value_toman) ? E.formatBillion(stock.trade_value_toman) + " میلیارد" : "—") + "</td></tr>";
       }).join("") : "<tr><td colspan=\"5\" class=\"empty\">جزئیات سهام این صنعت در منبع فعلی موجود نیست.</td></tr>";
     }
     function render() {
