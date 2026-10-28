@@ -8,6 +8,9 @@
 }
 .pulse-panel .panel-note:empty{display:none}
 .chart-hit-area{fill:transparent;stroke:none;cursor:crosshair}
+
+/* Stock names are actionable everywhere they lead to the symbol dossier. */
+.ranking-symbol,.stock-symbol-link,.signal-symbol-link{color:var(--orange);font-weight:700;text-decoration:none;border-radius:6px;padding:2px 5px;margin:-2px -5px;transition:background-color .18s ease,color .18s ease}.ranking-symbol:hover,.stock-symbol-link:hover,.signal-symbol-link:hover{color:var(--ink);background:rgba(255,174,115,.18);text-decoration:underline;text-underline-offset:3px}.ranking-symbol:focus-visible,.stock-symbol-link:focus-visible,.signal-symbol-link:focus-visible{outline:2px solid var(--lime);outline-offset:2px}
 .chart-hit-area:focus{outline:none;stroke:var(--lime);stroke-width:1;stroke-opacity:.55}
 .chart-crosshair{stroke:var(--lime);stroke-width:1;stroke-dasharray:4 4;opacity:.65}.chart-limit-positive{stroke:#5cae70;stroke-width:2}.chart-limit-negative{stroke:#c96b70;stroke-width:2}
 .chart-label{font-size:34px;font-weight:600}
@@ -101,6 +104,7 @@ body{background:var(--bg);color:var(--ink);background-image:radial-gradient(circ
 /* Site-wide typography baseline: Vazirmatn is the single UI font. */
 html,body,button,input,select,textarea,table,th,td{font-family:var(--fa)}
 body{font-size:16px;line-height:1.8}
+.ranking-symbol,.stock-symbol-link,.signal-symbol-link{color:var(--orange,#e97845);font-weight:700;text-decoration:none;border-radius:6px;padding:2px 5px;margin:-2px -5px;transition:background-color .18s ease,color .18s ease}.ranking-symbol:hover,.stock-symbol-link:hover,.signal-symbol-link:hover{color:var(--forest,#173b3f);background:#fff0e7;text-decoration:underline;text-underline-offset:3px}.ranking-symbol:focus-visible,.stock-symbol-link:focus-visible,.signal-symbol-link:focus-visible{outline:2px solid var(--orange,#e97845);outline-offset:2px}
 .main-nav{font-size:14px}
 .market-state{font-size:14px}
 th{font-size:14px;font-weight:600}
