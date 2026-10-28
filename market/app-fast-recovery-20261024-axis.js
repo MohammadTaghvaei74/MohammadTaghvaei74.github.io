@@ -202,8 +202,10 @@
     if (!svg) return;
     const rows = Array.isArray(data.queue_count_intraday) ? data.queue_count_intraday : [];
     const values = rows.flatMap((row) => [numeric(row.buy_queue_count), numeric(row.sell_queue_count)]).filter((value) => value !== null);
+    const chartWrap = svg.parentElement;
     if (!values.length) {
       svg.innerHTML = `<text class="chart-empty" x="600" y="145" text-anchor="middle">داده تعداد صف‌ها برای امروز موجود نیست.</text>`;
+      if (chartWrap) { const oldTooltip = chartWrap.querySelector(".queue-count-tooltip"); if (oldTooltip) oldTooltip.remove(); }
       return;
     }
     const width = 1200, height = 460, pad = {top: 14, right: 24, bottom: 30, left: 78};
@@ -216,8 +218,35 @@
     const tickValues = Array.from({length: tickMax / tickStep + 1}, (_, index) => index * tickStep);
     const ticks = tickValues.map((tick) => `<line class="${tick === 0 ? "chart-zero" : "chart-grid-line"}" x1="${pad.left}" x2="${width-pad.right}" y1="${y(tick)}" y2="${y(tick)}"/><text class="chart-label" x="${pad.left-10}" y="${y(tick)+5}" text-anchor="end">${core.formatInteger(tick)}</text>`).join("");
     const labels = rows.map((row, index) => index === 0 || index === rows.length - 1 || /:(00|30)$/.test(row.time || "") ? `<text class="chart-label" x="${x(index)}" y="${height-8}" text-anchor="middle">${escapeHtml(core.faDigits(row.time || "—"))}</text>` : "").join("");
-    svg.innerHTML = `${ticks}${labels}<path class="chart-path chart-buy" d="${path("buy_queue_count")}"/><path class="chart-path chart-sell" d="${path("sell_queue_count")}"/>`;
+    const plotWidth = width - pad.left - pad.right;
+    const step = plotWidth / Math.max(rows.length - 1, 1);
+    svg.innerHTML = `${ticks}${labels}<path class="chart-path chart-buy" d="${path("buy_queue_count")}"/><path class="chart-path chart-sell" d="${path("sell_queue_count")}"/><line class="chart-crosshair queue-count-crosshair" x1="${x(0)}" x2="${x(0)}" y1="${pad.top}" y2="${height-pad.bottom}" opacity="0"/><circle class="queue-count-hover-buy" cx="${x(0)}" cy="${y(numeric(rows[0].buy_queue_count) || 0)}" r="6" opacity="0"/><circle class="queue-count-hover-sell" cx="${x(0)}" cy="${y(numeric(rows[0].sell_queue_count) || 0)}" r="6" opacity="0"/><rect class="chart-hit-area queue-count-hit-area" x="${pad.left}" y="${pad.top}" width="${plotWidth}" height="${height-pad.top-pad.bottom}" tabindex="0" aria-label="نمایش تعداد صف‌ها در هر دقیقه"/>`;
+    if (!chartWrap) return;
+    let tooltip = chartWrap.querySelector(".queue-count-tooltip");
+    if (!tooltip) { tooltip = document.createElement("div"); tooltip.className = "chart-tooltip-html queue-count-tooltip"; tooltip.hidden = true; chartWrap.appendChild(tooltip); }
+    let lastIndex = -1;
+    const showTooltip = (index) => {
+      if (index === lastIndex) return;
+      lastIndex = index;
+      const row = rows[index] || {};
+      const buy = numeric(row.buy_queue_count);
+      const sell = numeric(row.sell_queue_count);
+      const time = String(row.time || row.timestamp || "—").slice(0, 5);
+      tooltip.innerHTML = `<strong>ساعت ${core.faDigits(time)}</strong><span class="queue-buy-value">تعداد صف خرید: ${buy === null ? "—" : escapeHtml(core.formatInteger(buy))}</span><span class="queue-sell-value">تعداد صف فروش: ${sell === null ? "—" : escapeHtml(core.formatInteger(sell))}</span>`;
+      tooltip.hidden = false;
+      const box = svg.getBoundingClientRect(), wrapBox = chartWrap.getBoundingClientRect();
+      tooltip.style.left = `${(x(index) / width) * box.width + (box.left - wrapBox.left)}px`;
+      tooltip.style.top = "8px";
+      const crosshair = svg.querySelector(".queue-count-crosshair");
+      if (crosshair) { crosshair.setAttribute("x1", x(index)); crosshair.setAttribute("x2", x(index)); crosshair.setAttribute("opacity", "1"); }
+      [[".queue-count-hover-buy", buy, "chart-buy"], [".queue-count-hover-sell", sell, "chart-sell"]].forEach(([selector, value, className]) => { const dot = svg.querySelector(selector); if (dot && value !== null) { dot.setAttribute("cx", x(index)); dot.setAttribute("cy", y(value)); dot.setAttribute("opacity", "1"); dot.setAttribute("class", `${selector.slice(1)} ${className}`); } });
+    };
+    const hideTooltip = () => { tooltip.hidden = true; const crosshair = svg.querySelector(".queue-count-crosshair"); if (crosshair) crosshair.setAttribute("opacity", "0"); svg.querySelectorAll(".queue-count-hover-buy,.queue-count-hover-sell").forEach((dot) => dot.setAttribute("opacity", "0")); lastIndex = -1; };
+    const moveTooltip = (event) => { const box = svg.getBoundingClientRect(); const svgX = (event.clientX - box.left) * width / box.width; showTooltip(Math.max(0, Math.min(rows.length - 1, Math.round((svgX - pad.left) / step)))); };
+    const hitArea = svg.querySelector(".queue-count-hit-area");
+    if (hitArea) { hitArea.addEventListener("pointerenter", moveTooltip); hitArea.addEventListener("pointermove", moveTooltip); hitArea.addEventListener("focus", () => showTooltip(0)); hitArea.addEventListener("pointerleave", hideTooltip); hitArea.addEventListener("blur", hideTooltip); }
   }
+
 
   function renderQueueChart(data) {
     const svg = $("#queueChart");
