@@ -328,12 +328,23 @@
         const market = numeric(series.market[index]);
         const leaders = numeric(series.leaders[index]);
         tooltip.innerHTML = `<strong>ساعت ${core.faDigits(String(point.time || "—").slice(0, 5))}</strong><span class="market-value">کل بازار: ${market === null ? "—" : escapeHtml(signed(market, 2))}</span><span class="leader-value">لیدرها: ${leaders === null ? "—" : escapeHtml(signed(leaders, 2))}</span>`;
+        tooltip.hidden = false;
+        const anchor = market === null ? (leaders === null ? 0 : leaders) : market;
         const box = svg.getBoundingClientRect();
         const wrapBox = chartWrap.getBoundingClientRect();
-        tooltip.hidden = false;
-        tooltip.style.left = `${(x(index) / width) * box.width + (box.left - wrapBox.left)}px`;
-        const anchor = market === null ? (leaders === null ? 0 : leaders) : market;
-        tooltip.style.top = `${(y(anchor) / height) * box.height + (box.top - wrapBox.top)}px`;
+        const anchorX = (x(index) / width) * box.width + (box.left - wrapBox.left);
+        const anchorY = (y(anchor) / height) * box.height + (box.top - wrapBox.top);
+        const gap = 14;
+        const edge = 8;
+        const tooltipWidth = tooltip.offsetWidth;
+        const tooltipHeight = tooltip.offsetHeight;
+        const rightX = anchorX + gap;
+        const leftX = anchorX - tooltipWidth - gap;
+        const preferredX = rightX + tooltipWidth <= chartWrap.clientWidth - edge ? rightX : leftX;
+        const maxX = Math.max(edge, chartWrap.clientWidth - tooltipWidth - edge);
+        const maxY = Math.max(edge, chartWrap.clientHeight - tooltipHeight - edge);
+        tooltip.style.left = `${Math.max(edge, Math.min(preferredX, maxX))}px`;
+        tooltip.style.top = `${Math.max(edge, Math.min(anchorY - tooltipHeight / 2, maxY))}px`;
       }
     };
     const hideTooltip = () => {
