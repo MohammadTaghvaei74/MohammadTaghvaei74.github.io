@@ -155,6 +155,42 @@ def load_intraday_queue_rows(conn: sqlite3.Connection, trading_date: str, start_
     ]
 
 
+def load_intraday_queue_count_rows(
+    conn: sqlite3.Connection, trading_date: str, start_time: str = "09:15"
+) -> list[dict[str, Any]]:
+    """Count buy-queue and sell-queue symbols once per observed minute.
+
+    A minute uses the last valid snapshot for each symbol in that minute. This
+    prevents duplicate intraminute snapshots from inflating the chart and keeps
+    missing minutes missing instead of inventing/interpolating counts.
+    """
+    available = {row[1] for row in conn.execute("PRAGMA table_info(stock_snapshots)")}
+    required = {"timestamp", "trading_date", "valid", "symbol", "buy_queue_value_toman", "sell_queue_value_toman"}
+    if not required.issubset(available):
+        return []
+    rows = conn.execute(
+        """SELECT timestamp, symbol, buy_queue_value_toman, sell_queue_value_toman
+           FROM stock_snapshots
+           WHERE trading_date=? AND valid=1 AND substr(timestamp,12,5)>=?
+           ORDER BY timestamp, rowid""",
+        (trading_date, start_time),
+    ).fetchall()
+    by_minute: dict[str, dict[str, tuple[str, Any, Any]]] = {}
+    for timestamp, symbol, buy_value, sell_value in rows:
+        minute = str(timestamp)[:16]
+        by_minute.setdefault(minute, {})[str(symbol)] = (str(timestamp), buy_value, sell_value)
+    result = []
+    for minute in sorted(by_minute):
+        symbols = list(by_minute[minute].values())
+        result.append({
+            "timestamp": max(row[0] for row in symbols),
+            "time": minute[11:16],
+            "buy_queue_count": sum(1 for _, buy, _ in symbols if buy is not None and float(buy) > 0),
+            "sell_queue_count": sum(1 for _, _, sell in symbols if sell is not None and float(sell) > 0),
+        })
+    return result
+
+
 def load_intraday_symbol_rows(
     conn: sqlite3.Connection,
     trading_date: str,
@@ -233,5 +269,6 @@ def load_intraday_symbol_rows(
 
 __all__ = [
     "LEADER_SYMBOLS", "daily_median_fields", "load_daily_chart_rows",
-    "load_intraday_chart_rows", "load_intraday_queue_rows", "load_intraday_symbol_rows",
+    "load_intraday_chart_rows", "load_intraday_queue_rows", "load_intraday_queue_count_rows",
+    "load_intraday_symbol_rows",
 ]
