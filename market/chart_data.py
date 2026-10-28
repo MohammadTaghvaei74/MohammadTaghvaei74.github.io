@@ -63,10 +63,28 @@ def daily_median_fields(conn: sqlite3.Connection, days: list[dict[str, Any]]) ->
     return result
 
 
-def load_daily_chart_rows(conn: sqlite3.Connection, limit: int = 7) -> list[dict[str, Any]]:
-    rows = [dict(row) for row in conn.execute(
-        "SELECT * FROM daily_market_summary ORDER BY trading_date DESC LIMIT ?", (limit,)
-    )]
+def load_daily_chart_rows(conn: sqlite3.Connection, limit: int = 60) -> list[dict[str, Any]]:
+    """Load complete daily rows for score and turnover charts.
+
+    ``v2_days`` is the production finalization fence. During legacy/test setups
+    where it exists but has no rows, retain the summary rows for compatibility;
+    once it has data, only explicitly complete days are eligible.
+    """
+    has_fence = conn.execute(
+        "SELECT 1 FROM sqlite_master WHERE type='table' AND name='v2_days'"
+    ).fetchone()
+    fence_count = conn.execute("SELECT COUNT(*) FROM v2_days").fetchone()[0] if has_fence else 0
+    if fence_count:
+        rows = [dict(row) for row in conn.execute(
+            """SELECT d.* FROM daily_market_summary d
+               JOIN v2_days v ON v.day=d.trading_date
+               WHERE v.complete=1
+               ORDER BY d.trading_date DESC LIMIT ?""", (limit,)
+        )]
+    else:
+        rows = [dict(row) for row in conn.execute(
+            "SELECT * FROM daily_market_summary ORDER BY trading_date DESC LIMIT ?", (limit,)
+        )]
     return daily_median_fields(conn, rows)
 
 
