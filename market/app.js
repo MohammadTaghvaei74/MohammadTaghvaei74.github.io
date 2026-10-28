@@ -195,6 +195,42 @@
     return result;
   }
 
+  function movingAverage(values, period) {
+    return values.map((value, index) => {
+      if (numeric(value) === null || index + 1 < period) return null;
+      const window = values.slice(index + 1 - period, index + 1).map(numeric);
+      return window.every((item) => item !== null) ? window.reduce((sum, item) => sum + item, 0) / period : null;
+    });
+  }
+
+  function renderTurnoverChart(data) {
+    const svg = $("#turnoverChart");
+    if (!svg) return;
+    const days = [...(Array.isArray(data.daily) ? data.daily : [])].reverse();
+    const values = days.map((row) => {
+      const toman = numeric(row.final_turnover_toman);
+      return toman === null || toman < 0 ? null : toman / 1e12;
+    });
+    const ma5 = movingAverage(values, 5);
+    const ma20 = movingAverage(values, 20);
+    const actual = [...values, ...ma5, ...ma20].filter((value) => value !== null);
+    const width = 900, height = 310, pad = { top: 22, right: 20, bottom: 42, left: 58 };
+    if (!actual.length) {
+      svg.innerHTML = `<text class="chart-empty" x="450" y="155" text-anchor="middle">تاریخچه ارزش معاملات معتبر موجود نیست.</text>`;
+      text("#turnoverStatus", "داده معتبر کافی نیست");
+      return;
+    }
+    const max = Math.max(...actual, 1) * 1.12;
+    const x = (index) => pad.left + index * (width - pad.left - pad.right) / Math.max(days.length - 1, 1);
+    const y = (value) => pad.top + (max - value) * (height - pad.top - pad.bottom) / max;
+    const path = (series) => series.map((value, index) => numeric(value) === null ? "" : `${index && numeric(series[index - 1]) !== null ? "L" : "M"}${x(index).toFixed(1)},${y(value).toFixed(1)}`).filter(Boolean).join(" ");
+    const ticks = [0, max / 2, max].map((tick) => `<line class="chart-grid-line" x1="${pad.left}" x2="${width - pad.right}" y1="${y(tick)}" y2="${y(tick)}"/><text class="chart-label" x="${pad.left - 10}" y="${y(tick) + 4}" text-anchor="end">${core.faDigits(tick.toLocaleString("fa-IR", { maximumFractionDigits: 1 }))}</text>`).join("");
+    const labels = days.map((day, index) => `<text class="chart-label" x="${x(index)}" y="${height - 10}" text-anchor="middle">${escapeHtml(core.faDigits(String(day.trading_date || "").slice(5)))}</text>`).join("");
+    const points = values.map((value, index) => numeric(value) === null ? "" : `<circle class="turnover-point" cx="${x(index)}" cy="${y(value)}" r="3"/>`).join("");
+    svg.innerHTML = `${ticks}${labels}<path class="turnover-path" d="${path(values)}"/><path class="ma5-path" d="${path(ma5)}"/><path class="ma20-path" d="${path(ma20)}"/>${points}`;
+    text("#turnoverStatus", `${core.faDigits(values.filter((value) => value !== null).length)} روز کامل و تأییدشده`);
+  }
+
   function renderQueueCountChart(data) {
     const svg = $("#queueCountChart");
     if (!svg) return;
@@ -526,6 +562,7 @@
   function render(data, options) {
     currentData = data;
     renderMetrics(data);
+    renderTurnoverChart(data);
     renderQueueChart(data);
     renderQueueCountChart(data);
     renderChart(data);

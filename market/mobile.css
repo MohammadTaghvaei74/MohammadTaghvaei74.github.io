@@ -169,6 +169,19 @@
   .turnover-chart-wrap { min-height: 190px; margin-inline: -3px; }
   .turnover-legend { gap: 7px; }
 }
+.turnover-chart-wrap { min-height: 220px; }
+.turnover-path { stroke: var(--ink); stroke-width: 2.5; fill: none; }
+.ma5-path { stroke: var(--orange); stroke-width: 2; fill: none; }
+.ma20-path { stroke: var(--blue); stroke-width: 2; stroke-dasharray: 7 5; fill: none; }
+.turnover-point { fill: var(--ink); stroke: #fff; stroke-width: 1.5; }
+.turnover-line { background: var(--ink); }
+.ma5-line { background: var(--orange); }
+.ma20-line { background: var(--blue); }
+@media (max-width: 720px) {
+  .turnover-section { padding-top: 42px; }
+  .turnover-chart-wrap { min-height: 190px; margin-inline: -3px; }
+  .turnover-legend { gap: 7px; }
+}
 .chart-empty { fill: var(--muted); font: 500 14px var(--fa); }
 .market-state[data-state="stale"] i { background: var(--orange); box-shadow: 0 0 0 5px rgba(233,120,69,.18); }
 .market-state[data-state="loading"] i { background: var(--blue); box-shadow: 0 0 0 5px rgba(59,159,186,.18); }
