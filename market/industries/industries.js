@@ -346,7 +346,7 @@ if (typeof window !== "undefined") {
     }
     function metricCell(group, key, type) {
       var value = group.summary[key];
-      var label = type === "billion" ? E.formatBillion(value) : type === "million" ? E.formatMillion(value) : type === "millionBare" ? E.formatMillionBare(value) : type === "percent" ? percentMarkup(value, 0) : type === "percent1" ? percentMarkup(value, 1) : type === "score" ? E.formatNumber(value, 1) : E.formatNumber(value, type === "power" ? 1 : 0);
+      var label = type === "billion" ? E.formatBillion(value) : type === "million" ? E.formatMillion(value) : type === "millionBare" ? E.formatMillionBare(value) : type === "percent" ? E.percentMarkup(value, 0) : type === "percent1" ? E.percentMarkup(value, 1) : type === "score" ? E.formatNumber(value, 1) : E.formatNumber(value, type === "power" ? 1 : 0);
       return "<td data-sort-value=\"" + (E.finite(value) ? E.escapeHtml(value) : "") + "\"><bdi>" + (label.indexOf("<") >= 0 ? label : E.escapeHtml(label)) + "</bdi></td>";
     }
     function summaryRows() {
