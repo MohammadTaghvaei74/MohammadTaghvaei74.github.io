@@ -10,6 +10,14 @@ SPECIAL_SYMBOLS = {
     "فارما کیان": "fund",
     "ابتکار": "fund",
     "شراز": "equity",
+    # Leveraged funds are portfolio instruments too; keep them on the dedicated history-score path.
+    "اهرم": "fund",
+    "شتاب": "fund",
+    "موج": "fund",
+    "جهش": "fund",
+    "توان": "fund",
+    "نارنج اهرم": "fund",
+    "بیدار": "fund",
 }
 
 
