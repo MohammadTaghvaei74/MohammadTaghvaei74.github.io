@@ -269,7 +269,9 @@
   function renderChart(data) {
     const svg = $("#marketChart");
     if (!svg) return;
-    const points = densifyIntraday(Array.isArray(data.intraday) ? data.intraday : [], "09:15");
+    // The market score view must include the full observed session, including
+    // the opening hour. Missing observations remain gaps; no values are made up.
+    const points = densifyIntraday(Array.isArray(data.intraday) ? data.intraday : [], "09:00");
     const days = points;
     const series = {
       leaders: points.map((row) => row.leader_median_score),
@@ -282,19 +284,20 @@
       svg.innerHTML = `<text class="chart-empty" x="600" y="180" text-anchor="middle">دادهٔ امروز از ۰۹:۰۵ هنوز موجود نیست.</text>`;
       return;
     }
-    const min = Math.min(...actualValues);
-    const max = Math.max(...actualValues);
-    const chartMax = max === min ? max + 0.01 : max;
+    // Keep the semantic market frame stable: -3 (sell queue) to +3 (buy
+    // queue) is always visible, while genuine outliers may extend the frame.
+    const min = Math.min(-3, ...actualValues.map((value) => Math.floor(value)));
+    const max = Math.max(3, ...actualValues.map((value) => Math.ceil(value)));
     const x = (index) => pad.left + index * (width - pad.left - pad.right) / Math.max(days.length - 1, 1);
-    const y = (value) => pad.top + (chartMax - value) * (height - pad.top - pad.bottom) / (chartMax - min);
+    const y = (value) => pad.top + (max - value) * (height - pad.top - pad.bottom) / Math.max(max - min, 1e-9);
     const marketPath = pathFor(series.market, x, y);
     const leadersPath = pathFor(series.leaders, x, y);
 
     const zeroY = y(0);
     // Do not bridge missing samples with a filled area.
     const areaPath = marketPath && series.market.every((value) => value !== null) ? `${marketPath} L ${x(days.length - 1)},${zeroY} L ${x(0)},${zeroY} Z` : "";
-    const ticks = [min, min + (chartMax - min) / 2, chartMax];
-    const grid = ticks.map((tick, index) => `<line class="${index === 0 ? "chart-zero" : "chart-grid-line"}" x1="${pad.left}" x2="${width - pad.right}" y1="${y(tick)}" y2="${y(tick)}"/><text class="chart-label" x="${pad.left - 11}" y="${y(tick) + 6}" text-anchor="end">${core.formatNumber(tick, 1)}</text>`).join("");
+    const ticks = Array.from({length: max - min + 1}, (_, index) => min + index);
+    const grid = ticks.map((tick) => `<line class="${tick === 3 ? "chart-limit-positive" : tick === -3 ? "chart-limit-negative" : tick === 0 ? "chart-zero" : "chart-grid-line"}" x1="${pad.left}" x2="${width - pad.right}" y1="${y(tick)}" y2="${y(tick)}"/><text class="chart-label" x="${pad.left - 11}" y="${y(tick) + 6}" text-anchor="end">${core.faDigits(tick)}</text>`).join("");
     const labels = days.map((point, index) => {
       const time = String(point.time || "").slice(0, 5);
       return /:(00|30)$/.test(time) || index === days.length - 1 ? `<text class="chart-label" x="${x(index)}" y="${height - 8}" text-anchor="middle">${escapeHtml(core.faDigits(time))}</text>` : "";
@@ -304,7 +307,7 @@
     const plotWidth = width - pad.left - pad.right;
     const step = plotWidth / Math.max(days.length - 1, 1);
     const hitArea = `<rect class="chart-hit-area" x="${pad.left}" y="${pad.top}" width="${plotWidth}" height="${height - pad.top - pad.bottom}" tabindex="0" aria-label="نقاط نمودار امتیاز"/>`;
-    const bands = `<defs><linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b8df55" stop-opacity=".25"/><stop offset="1" stop-color="#b8df55" stop-opacity="0"/></linearGradient><linearGradient id="positiveBand" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#9bd5a3" stop-opacity=".035"/><stop offset="1" stop-color="#5cae70" stop-opacity=".20"/></linearGradient></defs><rect x="${pad.left}" y="${y(3)}" width="${plotWidth}" height="${zeroY - y(3)}" fill="url(#positiveBand)"/>`;
+    const bands = `<defs><linearGradient id="positiveBand" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#9bd5a3" stop-opacity=".035"/><stop offset="1" stop-color="#35a853" stop-opacity=".24"/></linearGradient><linearGradient id="negativeBand" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f1b0b0" stop-opacity=".035"/><stop offset="1" stop-color="#d64545" stop-opacity=".24"/></linearGradient></defs><rect x="${pad.left}" y="${y(3)}" width="${plotWidth}" height="${y(0) - y(3)}" fill="url(#positiveBand)"/><rect x="${pad.left}" y="${y(0)}" width="${plotWidth}" height="${y(-3) - y(0)}" fill="url(#negativeBand)"/>`;
     svg.innerHTML = `${bands}${grid}${labels}${areaPath ? `<path class="chart-area" d="${areaPath}"/>` : ""}${leadersMarkup}<path class="chart-path chart-market" d="${marketPath}"/><line class="chart-crosshair" x1="${x(0)}" x2="${x(0)}" y1="${pad.top}" y2="${height - pad.bottom}" opacity="0"/>${hitArea}`;
     const chartWrap = svg.parentElement;
     let tooltip = chartWrap && chartWrap.querySelector(".chart-tooltip-html");

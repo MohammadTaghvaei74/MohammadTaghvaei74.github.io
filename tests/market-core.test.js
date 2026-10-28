@@ -63,6 +63,9 @@ test('chart scale expands integer grid to both series extrema', () => {
 
 test('score chart keeps semantic plus and minus three thresholds fixed', () => {
   const source = fs.readFileSync(path.join(__dirname, '../market/app-fast-recovery-20261024-axis.js'), 'utf8');
+  assert.match(source, /densifyIntraday\(Array\.isArray\(data\.intraday\).*\"09:00\"/);
+  assert.match(source, /Math\.min\(-3, \.\.\.actualValues/);
+  assert.match(source, /Math\.max\(3, \.\.\.actualValues/);
   assert.match(source, /tick === 3 \? "chart-limit-positive" : tick === -3 \? "chart-limit-negative"/);
   assert.match(source, /y\(3\).*positiveBand/);
   assert.match(source, /y\(-3\).*negativeBand/);
