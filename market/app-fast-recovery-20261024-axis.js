@@ -248,6 +248,42 @@
   }
 
 
+  function renderPriceDistributionChart(data) {
+    const svg = $("#priceDistributionChart");
+    if (!svg) return;
+    const bins = [-3, -2, -1, 0, 1, 2].map((start) => ({start, end: start + 1, count: 0}));
+    const stocks = Array.isArray(data.stocks) ? data.stocks : [];
+    stocks.forEach((stock) => {
+      const change = numeric(stock && stock.last_pct);
+      if (change === null || change < -3 || change > 3) return;
+      const index = Math.min(5, Math.floor(change + 3));
+      if (index >= 0) bins[index].count += 1;
+    });
+    const total = bins.reduce((sum, bin) => sum + bin.count, 0);
+    if (!total) {
+      svg.innerHTML = `<text class="chart-empty" x="600" y="210" text-anchor="middle">داده تغییر قیمت برای نمایش موجود نیست.</text>`;
+      return;
+    }
+    const width = 1200, height = 460, pad = {top: 18, right: 30, bottom: 66, left: 82};
+    const max = Math.max(1, ...bins.map((bin) => bin.count));
+    const tickStep = max <= 10 ? 1 : max <= 50 ? 5 : max <= 200 ? 20 : max <= 500 ? 50 : 100;
+    const tickMax = Math.ceil(max / tickStep) * tickStep;
+    const plotWidth = width - pad.left - pad.right, plotHeight = height - pad.top - pad.bottom;
+    const slotWidth = plotWidth / bins.length, barWidth = slotWidth * 0.68;
+    const y = (value) => pad.top + (tickMax - value) * plotHeight / tickMax;
+    const ticks = Array.from({length: Math.floor(tickMax / tickStep) + 1}, (_, index) => index * tickStep);
+    const grid = ticks.map((tick) => `<line class="${tick === 0 ? "chart-zero" : "chart-grid-line"}" x1="${pad.left}" x2="${width - pad.right}" y1="${y(tick)}" y2="${y(tick)}"/><text class="chart-label" x="${pad.left - 12}" y="${y(tick) + 5}" text-anchor="end">${core.formatInteger(tick)}</text>`).join("");
+    const bars = bins.map((bin, index) => {
+      const x = pad.left + index * slotWidth + (slotWidth - barWidth) / 2;
+      const barY = y(bin.count), barHeight = Math.max(1, y(0) - barY);
+      const color = bin.end <= 0 ? "var(--red)" : bin.start >= 0 ? "var(--green)" : "var(--muted)";
+      const label = `${bin.start < 0 ? "−" : "+"}${Math.abs(bin.start)} تا ${bin.end < 0 ? "−" : "+"}${Math.abs(bin.end)}`;
+      const countY = bin.count ? Math.min(y(0) - 12, barY + Math.max(20, barHeight / 2 + 6)) : y(0) - 10;
+      return `<g class="price-distribution-bar"><rect x="${x}" y="${barY}" width="${barWidth}" height="${barHeight}" rx="5" fill="${color}"/><text class="price-distribution-count" x="${x + barWidth / 2}" y="${countY}" text-anchor="middle">${core.formatInteger(bin.count)}</text><text class="chart-label price-distribution-label" x="${x + barWidth / 2}" y="${height - 20}" text-anchor="middle">${core.faDigits(label)}</text></g>`;
+    }).join("");
+    svg.innerHTML = `${grid}${bars}`;
+  }
+
   function renderQueueChart(data) {
     const svg = $("#queueChart");
     if (!svg) return;
@@ -604,6 +640,7 @@
     renderMetrics(data);
     renderQueueChart(data);
     renderQueueCountChart(data);
+    renderPriceDistributionChart(data);
     renderChart(data);
     renderTables(data);
     renderIndustries(data);
