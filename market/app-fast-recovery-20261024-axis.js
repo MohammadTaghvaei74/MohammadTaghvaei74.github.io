@@ -316,12 +316,13 @@
     const actualValues = [series.leaders, series.market].flat().map(numeric).filter((value) => value !== null);
     const width = 1200, height = 560, pad = { top: 8, right: 24, bottom: 30, left: 62 };
     if (!actualValues.length) {
-      svg.innerHTML = `<text class="chart-empty" x="600" y="180" text-anchor="middle">دادهٔ امروز از ۰۹:۰۵ هنوز موجود نیست.</text>`;
+      svg.innerHTML = `<text class="chart-empty" x="600" y="180" text-anchor="middle">دادهٔ امروز از ۰۹:۰۰ هنوز موجود نیست.</text>`;
       return;
     }
-    // Keep the semantic market frame visible even when today's values stay in [-1, 2].
-    const min = Math.min(-3, ...actualValues.map((value) => Math.floor(value)));
-    const max = Math.max(3, ...actualValues.map((value) => Math.ceil(value)));
+    // Fixed market frame: -3 (sell queue) to +3 (buy queue).
+    // The boundary lines therefore remain exactly on the plot edges.
+    const min = -3;
+    const max = 3;
     const x = (index) => pad.left + index * (width - pad.left - pad.right) / Math.max(days.length - 1, 1);
     const y = (value) => pad.top + (max - value) * (height - pad.top - pad.bottom) / Math.max(max - min, 1e-9);
     const marketPath = pathFor(series.market, x, y);
