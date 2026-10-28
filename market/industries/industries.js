@@ -467,7 +467,7 @@ if (typeof window !== "undefined") {
       });
     }
     document.addEventListener("DOMContentLoaded", function () {
-      renderFilterRow(); setupSort();
+      setupSort();
       var sort = $("sort"); if (sort) sort.addEventListener("change", function () { state.direction = sort.value; renderStockTable(); });
       var refresh = $("refresh"); if (refresh) refresh.addEventListener("click", load);
       var clear = $("clearIndustryFilters"); if (clear) clear.addEventListener("click", clearFilters);

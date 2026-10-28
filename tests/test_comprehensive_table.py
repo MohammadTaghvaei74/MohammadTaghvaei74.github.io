@@ -61,3 +61,15 @@ def test_comprehensive_row_keeps_missing_history_and_uses_signed_queue_and_close
     assert rows[0]["avg_trade_value_toman"] == 2_000_000_000.0
     assert rows[1]["score_10d_total"] is None
     assert rows[1]["last_close_diff_pct"] is None
+
+
+def test_comprehensive_contract_keeps_every_display_metric_explicit_when_source_is_missing():
+    db = make_db()
+    rows, _ = build_comprehensive_rows([{"symbol": "AAA", "score": 1.0}], "2026-10-20T12:30:00+03:30", db)
+    required = {
+        "avg_trade_value_toman", "queue_value_toman", "last_close_diff_pct",
+        "buy_per_capita_toman", "buyer_power", "legal_buy_pct", "legal_sell_pct",
+        "score_10d_total",
+    }
+    assert required <= rows[0].keys()
+    assert all(rows[0][key] is None for key in required)

@@ -42,7 +42,8 @@ test('allocation labels match the two slider ends', () => {
 test('snapshot validation requires arrays and uses market source timestamp', () => {
   const valid = { schema_version: 1, source: 'x', generated_at: 'not-used', market: { timestamp: '2026-10-14T12:30:00+03:30' }, groups: [], top_stocks: [], leveraged: [], industries: [], daily: [] };
   assert.equal(core.validateSnapshot(valid), valid);
-  assert.throws(() => core.validateSnapshot({ ...valid, schema_version: 2 }), /schema|نسخه|نامعتبر/);
+  const v2 = { ...valid, schema_version: 2, stocks: [], top_buy_queue: [], industry_table: [], intraday: [], queue_intraday: [] };
+  assert.equal(core.validateSnapshot(v2), v2);
   assert.equal(core.sourceTimestamp(valid), valid.market.timestamp);
   assert.match(core.formatDate(valid.market.timestamp), /۱۴۰۵/);
   assert.throws(() => core.validateSnapshot({ ...valid, market: { timestamp: 'bad' } }), /timestamp/);
@@ -58,6 +59,16 @@ test('chart scale expands integer grid to both series extrema', () => {
   assert.deepEqual(core.chartScale([1.2, -4.3, null], [-0.5, 2.1]), { min: -5, max: 3, ticks: [-5, -4, -3, -2, -1, 0, 1, 2, 3] });
   assert.deepEqual(core.chartExtrema([1.2, -4.3, null]), { min: -4.3, max: 1.2 });
   assert.deepEqual(core.chartExtrema([null]), { min: null, max: null });
+});
+
+test('score chart keeps semantic plus and minus three thresholds fixed', () => {
+  const source = fs.readFileSync(path.join(__dirname, '../market/app-fast-recovery-20261024-axis.js'), 'utf8');
+  assert.match(source, /densifyIntraday\(Array\.isArray\(data\.intraday\).*\"09:00\"/);
+  assert.match(source, /Math\.min\(-3, \.\.\.actualValues/);
+  assert.match(source, /Math\.max\(3, \.\.\.actualValues/);
+  assert.match(source, /tick === 3 \? "chart-limit-positive" : tick === -3 \? "chart-limit-negative"/);
+  assert.match(source, /y\(3\).*positiveBand/);
+  assert.match(source, /y\(-3\).*negativeBand/);
 });
 
 const realSnapshot = JSON.parse(fs.readFileSync(path.join(__dirname, '../market/data/market.json'), 'utf8'));

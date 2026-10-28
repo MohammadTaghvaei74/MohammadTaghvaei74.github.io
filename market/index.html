@@ -10,11 +10,11 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="styles.css?v=score-chart-9" />
+    <link rel="stylesheet" href="styles.css?v=queue-fix-1" />
     <link rel="stylesheet" href="header.css?v=shared-header-1" />
     <link rel="stylesheet" href="mobile.css?v=line-colors-1" />
     <link rel="stylesheet" href="ranking.css?v=compact-focus-3" />
-    <link rel="stylesheet" href="comprehensive-table.css?v=master-table-2" />
+    <link rel="stylesheet" href="comprehensive-table.css?v=feedback-layout-3" />
     <link rel="stylesheet" href="options.css" />
     <title>SORENA WATCH | داشبورد داده‌محور بازار</title>
   </head>
@@ -25,7 +25,7 @@
           <span class="sorena-logo-mark" aria-hidden="true"><svg viewBox="0 0 48 48" role="img"><path d="M5 36 15 20l8 8L34 10l9 26Z"/><path d="M7 40h34"/></svg></span>
           <span class="brand-copy"><b>SORENA WATCH</b><small>MARKET INTELLIGENCE / DATA DESK</small></span>
         </a>
-        <nav class="main-nav" aria-label="ناوبری اصلی"><a class="active" aria-current="page" href="#overview">نمای کلی</a><a href="signals/">سیگنال‌ها</a><a href="symbols/">سهام</a><a href="industries/">صنایع و سهام</a><a href="options/">آپشن</a><a href="#funds">صندوق‌ها</a><a href="portfolio/">امتیاز پرتفو</a></nav>
+        <nav class="main-nav" id="mobileMainNav" aria-label="ناوبری اصلی"><a class="active" aria-current="page" href="#overview">نمای کلی</a><a href="signals/">سیگنال‌ها</a><a href="symbols/">سهام</a><a href="industries/">صنایع و سهام</a><a href="options/">آپشن</a><a href="#funds">صندوق‌ها</a><a href="portfolio/">امتیاز پرتفو</a></nav><button class="mobile-menu-toggle" id="mobileMenuToggle" type="button" aria-expanded="false" aria-controls="mobileMainNav">☰ منو</button>
                     <div class="topbar-actions">
           <span class="market-state"><i></i><span id="marketState">داده زنده</span></span>
           <button class="refresh-button" id="refreshButton" type="button" aria-label="به‌روزرسانی داده">↻</button>
@@ -41,42 +41,48 @@
 
         <section class="dashboard-grid top-charts" aria-label="روندهای درون‌روزی بازار">
           <article class="panel queue-chart-panel">
-            <div class="panel-heading"><div><span class="section-index">01</span><h2>ارزش صف‌ها</h2></div><span class="panel-note">از ۰۹:۱۵ تا آخرین snapshot</span></div>
-            <div class="chart-wrap"><svg id="queueChart" viewBox="0 0 1200 300" role="img" aria-label="روند ارزش صف خرید و صف فروش"></svg></div>
-            <div class="chart-legend"><span><i class="legend-line buy-line"></i> مجموع ارزش صف خرید</span><span><i class="legend-line sell-line"></i> مجموع ارزش صف فروش</span><span class="chart-caption">واحد: همت · فقط نمونه‌های مشاهده‌شده، بدون برون‌یابی</span></div>
+            <div class="panel-heading"><div><h2>ارزش صف‌ها</h2></div></div>
+            <div class="chart-wrap"><svg id="queueChart" viewBox="0 0 1200 460" role="img" aria-label="روند ارزش صف خرید و صف فروش"></svg></div>
+            <div class="chart-legend"><span><i class="legend-line buy-line"></i> مجموع ارزش صف خرید</span><span><i class="legend-line sell-line"></i> مجموع ارزش صف فروش</span></div>
           </article>
           <article class="panel pulse-panel">
-            <div class="panel-heading"><div><span class="section-index">02</span><h2>امتیاز کل بازار</h2></div><span class="panel-note">لیدرها در برابر کل بازار</span></div>
-            <div class="chart-wrap"><svg id="marketChart" viewBox="0 0 1200 300" role="img" aria-label="روند درون‌روزی امتیاز لیدرها و کل بازار"></svg></div>
-            <div class="chart-legend"><span><i class="legend-line leaders-line"></i> امتیاز لیدرها</span><span><i class="legend-line market-line"></i> امتیاز کل بازار</span><span class="chart-caption">از ۰۹:۱۵ تهران تا آخرین snapshot</span></div>
-            <div id="chartExtrema" class="chart-extrema" aria-live="polite">کمینه/بیشینه امروز: در انتظار داده</div>
+            <div class="panel-heading"><div><span class="section-index">02</span><h2>امتیاز کل بازار</h2></div></div>
+            <div class="chart-wrap"><svg id="marketChart" viewBox="0 0 1200 560" role="img" aria-label="روند درون‌روزی امتیاز لیدرها و کل بازار"></svg></div>
+            <div class="chart-legend"><span><i class="legend-line leaders-line"></i> امتیاز لیدرها</span><span><i class="legend-line market-line"></i> امتیاز کل بازار</span></div>
+          </article>
+        </section>
+
+        <section class="content-section queue-count-section" aria-labelledby="queueCountTitle">
+          <div class="section-heading"><div><span class="section-index">03</span><h2 id="queueCountTitle">تعداد صف‌های بازار</h2></div><p>هر نقطه، تعداد نمادهای دارای صف خرید یا صف فروش در همان دقیقه است.</p></div>
+          <article class="panel queue-count-panel">
+            <div class="chart-wrap"><svg id="queueCountChart" viewBox="0 0 1200 460" role="img" aria-label="روند دقیقه‌ای تعداد صف خرید و صف فروش"></svg></div>
+            <div class="chart-legend"><span><i class="legend-line buy-line"></i> تعداد صف خرید</span><span><i class="legend-line sell-line"></i> تعداد صف فروش</span></div>
           </article>
         </section>
 
         <section class="content-section fund-report-section" id="funds">
-          <div class="section-heading"><div><span class="section-index">02</span><h2>صندوق‌های سهامی</h2></div><p>همان گزارش تصمیم‌یار تلگرام؛ مرتب‌شده بر اساس اختلاف امتیاز پرتفوی و امتیاز تابلو.</p></div>
+          <div class="section-heading"><div><span class="section-index">02</span><h2>صندوق‌های سهامی</h2></div></div>
           <article class="table-panel fund-report-panel">
-            <div class="table-title"><div><span class="category-tag orange">EQUITY FUNDS / LIQUIDITY &amp; PORTFOLIO</span><h3>صندوق‌های سهامی با نقدشوندگی بالا</h3><small id="fundReportMeta">تمام صندوق‌های واجد میانگین ارزش معاملات بیشتر از ۲۰ میلیارد تومان؛ پوشش پایین حذف نمی‌شود.</small></div><span class="count-label" id="fundReportCount">—</span></div>
-            <div class="table-scroll fund-report-scroll"><table class="fund-report-table" aria-label="همه صندوق‌های سهامی با میانگین ارزش معاملات بالای ۲۰ میلیارد تومان"><thead><tr><th>رتبه</th><th>صندوق</th><th>پرتفوی</th><th>تابلو</th><th>اختلاف</th><th>حباب</th><th>میانگین ارزش</th><th>پوشش</th><th>آخرین به‌روزرسانی پرتفوی</th></tr></thead><tbody id="fundReportRows"></tbody></table></div>
+            <div class="table-title"><div><h3>صندوق‌های سهامی با نقدشوندگی بالا</h3></div></div>
+            <div class="table-scroll fund-report-scroll"><table class="fund-report-table" aria-label="صندوق‌های سهامی"><thead><tr><th>رتبه</th><th>صندوق</th><th>میانگین ارزش روزانه</th><th>آخرین به‌روزرسانی پرتفو</th><th>حباب</th><th>امتیاز پرتفو</th><th>امتیاز تابلو</th><th>اختلاف</th></tr></thead><tbody id="fundReportRows"></tbody></table></div>
           </article>
         </section>
 
         <section class="content-section" id="leaders">
-          <div class="section-heading"><div><span class="section-index">03</span><h2>تمرکز بازار</h2></div><p>رصد ویژه صندوق‌های اهرمی و لیدرهای بازار؛ رتبه‌بندی، توصیه خرید نیست.</p></div>
+          <div class="section-heading"><div><h2>تمرکز بازار</h2></div></div>
           <div class="focus-grid">
-            <article class="table-panel leveraged-panel"><div class="table-title"><div><span class="category-tag orange">LEVERAGED</span><h3>صندوق‌های اهرمی</h3></div><span class="count-label">رصد ویژه</span></div><div class="table-scroll"><table><thead><tr><th>نماد</th><th>امتیاز</th><th>صف</th></tr></thead><tbody id="leveragedStocks"></tbody></table></div></article>
-            <article class="table-panel leader-panel"><div class="table-title"><div><span class="category-tag blue">LEADERS · ۴۰</span><h3>لیدرهای بازار</h3></div><span class="count-label">امتیاز نزولی</span></div><div class="table-scroll leader-scroll"><table><thead><tr><th>نماد</th><th>امتیاز</th><th>جایگاه بازار</th><th>صف</th></tr></thead><tbody id="leaderStocks"></tbody></table></div></article>
+            <article class="table-panel leveraged-panel"><div class="table-title"><div><h3>صندوق‌های اهرمی</h3></div></div><div class="table-scroll"><table><thead><tr><th>نماد</th><th>امتیاز</th><th>صف</th></tr></thead><tbody id="leveragedStocks"></tbody></table></div></article>
+            <article class="table-panel leader-panel"><div class="table-title"><div><h3>لیدرهای بازار</h3></div></div><div class="table-scroll leader-scroll"><table><thead><tr><th>نماد</th><th>امتیاز</th><th>جایگاه بازار</th><th>صف</th></tr></thead><tbody id="leaderStocks"></tbody></table></div></article>
           </div>
         </section>
 
         <section class="content-section comprehensive-section" id="comprehensive-table">
-          <div class="section-heading"><div><span class="section-index">04</span><h2>جدول جامع بازار</h2></div><p>یک نمای واحد برای مقایسه نمادها؛ امتیاز تاریخی از ۳ نمونه نزدیک به ساعت‌های ۱۰، ۱۱ و ۱۲ در ۱۰ روز کامل اخیر جمع شده است.</p></div>
+          <div class="section-heading"><div><h2>جدول جامع بازار</h2></div></div>
           <article class="table-panel comprehensive-panel">
             <div class="table-title comprehensive-title">
-              <div><span class="category-tag orange">MASTER MARKET TABLE</span><h3>همه نیازهای بازار در یک جدول</h3><small id="comprehensiveCoverage">داده ناموجود با «—» نمایش داده می‌شود.</small></div>
-              <div class="comprehensive-actions"><span class="count-label" id="comprehensiveCount">—</span><button class="download-button primary" id="downloadComprehensiveXlsx" type="button">↓ دانلود Excel</button><button class="download-button" id="clearComprehensiveFilters" type="button">پاک‌کردن فیلترها</button></div>
+              <div><h3>همه نیازهای بازار در یک جدول</h3></div>
+              <div class="comprehensive-actions"><div class="comprehensive-presets" role="group" aria-label="پریست فیلترهای جدول"><span class="preset-label">پریست:</span><button class="download-button preset-button" data-comprehensive-preset="headline" type="button" aria-pressed="false">سرخطی</button><button class="download-button preset-button" data-comprehensive-preset="tomorrow-match" type="button" aria-pressed="false">خرید مچ فردا</button></div><span class="count-label" id="comprehensiveCount">—</span><button class="download-button primary" id="downloadComprehensiveXlsx" type="button">↓ دانلود Excel</button><button class="download-button" id="clearComprehensiveFilters" type="button">پاک‌کردن فیلترها</button></div>
             </div>
-            <div class="comprehensive-help">روی عنوان هر ستون کلیک کن: کلیک اول نزولی، کلیک دوم صعودی، کلیک سوم حالت پیش‌فرض. برای یک ستون می‌توانی چند شرط بسازی؛ مثلاً <b>امتیاز &gt; ۴</b> و <b>امتیاز &lt; ۱۰</b>. داده‌های موجود مستقیماً از snapshot معتبر نمایش داده می‌شوند.</div>
             <div class="table-scroll comprehensive-scroll">
               <table id="comprehensiveTable" class="comprehensive-table" data-custom-sort="true" aria-label="جدول جامع نمادهای بازار">
                 <thead>
@@ -94,11 +100,11 @@
         </section>
 
         <section class="content-section industries-section" id="industries">
-          <div class="section-heading"><div><span class="section-index">05</span><h2>نقشه صنایع</h2></div><p>مرتب‌سازی بر اساس میانه امتیاز · <a href="industries/">مشاهده همه صنایع و سهام هر صنعت ←</a></p></div>
+          <div class="section-heading"><div><span class="section-index">05</span><h2>نقشه صنایع</h2></div><div><div class="industry-presets comprehensive-presets" role="group" aria-label="پریست فیلترهای صنایع"><span class="preset-label">پریست:</span><button class="download-button preset-button" data-industry-preset="money-where" type="button" aria-pressed="false" title="جایگاه رتبه کمتر از ۲۰٪ و ارزش معاملات کل بیشتر از ۵۰۰ میلیارد">پول کجاس</button></div><p>مرتب‌سازی بر اساس میانه امتیاز · <a href="industries/">مشاهده همه صنایع و سهام هر صنعت ←</a></p></div></div>
           <article class="table-panel industry-table-panel">
             <div class="table-scroll industry-table-scroll">
               <table class="industry-table" aria-label="رتبه‌بندی صنایع بر اساس میانه صنعت">
-                <thead><tr><th>اسم صنعت</th><th>جایگاه رتبه</th><th>تعداد سهام</th><th>میانه صنعت</th><th>ارزش معاملات کل</th><th>میانگین اختلاف آخرین و پایانی</th></tr><tr class="industry-filter-row"><th><select id="industrySelectFilter" aria-label="انتخاب صنعت"><option value="">همه صنایع</option></select><input id="industryTextFilter" type="search" placeholder="جست‌وجوی صنعت" aria-label="جست‌وجوی صنعت"></th><th colspan="5"></th></tr></thead>
+                <thead><tr><th>اسم صنعت</th><th>جایگاه رتبه</th><th>تعداد سهام</th><th>میانه صنعت</th><th>ارزش معاملات کل</th><th>میانگین اختلاف آخرین و پایانی</th></tr><tr class="industry-column-filter-row" aria-label="دو فیلتر برای هر ستون"><th><input data-industry-filter="industry" data-slot="0" type="search" placeholder="جست‌وجوی نام صنعت"></th><th data-filter-cell="rank"></th><th data-filter-cell="count"></th><th data-filter-cell="median"></th><th data-filter-cell="turnover"></th><th data-filter-cell="diff"></th></tr></thead>
                 <tbody id="industriesGrid"></tbody>
               </table>
             </div>
@@ -119,10 +125,28 @@
             </nav>
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
     <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
-    <script src="core.js?v=intraday-charts-1" defer></script>
-    <script src="app-fast-recovery-20261024.js" defer></script>
-    <script src="ranking.js?v=compact-focus-2" defer></script>
+    <script src="core.js?v=queue-no-unit-3a82a231" defer></script>
+    <script src="app-fast-recovery-20261024-axis.js?v=market-score-frame-20261028-1" defer></script>
+    <script src="ranking.js?v=queue-no-unit-3a82a231" defer></script>
     <script src="sortable-tables.js?v=three-state-2" defer></script>
-    <script src="comprehensive-table.js?v=master-table-2" defer></script>
+    <script src="comprehensive-table.js?v=feedback-layout-3" defer></script>
+    <script>
+      (() => {
+        const topbar = document.querySelector('.topbar');
+        const toggle = document.getElementById('mobileMenuToggle');
+        const nav = document.getElementById('mobileMainNav');
+        if (!topbar || !toggle || !nav) return;
+        toggle.addEventListener('click', () => {
+          const open = topbar.classList.toggle('menu-open');
+          toggle.setAttribute('aria-expanded', String(open));
+        });
+        nav.addEventListener('click', (event) => {
+          if (event.target.closest('a')) {
+            topbar.classList.remove('menu-open');
+            toggle.setAttribute('aria-expanded', 'false');
+          }
+        });
+      })();
+    </script>
   </body>
 </html>

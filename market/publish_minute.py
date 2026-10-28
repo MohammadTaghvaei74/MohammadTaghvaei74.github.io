@@ -12,12 +12,13 @@ from zoneinfo import ZoneInfo
 SITE = Path(os.environ.get("SITE_REPO", "/root/bourse-site"))
 sys.path.insert(0, str(SITE))
 from market import publish_snapshot as p  # noqa: E402
+from market.portfolio_special import build_portfolio_special  # noqa: E402
 
 TEHRAN = ZoneInfo("Asia/Tehran")
 PUBLISH_FILES = [
     "market/data/market.json",
     "market/data/comprehensive.json",
-    "market/data/funds.json",
+    "market/data/portfolio-special.json",
     "market/data/signals.json",
     "market/publish_minute.py",
 ]
@@ -36,6 +37,18 @@ def git(*args: str, check: bool = True):
                           capture_output=True, check=check)
 
 
+def write_live_payload(root: Path, market: dict, comprehensive: dict, funds: dict, signals: dict, portfolio_special: dict | None = None) -> str:
+    """Write minute surfaces atomically without touching the daily options feed."""
+    p.atomic_json(root / "market/data/market.json", market)
+    p.atomic_json(root / "market/data/comprehensive.json", comprehensive)
+    if os.environ.get("SKIP_FUNDS_PUBLISH") != "1":
+        p.atomic_json(root / "market/data/funds.json", funds)
+    if portfolio_special is not None:
+        p.atomic_json(root / "market/data/portfolio-special.json", portfolio_special)
+    p.atomic_json(root / "market/data/signals.json", signals)
+    return "PUBLISHED"
+
+
 def main() -> int:
     now = datetime.now(TEHRAN)
     if not in_window(now):
@@ -47,9 +60,13 @@ def main() -> int:
     # Market-cap enrichment is unrelated to this table and would add ~800
     # extra provider calls to every minute publication.
     os.environ["SKIP_TSETMC_MARKET_CAP"] = "1"
+    # Client-type enrichment is refreshed by the dedicated enrichment path;
+    # do not block the one-minute publisher on hundreds of provider calls.
+    os.environ["SKIP_TSETMC_ENRICHMENT"] = "1"
     with p.connect() as conn:
         market = p.build_market(conn)
         market["published_at"] = datetime.now(TEHRAN).isoformat()
+        portfolio_special = build_portfolio_special(conn, market["generated_at"])
         fund_report = p.load_fund_report()
         market["fund_report"] = fund_report
         comprehensive = {
@@ -60,12 +77,10 @@ def main() -> int:
             "meta": market.pop("comprehensive_meta", {}),
         }
 
-    p.atomic_json(SITE / "market/data/market.json", market)
-    p.atomic_json(SITE / "market/data/comprehensive.json", comprehensive)
-    p.atomic_json(SITE / "market/data/funds.json", fund_report)
-
     event_db = Path(os.environ.get("EVENT_DB", "/root/bourse-alert/event_live.db"))
-    signal_payload = p.export_signals(event_db, SITE / "market/data/signals.json")
+    signal_path = SITE / "market/data/signals.json"
+    signal_payload = p.export_signals(event_db, signal_path)
+    write_live_payload(SITE, market, comprehensive, fund_report, signal_payload, portfolio_special)
 
     status = git("status", "--porcelain").stdout.splitlines()
     allowed = set(PUBLISH_FILES)

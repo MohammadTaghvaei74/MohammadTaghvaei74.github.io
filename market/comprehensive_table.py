@@ -42,44 +42,36 @@ def _complete_days(conn, latest_day: str, limit: int = HISTORY_DAYS) -> list[str
 def load_score_samples(conn, latest_day: str, limit: int = HISTORY_DAYS) -> tuple[list[str], dict[str, list[dict[str, Any]]]]:
     """Return deduplicated 10/11/12 score samples grouped by symbol.
 
-    A producer can write more than one row in the same minute. The latest
-    timestamp wins, so one target-time slot contributes at most one score.
-    Missing slots stay missing and are reported by ``sample_count`` rather than
-    being converted to zero.
+    Query only the three bounded time windows for each complete day.  The old
+    window-function query sorted hundreds of thousands of rows and exceeded
+    the one-minute publisher budget; selecting the bounded rows and choosing
+    the nearest observation in Python preserves the same contract efficiently.
     """
     days = _complete_days(conn, latest_day, limit)
     if not days:
         return [], {}
-    placeholders = ",".join("?" for _ in days)
-    # Capture a small five-minute tolerance around each requested hour. Some
-    # finalized days have a 10:01/12:01 capture but no exact :00 row. The
-    # selected sample still remains a real database observation.
-    windows = (("09:55", "10:05"), ("10:55", "11:05"), ("11:55", "12:05"))
-    window_sql = " OR ".join("(substr(timestamp, 12, 5) BETWEEN ? AND ?)" for _ in windows)
+    windows = (("09:55:00", "10:05:59.999999"),
+               ("10:55:00", "11:05:59.999999"),
+               ("11:55:00", "12:05:59.999999"))
+    ranges: list[str] = []
+    args: list[str] = []
+    for day in days:
+        for start_time, end_time in windows:
+            ranges.append("(timestamp>=? AND timestamp<=?)")
+            args.extend((f"{day}T{start_time}", f"{day}T{end_time}"))
     query = f"""
-        WITH ranked AS (
-            SELECT symbol, trading_date, substr(timestamp, 12, 5) AS sample_time,
-                   score, timestamp,
-                   ROW_NUMBER() OVER (
-                       PARTITION BY symbol, trading_date, substr(timestamp, 12, 5)
-                       ORDER BY timestamp DESC, rowid DESC
-                   ) AS rn
-            FROM stock_snapshots
-            WHERE valid=1 AND score IS NOT NULL
-              AND trading_date IN ({placeholders})
-              AND ({window_sql})
-        )
-        SELECT symbol, trading_date, sample_time, score, timestamp
-        FROM ranked WHERE rn=1
-        ORDER BY symbol, trading_date DESC, sample_time
+        SELECT rowid, symbol, trading_date, score, timestamp
+        FROM stock_snapshots
+        WHERE valid=1 AND score IS NOT NULL
+          AND ({" OR ".join(ranges)})
     """
-    rows = conn.execute(query, (*days, *[value for window in windows for value in window])).fetchall()
-    candidates: dict[tuple[str, str, str], list[dict[str, Any]]] = defaultdict(list)
+    rows = conn.execute(query, args).fetchall()
+    best: dict[tuple[str, str, str], dict[str, Any]] = {}
     for row in rows:
         score = _finite(row[3])
         if score is None:
             continue
-        sample_day, sample_time = str(row[1]), str(row[2])
+        sample_day = str(row[2])
         try:
             observed = datetime.fromisoformat(str(row[4])).replace(tzinfo=None)
         except ValueError:
@@ -87,23 +79,29 @@ def load_score_samples(conn, latest_day: str, limit: int = HISTORY_DAYS) -> tupl
         for target_time in TARGET_TIMES:
             target = datetime.fromisoformat(f"{sample_day}T{target_time}:00")
             distance = abs((observed - target).total_seconds())
-            if distance <= 5 * 60:
-                candidates[(str(row[0]), sample_day, target_time)].append({
-                    "day": sample_day,
-                    "time": target_time,
-                    "score": score,
-                    "timestamp": str(row[4]),
-                    "distance": distance,
-                })
+            if distance > 5 * 60:
+                continue
+            key = (str(row[1]), sample_day, target_time)
+            candidate = {
+                "day": sample_day,
+                "time": target_time,
+                "score": score,
+                "timestamp": str(row[4]),
+                "rowid": int(row[0]),
+                "distance": distance,
+            }
+            previous = best.get(key)
+            if previous is None or distance < previous["distance"] or (distance == previous["distance"] and candidate["rowid"] > previous["rowid"]):
+                best[key] = candidate
     output: dict[str, list[dict[str, Any]]] = defaultdict(list)
-    for (symbol, _day, _target), values in candidates.items():
-        chosen = min(values, key=lambda item: (item["distance"], -datetime.fromisoformat(item["timestamp"]).timestamp()))
-        chosen.pop("distance", None)
-        output[symbol].append(chosen)
+    for (symbol, _day, _target), chosen in best.items():
+        item = dict(chosen)
+        item.pop("distance", None)
+        item.pop("rowid", None)
+        output[symbol].append(item)
     for values in output.values():
         values.sort(key=lambda item: (item["day"], item["time"]))
     return days, dict(output)
-
 
 def build_comprehensive_rows(stocks: list[dict[str, Any]], latest: str, conn) -> tuple[list[dict[str, Any]], dict[str, Any]]:
     """Attach current metrics and the 10-day score total to every stock."""
@@ -118,6 +116,10 @@ def build_comprehensive_rows(stocks: list[dict[str, Any]], latest: str, conn) ->
         symbol = str(row.get("symbol") or "")
         samples = samples_by_symbol.get(symbol, [])
         scores = [sample["score"] for sample in samples]
+        # Keep the public row contract stable even when optional enrichment is
+        # unavailable. The UI can then distinguish null from a missing field.
+        for field in ("buy_per_capita_toman", "buyer_power", "legal_buy_pct", "legal_sell_pct"):
+            row.setdefault(field, None)
         buy_queue = _finite(row.get("buy_queue_value_toman"))
         sell_queue = _finite(row.get("sell_queue_value_toman"))
         if buy_queue is not None and buy_queue > 0:
@@ -136,10 +138,12 @@ def build_comprehensive_rows(stocks: list[dict[str, Any]], latest: str, conn) ->
             "avg_trade_value_toman": avg_value,
             "queue_value_toman": queue_value,
             "last_close_diff_pct": close_diff,
-            "score_10d_total": sum(scores) if len(scores) == expected_samples else None,
+            # Never publish a partial total as if it were a complete 10-day metric.
+            "score_10d_total": sum(scores) if expected_samples and len(scores) == expected_samples else None,
             "score_10d_sample_count": len(scores),
             "score_10d_expected_count": expected_samples,
             "score_10d_days": len({sample["day"] for sample in samples}),
+            "score_10d_complete": bool(expected_samples and len(scores) == expected_samples),
         })
         rows.append(row)
 

@@ -9,6 +9,8 @@
   let currentData = null;
   let loading = false;
   let refreshTimer = null;
+  let industryFilterBound = false;
+  const industryColumnFilters = {industry: {op: "", value: ""}, rank: {op: "", value: ""}, count: {op: "", value: ""}, median: {op: "", value: ""}, turnover: {op: "", value: ""}, diff: {op: "", value: ""}};
 
   if (!core) {
     console.error("Market core failed to load");
@@ -93,12 +95,6 @@
     text("#tradedCount", integer(market.count));
     text("#signalMarket", signed(marketMedian));
     text("#signalLeaders", signed(leaderMedian));
-    const publishedAt = data.published_at || data.generated_at || null;
-    const lastUpdate = $("#lastUpdate");
-    if (lastUpdate) {
-      lastUpdate.textContent = core.formatDate(publishedAt);
-      lastUpdate.dateTime = publishedAt || "";
-    }
     const marketTimestamp = core.sourceTimestamp(data);
     const lastUpdate = $("#lastUpdate");
     if (lastUpdate) {
@@ -154,7 +150,7 @@
     const tooltipHeight = 30 + values.length * 19;
     const rawX = x(index) + 14;
     const tooltipX = rawX + tooltipWidth > 1200 ? x(index) - tooltipWidth - 14 : rawX;
-    const tooltipY = Math.max(8, Math.min(300 - tooltipHeight - 8, y(numeric(series.market[index]) !== null ? numeric(series.market[index]) : numeric(series.leaders[index])) - tooltipHeight / 2));
+    const tooltipY = Math.max(8, Math.min(height - tooltipHeight - 8, y(numeric(series.market[index]) !== null ? numeric(series.market[index]) : numeric(series.leaders[index])) - tooltipHeight / 2));
     const time = escapeHtml(core.faDigits(String(point.time || "—").slice(0, 5)));
     const rows = values.map(([label, value, color], rowIndex) => `<circle cx="${tooltipX + 12}" cy="${tooltipY + 31 + rowIndex * 19}" r="3.5" fill="${color}"/><text class="chart-tooltip-value" fill="#ffffff" x="${tooltipX + tooltipWidth - 12}" y="${tooltipY + 35 + rowIndex * 19}" text-anchor="end">${escapeHtml(label)}: ${escapeHtml(signed(value, 2))}</text>`).join("");
     return `<g class="chart-tooltip active" data-tooltip-index="${index}" role="status"><rect x="${tooltipX}" y="${tooltipY}" width="${tooltipWidth}" height="${tooltipHeight}" rx="8" fill="#07131a" stroke="#ffffff"/><text class="chart-tooltip-title" fill="#ffffff" x="${tooltipX + tooltipWidth - 12}" y="${tooltipY + 20}" text-anchor="end">ساعت ${time}</text>${rows}</g>`;
@@ -199,18 +195,69 @@
     return result;
   }
 
+  function renderQueueCountChart(data) {
+    const svg = $("#queueCountChart");
+    if (!svg) return;
+    const rows = Array.isArray(data.queue_count_intraday) ? data.queue_count_intraday : [];
+    const values = rows.flatMap((row) => [numeric(row.buy_queue_count), numeric(row.sell_queue_count)]).filter((value) => value !== null);
+    const chartWrap = svg.parentElement;
+    if (!values.length) {
+      svg.innerHTML = `<text class="chart-empty" x="600" y="145" text-anchor="middle">داده تعداد صف‌ها برای امروز موجود نیست.</text>`;
+      if (chartWrap) { const oldTooltip = chartWrap.querySelector(".queue-count-tooltip"); if (oldTooltip) oldTooltip.remove(); }
+      return;
+    }
+    const width = 1200, height = 460, pad = {top: 14, right: 24, bottom: 30, left: 78};
+    const max = Math.max(1, ...values);
+    const x = (index) => pad.left + index * (width - pad.left - pad.right) / Math.max(rows.length - 1, 1);
+    const tickStep = max <= 500 ? 50 : max <= 1500 ? 100 : 250;
+    const tickMax = Math.ceil(max / tickStep) * tickStep;
+    const y = (value) => pad.top + (tickMax - value) * (height - pad.top - pad.bottom) / tickMax;
+    const path = (key) => pathFor(rows.map((row) => row[key]), x, y);
+    const tickValues = Array.from({length: tickMax / tickStep + 1}, (_, index) => index * tickStep);
+    const ticks = tickValues.map((tick) => `<line class="${tick === 0 ? "chart-zero" : "chart-grid-line"}" x1="${pad.left}" x2="${width-pad.right}" y1="${y(tick)}" y2="${y(tick)}"/><text class="chart-label" x="${pad.left-10}" y="${y(tick)+5}" text-anchor="end">${core.formatInteger(tick)}</text>`).join("");
+    const labels = rows.map((row, index) => index === 0 || index === rows.length - 1 || /:(00|30)$/.test(row.time || "") ? `<text class="chart-label" x="${x(index)}" y="${height-8}" text-anchor="middle">${escapeHtml(core.faDigits(row.time || "—"))}</text>` : "").join("");
+    const plotWidth = width - pad.left - pad.right;
+    const step = plotWidth / Math.max(rows.length - 1, 1);
+    svg.innerHTML = `${ticks}${labels}<path class="chart-path chart-buy" d="${path("buy_queue_count")}"/><path class="chart-path chart-sell" d="${path("sell_queue_count")}"/><line class="chart-crosshair queue-count-crosshair" x1="${x(0)}" x2="${x(0)}" y1="${pad.top}" y2="${height-pad.bottom}" opacity="0"/><circle class="queue-count-hover-buy" cx="${x(0)}" cy="${y(numeric(rows[0].buy_queue_count) || 0)}" r="6" opacity="0"/><circle class="queue-count-hover-sell" cx="${x(0)}" cy="${y(numeric(rows[0].sell_queue_count) || 0)}" r="6" opacity="0"/><rect class="chart-hit-area queue-count-hit-area" x="${pad.left}" y="${pad.top}" width="${plotWidth}" height="${height-pad.top-pad.bottom}" tabindex="0" aria-label="نمایش تعداد صف‌ها در هر دقیقه"/>`;
+    if (!chartWrap) return;
+    let tooltip = chartWrap.querySelector(".queue-count-tooltip");
+    if (!tooltip) { tooltip = document.createElement("div"); tooltip.className = "chart-tooltip-html queue-count-tooltip"; tooltip.hidden = true; chartWrap.appendChild(tooltip); }
+    let lastIndex = -1;
+    const showTooltip = (index) => {
+      if (index === lastIndex) return;
+      lastIndex = index;
+      const row = rows[index] || {};
+      const buy = numeric(row.buy_queue_count);
+      const sell = numeric(row.sell_queue_count);
+      const time = String(row.time || row.timestamp || "—").slice(0, 5);
+      tooltip.innerHTML = `<strong>ساعت ${core.faDigits(time)}</strong><span class="queue-buy-value">تعداد صف خرید: ${buy === null ? "—" : escapeHtml(core.formatInteger(buy))}</span><span class="queue-sell-value">تعداد صف فروش: ${sell === null ? "—" : escapeHtml(core.formatInteger(sell))}</span>`;
+      tooltip.hidden = false;
+      const box = svg.getBoundingClientRect(), wrapBox = chartWrap.getBoundingClientRect();
+      tooltip.style.left = `${(x(index) / width) * box.width + (box.left - wrapBox.left)}px`;
+      tooltip.style.top = "8px";
+      const crosshair = svg.querySelector(".queue-count-crosshair");
+      if (crosshair) { crosshair.setAttribute("x1", x(index)); crosshair.setAttribute("x2", x(index)); crosshair.setAttribute("opacity", "1"); }
+      [[".queue-count-hover-buy", buy, "chart-buy"], [".queue-count-hover-sell", sell, "chart-sell"]].forEach(([selector, value, className]) => { const dot = svg.querySelector(selector); if (dot && value !== null) { dot.setAttribute("cx", x(index)); dot.setAttribute("cy", y(value)); dot.setAttribute("opacity", "1"); dot.setAttribute("class", `${selector.slice(1)} ${className}`); } });
+    };
+    const hideTooltip = () => { tooltip.hidden = true; const crosshair = svg.querySelector(".queue-count-crosshair"); if (crosshair) crosshair.setAttribute("opacity", "0"); svg.querySelectorAll(".queue-count-hover-buy,.queue-count-hover-sell").forEach((dot) => dot.setAttribute("opacity", "0")); lastIndex = -1; };
+    const moveTooltip = (event) => { const box = svg.getBoundingClientRect(); const svgX = (event.clientX - box.left) * width / box.width; showTooltip(Math.max(0, Math.min(rows.length - 1, Math.round((svgX - pad.left) / step)))); };
+    const hitArea = svg.querySelector(".queue-count-hit-area");
+    if (hitArea) { hitArea.addEventListener("pointerenter", moveTooltip); hitArea.addEventListener("pointermove", moveTooltip); hitArea.addEventListener("focus", () => showTooltip(0)); hitArea.addEventListener("pointerleave", hideTooltip); hitArea.addEventListener("blur", hideTooltip); }
+  }
+
+
   function renderQueueChart(data) {
     const svg = $("#queueChart");
     if (!svg) return;
     const rows = Array.isArray(data.queue_intraday) ? data.queue_intraday : [];
     const values = rows.flatMap((row) => [numeric(row.buy_value_hmt), numeric(row.sell_value_hmt)]).filter((value) => value !== null);
     if (!values.length) { svg.innerHTML = `<text class="chart-empty" x="600" y="145" text-anchor="middle">داده ارزش صف‌ها برای امروز موجود نیست.</text>`; return; }
-    const width = 1200, height = 300, pad = {top:18,right:24,bottom:38,left:78};
+    const width = 1200, height = 460, pad = {top:4,right:24,bottom:24,left:78};
     const max = Math.max(1, ...values) * 1.08;
     const x = (index) => pad.left + index * (width - pad.left - pad.right) / Math.max(rows.length - 1, 1);
     const y = (value) => pad.top + (max - value) * (height - pad.top - pad.bottom) / max;
     const path = (key) => pathFor(rows.map((row) => row[key]), x, y);
-    const ticks = [0, max / 2, max].map((tick) => `<line class="${tick === 0 ? "chart-zero" : "chart-grid-line"}" x1="${pad.left}" x2="${width-pad.right}" y1="${y(tick)}" y2="${y(tick)}"/><text class="chart-label" x="${pad.left-10}" y="${y(tick)+5}" text-anchor="end">${core.formatNumber(tick,1)} همت</text>`).join("");
+    const ticks = [0, Math.round(max / 2), Math.round(max)].filter((tick, index, all) => all.indexOf(tick) === index).map((tick) => `<line class="${tick === 0 ? "chart-zero" : "chart-grid-line"}" x1="${pad.left}" x2="${width-pad.right}" y1="${y(tick)}" y2="${y(tick)}"/><text class="chart-label" x="${pad.left-10}" y="${y(tick)+5}" text-anchor="end">${core.formatNumber(tick,0)} همت</text>`).join("");
     const labels = rows.map((row, index) => index === 0 || index === rows.length - 1 || /:(00|30)$/.test(row.time || "") ? `<text class="chart-label" x="${x(index)}" y="${height-8}" text-anchor="middle">${escapeHtml(core.faDigits(row.time || "—"))}</text>` : "").join("");
     svg.innerHTML = `${ticks}${labels}<path class="chart-path chart-buy" d="${path("buy_value_hmt")}"/><path class="chart-path chart-sell" d="${path("sell_value_hmt")}"/>`;
   }
@@ -233,7 +280,7 @@
       const extremaText = (label, extrema) => `${label}: کمینه ${extrema.min === null ? "—" : signed(extrema.min, 2)} · بیشینه ${extrema.max === null ? "—" : signed(extrema.max, 2)}`;
       extremaLabel.textContent = `${extremaText("لیدرها", leaderExtrema)}  |  ${extremaText("کل بازار", marketExtrema)}`;
     }
-    const width = 1200, height = 300, pad = { top: 18, right: 24, bottom: 38, left: 62 };
+    const width = 1200, height = 460, pad = { top: 4, right: 24, bottom: 24, left: 62 };
     if (!actualValues.length) {
       svg.innerHTML = `<text class="chart-empty" x="380" y="145" text-anchor="middle">دادهٔ امروز از ۰۹:۱۵ هنوز موجود نیست.</text>`;
       return;
@@ -249,7 +296,7 @@
     const zeroY = y(0);
     // Do not bridge missing samples with a filled area.
     const areaPath = marketPath && series.market.every((value) => value !== null) ? `${marketPath} L ${x(days.length - 1)},${zeroY} L ${x(0)},${zeroY} Z` : "";
-    const grid = scale.ticks.map((tick) => `<line class="${tick === scale.max ? "chart-limit-positive" : tick === scale.min ? "chart-limit-negative" : tick === 0 ? "chart-zero" : "chart-grid-line"}" x1="${pad.left}" x2="${width - pad.right}" y1="${y(tick)}" y2="${y(tick)}"/><text class="chart-label" x="${pad.left - 11}" y="${y(tick) + 5}" text-anchor="end">${core.faDigits(tick)}</text>`).join("");
+    const grid = scale.ticks.map((tick) => `<line class="${tick === 3 ? "chart-limit-positive" : tick === -3 ? "chart-limit-negative" : tick === 0 ? "chart-zero" : "chart-grid-line"}" x1="${pad.left}" x2="${width - pad.right}" y1="${y(tick)}" y2="${y(tick)}"/><text class="chart-label" x="${pad.left - 11}" y="${y(tick) + 5}" text-anchor="end">${core.faDigits(tick)}</text>`).join("");
     const labels = days.map((point, index) => {
       const time = String(point.time || "").slice(0, 5);
       return /:(00|30)$/.test(time) || index === days.length - 1 ? `<text class="chart-label" x="${x(index)}" y="${height - 8}" text-anchor="middle">${escapeHtml(core.faDigits(time))}</text>` : "";
@@ -259,7 +306,7 @@
     const plotWidth = width - pad.left - pad.right;
     const step = plotWidth / Math.max(days.length - 1, 1);
     const hitArea = `<rect class="chart-hit-area" x="${pad.left}" y="${pad.top}" width="${plotWidth}" height="${height - pad.top - pad.bottom}" tabindex="0" aria-label="نقاط نمودار امتیاز"/>`;
-    const bands = `<defs><linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b8df55" stop-opacity=".25"/><stop offset="1" stop-color="#b8df55" stop-opacity="0"/></linearGradient><linearGradient id="positiveBand" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#9bd5a3" stop-opacity=".035"/><stop offset="1" stop-color="#5cae70" stop-opacity=".20"/></linearGradient><linearGradient id="negativeBand" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e5a0a0" stop-opacity=".035"/><stop offset="1" stop-color="#c96b70" stop-opacity=".20"/></linearGradient></defs><rect x="${pad.left}" y="${y(scale.max)}" width="${plotWidth}" height="${zeroY - y(scale.max)}" fill="url(#positiveBand)"/><rect x="${pad.left}" y="${zeroY}" width="${plotWidth}" height="${y(scale.min) - zeroY}" fill="url(#negativeBand)"/>`;
+    const bands = `<defs><linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b8df55" stop-opacity=".25"/><stop offset="1" stop-color="#b8df55" stop-opacity="0"/></linearGradient><linearGradient id="positiveBand" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#9bd5a3" stop-opacity=".035"/><stop offset="1" stop-color="#5cae70" stop-opacity=".20"/></linearGradient></defs><rect x="${pad.left}" y="${y(3)}" width="${plotWidth}" height="${zeroY - y(3)}" fill="url(#positiveBand)"/>`;
     svg.innerHTML = `${bands}${grid}${labels}${areaPath ? `<path class="chart-area" d="${areaPath}"/>` : ""}${leadersMarkup}<path class="chart-path chart-market" d="${marketPath}"/><line class="chart-crosshair" x1="${x(0)}" x2="${x(0)}" y1="${pad.top}" y2="${height - pad.bottom}" opacity="0"/>${hitArea}`;
     const chartWrap = svg.parentElement;
     let tooltip = chartWrap && chartWrap.querySelector(".chart-tooltip-html");
@@ -400,18 +447,27 @@
       return { ...row, count: members.length || row.count || row.stock_count, median: rowScore, turnover_toman: turnover || numeric(row.turnover_toman || row.trade_value_toman), avg_last_close_diff_pct: avgDiff };
     });
     const totalIndustries = rows.length;
-    const select = $("#industrySelectFilter");
-    const textFilter = $("#industryTextFilter");
-    if (select) {
-      const selected = select.value;
-      select.innerHTML = `<option value="">همه صنایع</option>` + rows.map((row) => String(row.industry || "")).sort((a, b) => a.localeCompare(b, "fa")).map((name) => `<option value="${escapeHtml(name)}">${escapeHtml(name)}</option>`).join("");
-      select.value = rows.some((row) => String(row.industry || "") === selected) ? selected : "";
-    }
-
-
-    const selectedIndustry = select ? select.value : "";
-    const query = textFilter ? String(textFilter.value || "").trim().toLocaleLowerCase("fa") : "";
-    const visibleRows = rows.filter((row) => { const name = String(row.industry || ""); return (!selectedIndustry || name === selectedIndustry) && (!query || name.toLocaleLowerCase("fa").indexOf(query) >= 0); });
+    const compareIndustryFilter = (value, filter, scale = 1) => {
+      if (!filter || !filter.op || filter.value === "") return true;
+      const actual = numeric(value);
+      const expected = numeric(filter.value);
+      if (actual === null || expected === null) return false;
+      const left = actual / scale;
+      if (filter.op === "=") return left === expected;
+      if (filter.op === ">") return left > expected;
+      if (filter.op === ">=") return left >= expected;
+      if (filter.op === "<") return left < expected;
+      if (filter.op === "<=") return left <= expected;
+      return true;
+    };
+    const textFilter = industryColumnFilters.industry;
+    const queryNormalized = String(textFilter.value || "").trim().toLocaleLowerCase("fa");
+    const visibleRows = rows.filter((row, index) => {
+      const name = String(row.industry || "");
+      const rank = numeric(row.rank) || index + 1;
+      const matchesText = !queryNormalized || name.toLocaleLowerCase("fa").indexOf(queryNormalized) >= 0;
+      return matchesText && compareIndustryFilter(rank, industryColumnFilters.rank) && compareIndustryFilter(row.count, industryColumnFilters.count) && compareIndustryFilter(row.median, industryColumnFilters.median) && compareIndustryFilter(row.turnover_toman, industryColumnFilters.turnover, 1000000000) && compareIndustryFilter(row.avg_last_close_diff_pct, industryColumnFilters.diff);
+    });
     const markup = visibleRows.map((row, index) => {
       const score = numeric(row.median !== undefined ? row.median : row.median_score);
       const positive = score === null || score >= 0;
@@ -426,7 +482,29 @@
 
 
 
-  [$("#industrySelectFilter"), $("#industryTextFilter")].forEach((control) => { if (control) ["input", "change"].forEach((eventName) => control.addEventListener(eventName, () => { if (currentData) renderIndustries(currentData); })); });
+  function bindIndustryColumnFilters() {
+    if (industryFilterBound) return;
+    const table = $(".industry-table");
+    if (!table) return;
+    industryFilterBound = true;
+    table.addEventListener("input", (event) => {
+      const input = event.target.closest("[data-industry-filter]");
+      if (!input) return;
+      const key = input.getAttribute("data-industry-filter");
+      industryColumnFilters[key].value = input.value;
+      const op = table.querySelector(`[data-industry-op="${key}"]`);
+      industryColumnFilters[key].op = op ? op.value : "contains";
+      if (currentData) renderIndustries(currentData);
+    });
+    table.addEventListener("change", (event) => {
+      const op = event.target.closest("[data-industry-op]");
+      if (!op) return;
+      const key = op.getAttribute("data-industry-op");
+      industryColumnFilters[key].op = op.value;
+      if (currentData) renderIndustries(currentData);
+    });
+  }
+  bindIndustryColumnFilters();
   const optionsNumber = (value, digits = 0) => { const parsed = numeric(value); return parsed === null ? "—" : core.faDigits(parsed.toLocaleString("fa-IR", { maximumFractionDigits: digits, minimumFractionDigits: digits })); };
   const optionsPercent = (value) => { const parsed = numeric(value); return parsed === null ? "—" : `<strong>${optionsNumber(parsed, 1)}</strong> <span class="percent-unit">٪</span>`; };
   function optionsStatusLabel(status) { return ({ ready: "داده معتبر آماده است.", no_opportunity: "فعلاً جفت واجد شرایط پیدا نشد.", insufficient_data: "داده کافی برای محاسبه کامل نیست.", stale: "داده آپشن قدیمی است.", unavailable: "منبع داده آپشن در دسترس نیست." }[status] || "وضعیت داده نامشخص است."); }
@@ -436,11 +514,12 @@
     const element = $("#fundReportRows");
     if (!element) return;
     const n = (value, digits = 1) => numeric(value) === null ? "—" : core.faDigits(Number(value).toLocaleString("fa-IR", {minimumFractionDigits: digits, maximumFractionDigits: digits}));
-    const pct = (value) => numeric(value) === null ? "—" : `<strong>${n(Number(value) * 100, 0)}</strong> <span class="percent-unit">٪</span>`;
-    element.innerHTML = rows.map((row, index) => `<tr><td>${core.faDigits(index + 1)}</td><td><b>${escapeHtml(row.symbol || "—")}</b>${String(row.description || "").includes("اهرمی") ? ' <span class="fund-leveraged">🔥</span>' : ""}</td><td>${n(row.portfolio_score)}</td><td>${n(row.board_score)}</td><td>${n(row.score_diff)}</td><td>${numeric(row.bubble_pct) === null ? "—" : `<strong>${n(row.bubble_pct)}</strong> <span class="percent-unit">٪</span>`}</td><td>${n(row.liquidity, 0)}</td><td>${pct(row.matched_weight)}</td><td>${escapeHtml(row.portfolio_last_update || row.report_date || "—")}</td></tr>`).join("");
-    text("#fundReportCount", rows.length ? `${core.faDigits(rows.length)} صندوق واجد شرایط` : "—");
-    const generated = payload.generated_at ? core.formatDate(payload.generated_at) : "—";
-    text("#fundReportMeta", payload.status === "ready" ? `به‌روزرسانی: ${generated} · آستانه میانگین ارزش: بیشتر از ۲۰ میلیارد تومان · پوشش فقط اطلاع‌رسانی است · مرتب‌سازی اختلاف امتیاز` : "گزارش صندوق‌ها هنوز آماده نیست.");
+    const faText = (value) => value === null || value === undefined || value === "" ? "—" : core.faDigits(String(value));
+    const scoreMarkup = (value) => numeric(value) === null ? "—" : `<bdi dir="ltr">${escapeHtml(core.formatSigned(value, 1))}</bdi>`;
+    const bubbleMarkup = (value) => numeric(value) === null ? "—" : `<bdi dir="ltr">${escapeHtml(core.formatSigned(value, 1))}٪</bdi>`;
+    const historyBubbleMarkup = (value) => numeric(value) === null ? "—" : `<bdi dir="ltr">${escapeHtml(core.formatSigned(value, 2))}٪</bdi>`;
+    const boardMarkup = (value) => numeric(value) === null ? "—" : `<bdi dir="ltr">${escapeHtml(core.formatSigned(value, 2))}</bdi>`;
+    element.innerHTML = rows.map((row, index) => `<tr><td>${core.faDigits(index + 1)}</td><td><b>${escapeHtml(row.symbol || "—")}</b>${String(row.description || "").includes("اهرمی") ? ' <span class="fund-leveraged">🔥</span>' : ""}</td><td>${n(row.liquidity, 1)}</td><td>${faText(row.portfolio_last_update || row.report_date)}</td><td>${bubbleMarkup(row.bubble_pct)}</td><td>${scoreMarkup(row.portfolio_score)}</td><td>${boardMarkup(row.board_score)}</td><td>${scoreMarkup(row.score_diff)}</td></tr>`).join("") || `<tr><td colspan="8">گزارش صندوق‌ها هنوز آماده نیست.</td></tr>`;
   }
 
   function renderOptions(options) {
@@ -463,11 +542,11 @@
     text("#optionsPairCount", status === "unavailable" ? "—" : optionsNumber(counts.pairs));
     const reasonText = pair => escapeHtml((pair.reasons && pair.reasons.length ? pair.reasons : ["قیمت قدیمی یا اعتبار قابل تأیید نیست"]).join("؛ "));
     const rejectedElement = $("#optionsRejected");
-    if (rejectedElement) rejectedElement.innerHTML = rejected.length ? `<details><summary>بررسی جفت‌ها · ${optionsNumber(rejected.length)} جفت غیرمجاز برای سیگنال</summary><p>این جدول فقط تشخیصی است؛ هیچ ردیف آن پیشنهاد ورود نیست.</p>${rejected.map(pair => `<details class="option-detail"><summary>${escapeHtml(pair.underlying)} · ${escapeHtml(pair.long_symbol)} / ${escapeHtml(pair.short_symbol)} · ${escapeHtml(pair.expiry)}</summary><p class="options-warning">${reasonText(pair)}</p><div class="option-facts"><span>قیمت پایه: ${optionsNumber(pair.underlying_price_toman, 1)}</span><span>اعمال پایین / بالا: ${optionsNumber(pair.k1_toman, 1)} / ${optionsNumber(pair.k2_toman, 1)}</span><span>Ask خرید / Bid فروش: ${optionsNumber(pair.ask_toman, 1)} / ${optionsNumber(pair.bid_toman, 1)}</span><span>هزینه ورود با کارمزد: ${optionsNumber(pair.net_debit_toman, 2)}</span><span>کارمزد: ${optionsNumber(pair.fees_toman, 2)}</span><span>حداکثر زیان: ${optionsNumber(pair.max_loss_toman, 2)}</span><span>حداکثر سود: ${optionsNumber(pair.max_profit_toman, 2)}</span><span>سربه‌سر: ${optionsNumber(pair.break_even_toman, 2)}</span><span>بازده کل / ماهانه: ${optionsPercent(pair.total_return_pct)} / ${optionsPercent(pair.monthly_return_pct)}</span><span>ارزش معاملات امروز خرید / فروش: ${optionsNumber(pair.long_today_value_toman)} / ${optionsNumber(pair.short_today_value_toman)}</span></div></details>`).join("")}</details>` : "";
+    if (rejectedElement) rejectedElement.innerHTML = rejected.length ? `<details><summary>بررسی جفت‌ها · ${optionsNumber(rejected.length)} جفت غیرمجاز برای سیگنال</summary><p>این جدول فقط تشخیصی است؛ هیچ ردیف آن پیشنهاد ورود نیست.</p>${rejected.map(pair => `<details class="option-detail"><summary>${symbolLink(pair.underlying, "stock-symbol-link")} · ${escapeHtml(pair.long_symbol)} / ${escapeHtml(pair.short_symbol)} · ${escapeHtml(pair.expiry)}</summary><p class="options-warning">${reasonText(pair)}</p><div class="option-facts"><span>قیمت پایه: ${optionsNumber(pair.underlying_price_toman, 1)}</span><span>اعمال پایین / بالا: ${optionsNumber(pair.k1_toman, 1)} / ${optionsNumber(pair.k2_toman, 1)}</span><span>Ask خرید / Bid فروش: ${optionsNumber(pair.ask_toman, 1)} / ${optionsNumber(pair.bid_toman, 1)}</span><span>هزینه ورود با کارمزد: ${optionsNumber(pair.net_debit_toman, 2)}</span><span>کارمزد: ${optionsNumber(pair.fees_toman, 2)}</span><span>حداکثر زیان: ${optionsNumber(pair.max_loss_toman, 2)}</span><span>حداکثر سود: ${optionsNumber(pair.max_profit_toman, 2)}</span><span>سربه‌سر: ${optionsNumber(pair.break_even_toman, 2)}</span><span>بازده کل / ماهانه: ${optionsPercent(pair.total_return_pct)} / ${optionsPercent(pair.monthly_return_pct)}</span><span>ارزش معاملات امروز خرید / فروش: ${optionsNumber(pair.long_today_value_toman)} / ${optionsNumber(pair.short_today_value_toman)}</span></div></details>`).join("")}</details>` : "";
     const contracts = Array.isArray(payload.contracts) ? payload.contracts : [];
     const contractsElement = $("#optionsContracts");
-    if (contractsElement) contractsElement.innerHTML = renderDetails ? `<h3>قراردادهای رصدشده · ${optionsNumber(contracts.length)}</h3><p>قیمت‌ها تومان به‌ازای واحد پایه هستند؛ ارزش معاملات تومان است. فیلتر نقدشوندگی: ارزش معاملات امروز هر قرارداد بیش از ۱۵ میلیارد تومان؛ بدون شرط سابقه.</p><div class="options-table-wrap"><table class="options-table"><thead><tr><th>قرارداد / پایه</th><th>رتبه</th><th>سررسید / روز</th><th>اعمال</th><th>Ask</th><th>Bid</th><th>ارزش امروز</th></tr></thead><tbody>${contracts.map(c => `<tr><td><b>${escapeHtml(c.symbol)}</b><small>${escapeHtml(c.underlying)}</small></td><td>${optionsNumber(c.leader_rank)}</td><td>${escapeHtml(c.expiry)}<small>${optionsNumber(c.dte)} روز</small></td><td>${optionsNumber(c.strike_toman, 1)}</td><td>${optionsNumber(c.ask_toman, 1)}</td><td>${optionsNumber(c.bid_toman, 1)}</td><td>${optionsNumber(c.trade_value_toman)}</td></tr>`).join("") || '<tr><td colspan="7">قرارداد قابل نمایش موجود نیست.</td></tr>'}</tbody></table></div>` : "<p>جزئیات آپشن برای جلوگیری از کندی صفحه در این وضعیت بارگذاری نشده است.</p>";
-    const rows = pairs.map((pair) => `<tr><td><b>${escapeHtml(pair.underlying || "—")}</b><small>رتبه ${escapeHtml(optionsNumber(pair.leader_rank))}</small></td><td>${escapeHtml(pair.expiry || "—")}<small>${escapeHtml(optionsNumber(pair.dte))} روز</small></td><td><span class="ltr">${escapeHtml(optionsNumber(pair.k1_toman))}</span> / <span class="ltr">${escapeHtml(optionsNumber(pair.k2_toman))}</span><small>${escapeHtml(pair.long_symbol || "—")} / ${escapeHtml(pair.short_symbol || "—")}</small></td><td><span class="ltr">${escapeHtml(optionsNumber(pair.ask_toman))}</span> / <span class="ltr">${escapeHtml(optionsNumber(pair.bid_toman))}</span><small>Ask / Bid</small></td><td><span class="ltr">${escapeHtml(optionsNumber(pair.net_debit_toman))}</span><small>تومان/واحد پایه</small></td><td><span class="positive ltr">${escapeHtml(optionsNumber(pair.max_profit_toman))}</span> / <span class="negative ltr">${escapeHtml(optionsNumber(pair.max_loss_toman))}</span><small>سود / زیان سقف</small></td><td><b class="positive ltr">${escapeHtml(optionsPercent(pair.monthly_return_pct))}</b><small>بازده کل: ${escapeHtml(optionsPercent(pair.total_return_pct))}</small></td></tr>`).join("");
+    if (contractsElement) contractsElement.innerHTML = renderDetails ? `<h3>قراردادهای رصدشده · ${optionsNumber(contracts.length)}</h3><p>قیمت‌ها تومان به‌ازای واحد پایه هستند؛ ارزش معاملات تومان است. فیلتر نقدشوندگی: ارزش معاملات امروز هر قرارداد بیش از ۱۵ میلیارد تومان؛ بدون شرط سابقه.</p><div class="options-table-wrap"><table class="options-table"><thead><tr><th>قرارداد / پایه</th><th>رتبه</th><th>سررسید / روز</th><th>اعمال</th><th>Ask</th><th>Bid</th><th>ارزش امروز</th></tr></thead><tbody>${contracts.map(c => `<tr><td><b>${escapeHtml(c.symbol)}</b><small>${symbolLink(c.underlying, "stock-symbol-link")}</small></td><td>${optionsNumber(c.leader_rank)}</td><td>${escapeHtml(c.expiry)}<small>${optionsNumber(c.dte)} روز</small></td><td>${optionsNumber(c.strike_toman, 1)}</td><td>${optionsNumber(c.ask_toman, 1)}</td><td>${optionsNumber(c.bid_toman, 1)}</td><td>${optionsNumber(c.trade_value_toman)}</td></tr>`).join("") || '<tr><td colspan="7">قرارداد قابل نمایش موجود نیست.</td></tr>'}</tbody></table></div>` : "<p>جزئیات آپشن برای جلوگیری از کندی صفحه در این وضعیت بارگذاری نشده است.</p>";
+    const rows = pairs.map((pair) => `<tr><td><b>${symbolLink(pair.underlying, "stock-symbol-link")}</b><small>رتبه ${escapeHtml(optionsNumber(pair.leader_rank))}</small></td><td>${escapeHtml(pair.expiry || "—")}<small>${escapeHtml(optionsNumber(pair.dte))} روز</small></td><td><span class="ltr">${escapeHtml(optionsNumber(pair.k1_toman))}</span> / <span class="ltr">${escapeHtml(optionsNumber(pair.k2_toman))}</span><small>${escapeHtml(pair.long_symbol || "—")} / ${escapeHtml(pair.short_symbol || "—")}</small></td><td><span class="ltr">${escapeHtml(optionsNumber(pair.ask_toman))}</span> / <span class="ltr">${escapeHtml(optionsNumber(pair.bid_toman))}</span><small>Ask / Bid</small></td><td><span class="ltr">${escapeHtml(optionsNumber(pair.net_debit_toman))}</span><small>تومان/واحد پایه</small></td><td><span class="positive ltr">${escapeHtml(optionsNumber(pair.max_profit_toman))}</span> / <span class="negative ltr">${escapeHtml(optionsNumber(pair.max_loss_toman))}</span><small>سود / زیان سقف</small></td><td><b class="positive ltr">${escapeHtml(optionsPercent(pair.monthly_return_pct))}</b><small>بازده کل: ${escapeHtml(optionsPercent(pair.total_return_pct))}</small></td></tr>`).join("");
     const table = $("#optionsPairs"); if (table) table.innerHTML = rows || `<tr><td colspan="7">${escapeHtml(payload.message || "جفت واجد شرایطی برای نمایش نیست.")}</td></tr>`;
     const diagnostics = Array.isArray(payload.diagnostics) ? payload.diagnostics : [], diagnosticElement = $("#optionsDiagnostics"); if (diagnosticElement) diagnosticElement.innerHTML = diagnostics.length ? `<span>کنترل فیلترها:</span> ${diagnostics.map((item) => `<b>${escapeHtml(item.label)}: ${escapeHtml(optionsNumber(item.count))}</b>`).join(" · ")}` : "فقط جفت‌های تأییدشده نمایش داده می‌شوند؛ سفارش خودکار فعال نیست.";
   }
@@ -477,6 +556,7 @@
     currentData = data;
     renderMetrics(data);
     renderQueueChart(data);
+    renderQueueCountChart(data);
     renderChart(data);
     renderTables(data);
     renderIndustries(data);

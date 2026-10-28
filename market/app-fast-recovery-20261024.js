@@ -204,7 +204,7 @@
     const x = (index) => pad.left + index * (width - pad.left - pad.right) / Math.max(rows.length - 1, 1);
     const y = (value) => pad.top + (max - value) * (height - pad.top - pad.bottom) / max;
     const path = (key) => pathFor(rows.map((row) => row[key]), x, y);
-    const ticks = [0, max / 2, max].map((tick) => `<line class="${tick === 0 ? "chart-zero" : "chart-grid-line"}" x1="${pad.left}" x2="${width-pad.right}" y1="${y(tick)}" y2="${y(tick)}"/><text class="chart-label" x="${pad.left-10}" y="${y(tick)+5}" text-anchor="end">${core.formatNumber(tick,1)} همت</text>`).join("");
+    const ticks = [0, Math.round(max / 2), Math.round(max)].filter((tick, index, all) => all.indexOf(tick) === index).map((tick) => `<line class="${tick === 0 ? "chart-zero" : "chart-grid-line"}" x1="${pad.left}" x2="${width-pad.right}" y1="${y(tick)}" y2="${y(tick)}"/><text class="chart-label" x="${pad.left-10}" y="${y(tick)+5}" text-anchor="end">${core.formatNumber(tick,0)} همت</text>`).join("");
     const labels = rows.map((row, index) => index === 0 || index === rows.length - 1 || /:(00|30)$/.test(row.time || "") ? `<text class="chart-label" x="${x(index)}" y="${height-8}" text-anchor="middle">${escapeHtml(core.faDigits(row.time || "—"))}</text>` : "").join("");
     svg.innerHTML = `${ticks}${labels}<path class="chart-path chart-buy" d="${path("buy_value_hmt")}"/><path class="chart-path chart-sell" d="${path("sell_value_hmt")}"/>`;
   }
@@ -243,7 +243,7 @@
     const zeroY = y(0);
     // Do not bridge missing samples with a filled area.
     const areaPath = marketPath && series.market.every((value) => value !== null) ? `${marketPath} L ${x(days.length - 1)},${zeroY} L ${x(0)},${zeroY} Z` : "";
-    const grid = scale.ticks.map((tick) => `<line class="${tick === scale.max ? "chart-limit-positive" : tick === scale.min ? "chart-limit-negative" : tick === 0 ? "chart-zero" : "chart-grid-line"}" x1="${pad.left}" x2="${width - pad.right}" y1="${y(tick)}" y2="${y(tick)}"/><text class="chart-label" x="${pad.left - 11}" y="${y(tick) + 5}" text-anchor="end">${core.faDigits(tick)}</text>`).join("");
+    const grid = scale.ticks.map((tick) => `<line class="${tick === 3 ? "chart-limit-positive" : tick === -3 ? "chart-limit-negative" : tick === 0 ? "chart-zero" : "chart-grid-line"}" x1="${pad.left}" x2="${width - pad.right}" y1="${y(tick)}" y2="${y(tick)}"/><text class="chart-label" x="${pad.left - 11}" y="${y(tick) + 5}" text-anchor="end">${core.faDigits(tick)}</text>`).join("");
     const labels = days.map((point, index) => {
       const time = String(point.time || "").slice(0, 5);
       return /:(00|30)$/.test(time) || index === days.length - 1 ? `<text class="chart-label" x="${x(index)}" y="${height - 8}" text-anchor="middle">${escapeHtml(core.faDigits(time))}</text>` : "";
@@ -253,7 +253,7 @@
     const plotWidth = width - pad.left - pad.right;
     const step = plotWidth / Math.max(days.length - 1, 1);
     const hitArea = `<rect class="chart-hit-area" x="${pad.left}" y="${pad.top}" width="${plotWidth}" height="${height - pad.top - pad.bottom}" tabindex="0" aria-label="نقاط نمودار امتیاز"/>`;
-    const bands = `<defs><linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b8df55" stop-opacity=".25"/><stop offset="1" stop-color="#b8df55" stop-opacity="0"/></linearGradient><linearGradient id="positiveBand" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#9bd5a3" stop-opacity=".035"/><stop offset="1" stop-color="#5cae70" stop-opacity=".20"/></linearGradient><linearGradient id="negativeBand" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e5a0a0" stop-opacity=".035"/><stop offset="1" stop-color="#c96b70" stop-opacity=".20"/></linearGradient></defs><rect x="${pad.left}" y="${y(scale.max)}" width="${plotWidth}" height="${zeroY - y(scale.max)}" fill="url(#positiveBand)"/><rect x="${pad.left}" y="${zeroY}" width="${plotWidth}" height="${y(scale.min) - zeroY}" fill="url(#negativeBand)"/>`;
+    const bands = `<defs><linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b8df55" stop-opacity=".25"/><stop offset="1" stop-color="#b8df55" stop-opacity="0"/></linearGradient><linearGradient id="positiveBand" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#9bd5a3" stop-opacity=".035"/><stop offset="1" stop-color="#5cae70" stop-opacity=".20"/></linearGradient><linearGradient id="negativeBand" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e5a0a0" stop-opacity=".035"/><stop offset="1" stop-color="#c96b70" stop-opacity=".20"/></linearGradient></defs><rect x="${pad.left}" y="${y(3)}" width="${plotWidth}" height="${zeroY - y(3)}" fill="url(#positiveBand)"/><rect x="${pad.left}" y="${zeroY}" width="${plotWidth}" height="${y(-3) - zeroY}" fill="url(#negativeBand)"/>`;
     svg.innerHTML = `${bands}${grid}${labels}${areaPath ? `<path class="chart-area" d="${areaPath}"/>` : ""}${leadersMarkup}<path class="chart-path chart-market" d="${marketPath}"/><line class="chart-crosshair" x1="${x(0)}" x2="${x(0)}" y1="${pad.top}" y2="${height - pad.bottom}" opacity="0"/>${hitArea}`;
     const chartWrap = svg.parentElement;
     let tooltip = chartWrap && chartWrap.querySelector(".chart-tooltip-html");
@@ -414,11 +414,9 @@
     const element = $("#fundReportRows");
     if (!element) return;
     const n = (value, digits = 1) => numeric(value) === null ? "—" : core.faDigits(Number(value).toLocaleString("fa-IR", {minimumFractionDigits: digits, maximumFractionDigits: digits}));
-    const pct = (value) => numeric(value) === null ? "—" : `<strong>${n(Number(value) * 100, 0)}</strong> <span class="percent-unit">٪</span>`;
-    element.innerHTML = rows.map((row, index) => `<tr><td>${core.faDigits(index + 1)}</td><td><b>${escapeHtml(row.symbol || "—")}</b>${String(row.description || "").includes("اهرمی") ? ' <span class="fund-leveraged">🔥</span>' : ""}</td><td>${n(row.portfolio_score)}</td><td>${n(row.board_score)}</td><td>${n(row.score_diff)}</td><td>${numeric(row.bubble_pct) === null ? "—" : `<strong>${n(row.bubble_pct)}</strong> <span class="percent-unit">٪</span>`}</td><td>${n(row.liquidity, 0)}</td><td>${pct(row.matched_weight)}</td><td>${escapeHtml(row.portfolio_last_update || row.report_date || "—")}</td></tr>`).join("") || `<tr><td colspan="9">گزارش صندوق‌ها هنوز آماده نیست.</td></tr>`;
-    text("#fundReportCount", rows.length ? `${core.faDigits(rows.length)} صندوق واجد شرایط` : "—");
-    const generated = payload.generated_at ? core.formatDate(payload.generated_at) : "—";
-    text("#fundReportMeta", payload.status === "ready" ? `به‌روزرسانی: ${generated} · آستانه میانگین ارزش: بیشتر از ۲۰ میلیارد تومان · پوشش فقط اطلاع‌رسانی است · مرتب‌سازی اختلاف امتیاز` : "گزارش صندوق‌ها هنوز آماده نیست.");
+    const faText = (value) => value === null || value === undefined || value === "" ? "—" : core.faDigits(String(value));
+    const scoreMarkup = (value) => numeric(value) === null ? "—" : `<bdi dir="ltr">${escapeHtml(core.formatSigned(value, 1))}</bdi>`;
+    element.innerHTML = rows.map((row, index) => `<tr><td>${core.faDigits(index + 1)}</td><td><b>${escapeHtml(row.symbol || "—")}</b>${String(row.description || "").includes("اهرمی") ? ' <span class="fund-leveraged">🔥</span>' : ""}</td><td>${n(row.liquidity, 1)}</td><td>${faText(row.portfolio_last_update || row.report_date)}</td><td>${scoreMarkup(row.portfolio_score)}</td><td>${scoreMarkup(row.board_score)}</td><td>${scoreMarkup(row.score_diff)}</td></tr>`).join("") || `<tr><td colspan="7">گزارش صندوق‌ها هنوز آماده نیست.</td></tr>`;
   }
 
   function renderOptions(options) {

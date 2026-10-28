@@ -44,20 +44,23 @@ def test_both_exporters_compute_three_raw_medians_with_unequal_cohort_sizes(tmp_
     conn.close()
 
 
-def test_intraday_chart_excludes_prior_days_and_pre_open_samples(tmp_path):
+def test_intraday_chart_uses_the_0900_session_and_excludes_prior_days(tmp_path):
     db = tmp_path / 'scores.db'
     conn = make_scores_db(db)
     seed_market(conn, '2026-10-19')
     add_scores(conn, '2026-10-18', [('فولاد', 99, 1, 1)], time='12:00:00')
+    add_scores(conn, '2026-10-19', [('فولاد', 88, 1, 1), ('A', 77, 1, 1)], time='08:59:00')
     add_scores(conn, '2026-10-19', [('فولاد', 4, 1, 1), ('A', 2, 1, 1)], time='09:10:00')
     add_scores(conn, '2026-10-19', [('فولاد', 3, 1, 1), ('A', 1, 1, 1)], time='09:15:00')
     add_scores(conn, '2026-10-19', [('فولاد', 5, 1, 1), ('A', 3, 1, 1)], time='10:00:00')
     conn.commit()
     rows = publish_snapshot.load_intraday_chart_rows(conn, '2026-10-19')
-    assert len(rows) == 46
-    assert rows[0]['time'] == '09:15'
+    assert len(rows) == 61
+    assert rows[0]['time'] == '09:00'
+    assert rows[0]['median_score'] is None
+    assert rows[10]['time'] == '09:10'
+    assert rows[10]['median_score'] == 3
     assert rows[rows.index(next(row for row in rows if row['time'] == '10:00'))]['median_score'] == 4
-    assert rows[0]['median_score'] == 2
     assert rows[-1]['time'] == '10:00'
     assert rows[-1]['median_score'] == 4
     conn.close()
@@ -74,4 +77,29 @@ def test_intraday_symbol_rows_are_observed_minute_bars_and_keep_missing_prices_n
     assert [bar['time'] for bar in bars['فولاد']] == ['09:15', '09:17']
     assert [bar['score'] for bar in bars['فولاد']] == [4.0, 6.0]
     assert bars['فولاد'][0]['price_open'] is None
+    conn.close()
+
+
+def test_queue_count_uses_last_snapshot_per_symbol_and_counts_each_side(tmp_path):
+    db = tmp_path / 'scores.db'
+    conn = make_scores_db(db)
+
+
+    conn.executemany(
+        'INSERT INTO stock_snapshots(trading_date,timestamp,valid,symbol,buy_queue_value_toman,sell_queue_value_toman) VALUES (?,?,?,?,?,?)',
+        [
+            ('2026-10-27', '2026-10-27T09:15:00+03:30', 1, 'AAA', 10, 0),
+            ('2026-10-27', '2026-10-27T09:15:10+03:30', 1, 'AAA', 0, 20),
+            ('2026-10-27', '2026-10-27T09:15:20+03:30', 1, 'BBB', 30, 40),
+            ('2026-10-27', '2026-10-27T09:16:00+03:30', 1, 'AAA', 10, 0),
+            ('2026-10-27', '2026-10-27T09:16:00+03:30', 1, 'BBB', 0, 40),
+            ('2026-10-27', '2026-10-27T09:16:00+03:30', 0, 'CCC', 50, 50),
+        ],
+    )
+    conn.commit()
+    rows = publish_snapshot.load_intraday_queue_count_rows(conn, '2026-10-27')
+    assert rows == [
+        {'timestamp': '2026-10-27T09:15:20+03:30', 'time': '09:15', 'buy_queue_count': 1, 'sell_queue_count': 2},
+        {'timestamp': '2026-10-27T09:16:00+03:30', 'time': '09:16', 'buy_queue_count': 1, 'sell_queue_count': 1},
+    ]
     conn.close()

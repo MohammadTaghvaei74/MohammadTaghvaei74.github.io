@@ -32,23 +32,25 @@ from xml.sax.saxutils import escape
 if __package__:
     from .export_signals import export as export_signals
     from .leveraged_snapshots import read_latest as read_leveraged
-    from .chart_data import load_daily_chart_rows, load_intraday_chart_rows, load_intraday_queue_rows, load_intraday_symbol_rows
+    from .chart_data import load_daily_chart_rows, load_intraday_chart_rows, load_intraday_queue_rows, load_intraday_queue_count_rows, load_intraday_symbol_rows
     from .export_options import export_from_scores_db
     from .score_candles import build_candles
     from .tsetmc_enrichment import enrich_stocks
     from .comprehensive_table import build_comprehensive_rows
     from .industry_table import build_industry_table
     from .symbol_history import write_symbol_history
+    from .portfolio_special import build_portfolio_special
 else:
     from export_signals import export as export_signals
     from leveraged_snapshots import read_latest as read_leveraged
-    from chart_data import load_daily_chart_rows, load_intraday_chart_rows, load_intraday_queue_rows, load_intraday_symbol_rows
+    from chart_data import load_daily_chart_rows, load_intraday_chart_rows, load_intraday_queue_rows, load_intraday_queue_count_rows, load_intraday_symbol_rows
     from export_options import export_from_scores_db
     from score_candles import build_candles
     from tsetmc_enrichment import enrich_stocks
     from comprehensive_table import build_comprehensive_rows
     from industry_table import build_industry_table
     from symbol_history import write_symbol_history
+    from portfolio_special import build_portfolio_special
 
 PUBLISHED_FILES = (
     "market/tsetmc_enrichment.py",
@@ -57,7 +59,7 @@ PUBLISHED_FILES = (
     "market/data/comprehensive.json",
     "market/data/signals.json",
     "market/data/options.json",
-    "market/data/funds.json",
+    "market/data/portfolio-special.json",
     "market/history/data/history.json",
     "market/history/data/score-candles.json",
     "market/history/data/market-score-history.xlsx",
@@ -76,6 +78,7 @@ INTRADAY_SYMBOLS_OUT = SITE / "market/symbols/data/intraday.json"
 SYMBOL_HISTORY_DIR = SITE / "market/symbols/data"
 COMPREHENSIVE_OUT = SITE / "market/data/comprehensive.json"
 FUND_OUT = SITE / "market/data/funds.json"
+PORTFOLIO_SPECIAL_OUT = SITE / "market/data/portfolio-special.json"
 FUND_SOURCE = Path("/root/bourse-alert/fund_report_public.json")
 TEHRAN = ZoneInfo("Asia/Tehran")
 
@@ -83,6 +86,8 @@ TEHRAN = ZoneInfo("Asia/Tehran")
 def is_publish_window(now: datetime | None = None) -> bool:
     """Allow market-data publication only during the Tehran market window."""
     now = now or datetime.now(TEHRAN)
+    if os.environ.get("FORCE_HEAVY_PUBLISH") == "1":
+        return now.weekday() in (0, 1, 2, 5, 6)
     # Iran cash market operates Saturday through Wednesday.
     if now.weekday() not in (0, 1, 2, 5, 6):
         return False
@@ -123,10 +128,24 @@ def build_intraday_symbols(conn: sqlite3.Connection, trading_date: str) -> dict:
         "schema_version": 1,
         "source": "scores_history.db / valid stock_snapshots",
         "trading_date": trading_date,
-        "window_start": "09:15",
+        "window_start": "09:00",
         "window_end": "12:30",
         "symbols": symbols,
     }
+
+
+def normalize_fund_score_units(payload: dict) -> dict:
+    # Publication boundary guard for legacy percentage-vs-fraction mix.
+    rows = payload.get('rows') if isinstance(payload, dict) else None
+    if not isinstance(rows, list): return payload
+    for row in rows:
+        if not isinstance(row, dict) or not isinstance(row.get('matched_weight'), (int, float)) or row['matched_weight'] <= 1: continue
+        for key in ('matched_weight', 'total_equity_weight'):
+            if isinstance(row.get(key), (int, float)): row[key] /= 100.0
+        if isinstance(row.get('portfolio_score'), (int, float)): row['portfolio_score'] /= 100.0
+        if isinstance(row.get('score_diff'), (int, float)): row['score_diff'] = row['portfolio_score'] - float(row.get('board_score') or 0)
+        row['portfolio_score_unit_normalized'] = True
+    return payload
 
 
 def load_fund_report() -> dict:
@@ -135,7 +154,7 @@ def load_fund_report() -> dict:
     try:
         payload = json.loads(FUND_SOURCE.read_text(encoding='utf-8'))
         rows = payload.get('rows') if isinstance(payload, dict) else []
-        return {**payload, 'status': 'ready' if isinstance(rows, list) else 'unavailable', 'rows': rows if isinstance(rows, list) else []}
+        return normalize_fund_score_units({**payload, 'status': 'ready' if isinstance(rows, list) else 'unavailable', 'rows': rows if isinstance(rows, list) else []})
     except (OSError, ValueError, TypeError) as exc:
         return {'schema_version': 1, 'status': 'unavailable', 'rows': [], 'row_count': 0, 'error': str(exc)}
 
@@ -173,7 +192,7 @@ def build_market(conn: sqlite3.Connection) -> dict:
     stocks, seen = [], set()
     for row in rows:
         item = dict(row)
-        if item["symbol"] in seen or not filter_common_stocks([item]):
+        if item["symbol"] in seen or (item.get("instrument_type") is not None and not filter_common_stocks([item])):
             continue
         stocks.append(item)
         seen.add(item["symbol"])
@@ -259,6 +278,7 @@ def build_market(conn: sqlite3.Connection) -> dict:
     daily = load_daily_chart_rows(conn)
     intraday = load_intraday_chart_rows(conn, latest[:10])
     queue_intraday = load_intraday_queue_rows(conn, latest[:10], "09:15")
+    queue_count_intraday = load_intraday_queue_count_rows(conn, latest[:10], "09:15")
     return {
         "schema_version": 1,
         "source": "scores_history.db",
@@ -276,6 +296,7 @@ def build_market(conn: sqlite3.Connection) -> dict:
         "daily": daily,
         "intraday": intraday,
         "queue_intraday": queue_intraday,
+        "queue_count_intraday": queue_count_intraday,
         "options": {"status": "connecting", "message": "داده معتبر آپشن بعد از نهایی شدن قرارداد داده اضافه می‌شود."},
     }
 
@@ -435,7 +456,7 @@ def assert_safe_worktree(status_lines: list[str]) -> None:
         # the site tree. Ignore only this exact cache; all other unexpected
         # files remain fail-closed.
         safe_path = path in PUBLISHED_FILES or path == "market/symbols/data/" or path.startswith("market/symbols/data/history/")
-        runtime_cache = path == "market/data/options_history.sqlite"
+        runtime_cache = path in {"market/data/options_history.sqlite", "market/data/funds.json"}
         unsafe_status = "U" in (index_status, worktree_status) or "D" in (index_status, worktree_status) or index_status == "R" or worktree_status == "R" or " -> " in path
         if (not safe_path and not runtime_cache) or unsafe_status:
             unrelated.append(line)
@@ -480,7 +501,7 @@ def main() -> None:
     if not is_publish_window():
         print("SKIP_OUTSIDE_MARKET_WINDOW")
         return
-    global DB, SITE, MARKET_OUT, COMPREHENSIVE_OUT, HISTORY_OUT, XLSX_OUT, INTRADAY_SYMBOLS_OUT, SYMBOL_HISTORY_DIR, FUND_OUT
+    global DB, SITE, MARKET_OUT, COMPREHENSIVE_OUT, HISTORY_OUT, XLSX_OUT, INTRADAY_SYMBOLS_OUT, SYMBOL_HISTORY_DIR, FUND_OUT, PORTFOLIO_SPECIAL_OUT
     DB = Path(os.environ.get("BOURSE_DB", str(DB)))
     event_db = Path(os.environ.get("EVENT_DB", "/root/bourse-alert/event_live.db"))
     SITE = Path(os.environ.get("SITE_REPO", str(SITE)))
@@ -493,8 +514,10 @@ def main() -> None:
     SYMBOL_HISTORY_DIR = SITE / "market/symbols/data"
     OPTIONS_OUT = SITE / "market/data/options.json"
     FUND_OUT = SITE / "market/data/funds.json"
+    PORTFOLIO_SPECIAL_OUT = SITE / "market/data/portfolio-special.json"
     with connect() as conn:
         market = build_market(conn)
+        portfolio_special = build_portfolio_special(conn, market["generated_at"])
         fund_report = load_fund_report()
         market["fund_report"] = fund_report
         comprehensive = {
@@ -507,7 +530,7 @@ def main() -> None:
         candles = build_candles(conn)
         intraday_symbols = build_intraday_symbols(conn, market["generated_at"][:10])
         if write_symbol_history is not None:
-            source_rows = market.get("comprehensive_stocks") or market.get("stocks", [])
+            source_rows = comprehensive.get("rows") or market.get("stocks", [])
             symbols = {row.get("symbol") for row in source_rows if row.get("symbol")}
             try:
                 symbols.update(row[0] for row in conn.execute("SELECT DISTINCT symbol FROM history WHERE symbol IS NOT NULL"))
@@ -518,7 +541,9 @@ def main() -> None:
     options_payload = export_from_scores_db(DB, OPTIONS_OUT)
     atomic_json(MARKET_OUT, market)
     atomic_json(COMPREHENSIVE_OUT, comprehensive)
-    atomic_json(FUND_OUT, fund_report)
+    if os.environ.get("SKIP_FUNDS_PUBLISH") != "1":
+        atomic_json(FUND_OUT, fund_report)
+    atomic_json(PORTFOLIO_SPECIAL_OUT, portfolio_special)
     atomic_json(HISTORY_OUT, history)
     atomic_json(SITE / "market/history/data/score-candles.json", candles)
     atomic_json(INTRADAY_SYMBOLS_OUT, intraday_symbols)

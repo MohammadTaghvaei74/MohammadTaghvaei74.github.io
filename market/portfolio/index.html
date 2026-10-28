@@ -4,6 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#f4f6ef">
+    <link rel="icon" type="image/svg+xml" href="../../assets/market-pulse.svg" />
   <meta name="description" content="محاسبه امتیاز وزنی پرتفو و جایگاه نمادها در صنعت">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -38,13 +39,14 @@
       <section class="portfolio-layout" aria-label="ورود و نتیجه پرتفو">
         <article class="portfolio-panel input-panel">
           <div class="panel-heading"><div><span class="section-index">01</span><h2>پرتفوی من</h2></div><button class="ghost-button" id="clearPortfolio" type="button">پاک‌کردن</button></div>
-          <p class="panel-intro">برای هر نماد مبلغ خرید را به تومان وارد کن. اطلاعات فقط در همین مرورگر ذخیره می‌شود و به سرور ارسال نمی‌شود.</p>
+          <p class="panel-intro">همه مبلغ‌ها را به <strong>میلیون تومان</strong> وارد کن؛ مثلاً <strong>۳۰۰</strong> یعنی ۳۰۰ میلیون تومان. اطلاعات فقط در همین مرورگر ذخیره می‌شود و به سرور ارسال نمی‌شود.</p>
           <div class="portfolio-fields">
-            <label>نقد / وجه آزاد <span class="field-unit">تومان</span><input id="cashValue" inputmode="decimal" type="number" min="0" step="1000" placeholder="مثلاً ۱۰۰۰۰۰۰۰۰"></label>
+            <label>نقد / وجه آزاد <span class="field-unit">میلیون تومان</span><input id="cashValue" inputmode="decimal" type="number" min="0" step="0.1" placeholder="مثلاً ۱۰۰"></label>
           </div>
-          <div class="holdings-heading"><h3>دارایی‌ها</h3><button class="add-button" id="addHolding" type="button">＋ افزودن نماد</button></div>
+          <button class="calculate-button calculate-top" id="calculatePortfolio" type="button">محاسبه امتیاز پرتفو <span aria-hidden="true">←</span></button>
+          <div class="holdings-heading"><h3>دارایی‌ها</h3><span class="field-unit">مبلغ‌ها: میلیون تومان</span></div>
           <div id="holdingRows" class="holding-rows"></div>
-          <button class="calculate-button" id="calculatePortfolio" type="button">محاسبه امتیاز پرتفو <span aria-hidden="true">←</span></button>
+          <button class="add-button add-bottom" id="addHolding" type="button">＋ افزودن نماد</button>
           <p class="privacy-note">⚿ رمز کارگزاری لازم نیست. اتصال خودکار به ایزی‌تریدر فقط باید از مسیر امن سمت‌سرور و پس از تأیید جداگانه ساخته شود.</p>
         </article>
 
@@ -62,7 +64,7 @@
 
       <section class="portfolio-table-section">
         <div class="section-heading"><div><span class="section-index">03</span><h2>جزئیات وزن و جایگاه صنعتی</h2></div><p>رتبه ۱ یعنی بالاترین امتیاز در میان نمادهای معتبر و معامله‌شده همان صنعت در snapshot فعلی.</p></div>
-        <article class="portfolio-table-panel"><div class="table-scroll"><table class="portfolio-table" aria-label="جزئیات امتیاز پرتفو"><thead><tr><th>نماد</th><th>صنعت</th><th>ارزش خرید</th><th>وزن</th><th>امتیاز</th><th>رتبه در صنعت</th><th>سهم در امتیاز پرتفو</th><th>وضعیت</th></tr></thead><tbody id="portfolioRows"><tr><td colspan="8" class="empty-row">پس از محاسبه، جزئیات اینجا نمایش داده می‌شود.</td></tr></tbody></table></div></article>
+        <article class="portfolio-table-panel"><div class="table-scroll"><table class="portfolio-table" aria-label="جزئیات امتیاز پرتفو"><thead><tr><th>نماد</th><th>صنعت</th><th>ارزش خرید<br><small>میلیون تومان</small></th><th>وزن</th><th>امتیاز</th><th>رتبه در صنعت</th><th>سهم در امتیاز پرتفو</th><th>وضعیت</th></tr></thead><tbody id="portfolioRows"><tr><td colspan="8" class="empty-row">پس از محاسبه، جزئیات اینجا نمایش داده می‌شود.</td></tr></tbody></table></div></article>
       </section>
 
       <aside class="portfolio-disclaimer">این صفحه ابزار سنجش کیفیت امتیاز فعلی پرتفو است، نه محاسبه سود و زیان، ریسک، قیمت خرید یا توصیه معامله. رتبه و امتیاز به زمان آخرین snapshot بازار وابسته است.</aside>
