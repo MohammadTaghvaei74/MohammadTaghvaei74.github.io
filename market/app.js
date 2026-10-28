@@ -200,10 +200,8 @@
     if (!svg) return;
     const rows = Array.isArray(data.queue_count_intraday) ? data.queue_count_intraday : [];
     const values = rows.flatMap((row) => [numeric(row.buy_queue_count), numeric(row.sell_queue_count)]).filter((value) => value !== null);
-    const chartWrap = svg.parentElement;
     if (!values.length) {
       svg.innerHTML = `<text class="chart-empty" x="600" y="145" text-anchor="middle">داده تعداد صف‌ها برای امروز موجود نیست.</text>`;
-      if (chartWrap) { const oldTooltip = chartWrap.querySelector(".queue-count-tooltip"); if (oldTooltip) oldTooltip.remove(); }
       return;
     }
     const width = 1200, height = 460, pad = {top: 14, right: 24, bottom: 30, left: 78};
@@ -216,35 +214,44 @@
     const tickValues = Array.from({length: tickMax / tickStep + 1}, (_, index) => index * tickStep);
     const ticks = tickValues.map((tick) => `<line class="${tick === 0 ? "chart-zero" : "chart-grid-line"}" x1="${pad.left}" x2="${width-pad.right}" y1="${y(tick)}" y2="${y(tick)}"/><text class="chart-label" x="${pad.left-10}" y="${y(tick)+5}" text-anchor="end">${core.formatInteger(tick)}</text>`).join("");
     const labels = rows.map((row, index) => index === 0 || index === rows.length - 1 || /:(00|30)$/.test(row.time || "") ? `<text class="chart-label" x="${x(index)}" y="${height-8}" text-anchor="middle">${escapeHtml(core.faDigits(row.time || "—"))}</text>` : "").join("");
-    const plotWidth = width - pad.left - pad.right;
-    const step = plotWidth / Math.max(rows.length - 1, 1);
-    svg.innerHTML = `${ticks}${labels}<path class="chart-path chart-buy" d="${path("buy_queue_count")}"/><path class="chart-path chart-sell" d="${path("sell_queue_count")}"/><line class="chart-crosshair queue-count-crosshair" x1="${x(0)}" x2="${x(0)}" y1="${pad.top}" y2="${height-pad.bottom}" opacity="0"/><circle class="queue-count-hover-buy" cx="${x(0)}" cy="${y(numeric(rows[0].buy_queue_count) || 0)}" r="6" opacity="0"/><circle class="queue-count-hover-sell" cx="${x(0)}" cy="${y(numeric(rows[0].sell_queue_count) || 0)}" r="6" opacity="0"/><rect class="chart-hit-area queue-count-hit-area" x="${pad.left}" y="${pad.top}" width="${plotWidth}" height="${height-pad.top-pad.bottom}" tabindex="0" aria-label="نمایش تعداد صف‌ها در هر دقیقه"/>`;
-    if (!chartWrap) return;
-    let tooltip = chartWrap.querySelector(".queue-count-tooltip");
-    if (!tooltip) { tooltip = document.createElement("div"); tooltip.className = "chart-tooltip-html queue-count-tooltip"; tooltip.hidden = true; chartWrap.appendChild(tooltip); }
-    let lastIndex = -1;
-    const showTooltip = (index) => {
-      if (index === lastIndex) return;
-      lastIndex = index;
-      const row = rows[index] || {};
-      const buy = numeric(row.buy_queue_count);
-      const sell = numeric(row.sell_queue_count);
-      const time = String(row.time || row.timestamp || "—").slice(0, 5);
-      tooltip.innerHTML = `<strong>ساعت ${core.faDigits(time)}</strong><span class="queue-buy-value">تعداد صف خرید: ${buy === null ? "—" : escapeHtml(core.formatInteger(buy))}</span><span class="queue-sell-value">تعداد صف فروش: ${sell === null ? "—" : escapeHtml(core.formatInteger(sell))}</span>`;
-      tooltip.hidden = false;
-      const box = svg.getBoundingClientRect(), wrapBox = chartWrap.getBoundingClientRect();
-      tooltip.style.left = `${(x(index) / width) * box.width + (box.left - wrapBox.left)}px`;
-      tooltip.style.top = "8px";
-      const crosshair = svg.querySelector(".queue-count-crosshair");
-      if (crosshair) { crosshair.setAttribute("x1", x(index)); crosshair.setAttribute("x2", x(index)); crosshair.setAttribute("opacity", "1"); }
-      [[".queue-count-hover-buy", buy, "chart-buy"], [".queue-count-hover-sell", sell, "chart-sell"]].forEach(([selector, value, className]) => { const dot = svg.querySelector(selector); if (dot && value !== null) { dot.setAttribute("cx", x(index)); dot.setAttribute("cy", y(value)); dot.setAttribute("opacity", "1"); dot.setAttribute("class", `${selector.slice(1)} ${className}`); } });
-    };
-    const hideTooltip = () => { tooltip.hidden = true; const crosshair = svg.querySelector(".queue-count-crosshair"); if (crosshair) crosshair.setAttribute("opacity", "0"); svg.querySelectorAll(".queue-count-hover-buy,.queue-count-hover-sell").forEach((dot) => dot.setAttribute("opacity", "0")); lastIndex = -1; };
-    const moveTooltip = (event) => { const box = svg.getBoundingClientRect(); const svgX = (event.clientX - box.left) * width / box.width; showTooltip(Math.max(0, Math.min(rows.length - 1, Math.round((svgX - pad.left) / step)))); };
-    const hitArea = svg.querySelector(".queue-count-hit-area");
-    if (hitArea) { hitArea.addEventListener("pointerenter", moveTooltip); hitArea.addEventListener("pointermove", moveTooltip); hitArea.addEventListener("focus", () => showTooltip(0)); hitArea.addEventListener("pointerleave", hideTooltip); hitArea.addEventListener("blur", hideTooltip); }
+    svg.innerHTML = `${ticks}${labels}<path class="chart-path chart-buy" d="${path("buy_queue_count")}"/><path class="chart-path chart-sell" d="${path("sell_queue_count")}"/>`;
   }
 
+  function renderPriceDistributionChart(data) {
+    const svg = $("#priceDistributionChart");
+    if (!svg) return;
+    const bins = [-3, -2, -1, 0, 1, 2].map((start) => ({start, end: start + 1, count: 0}));
+    const stocks = Array.isArray(data.stocks) ? data.stocks : [];
+    stocks.forEach((stock) => {
+      const change = numeric(stock && stock.last_pct);
+      if (change === null || change < -3 || change > 3) return;
+      const index = Math.min(5, Math.floor(change + 3));
+      if (index >= 0) bins[index].count += 1;
+    });
+    const total = bins.reduce((sum, bin) => sum + bin.count, 0);
+    if (!total) {
+      svg.innerHTML = `<text class="chart-empty" x="600" y="210" text-anchor="middle">داده تغییر قیمت برای نمایش موجود نیست.</text>`;
+      return;
+    }
+    const width = 1200, height = 460, pad = {top: 18, right: 30, bottom: 66, left: 82};
+    const max = Math.max(1, ...bins.map((bin) => bin.count));
+    const tickStep = max <= 10 ? 1 : max <= 50 ? 5 : max <= 200 ? 20 : max <= 500 ? 50 : 100;
+    const tickMax = Math.ceil(max / tickStep) * tickStep;
+    const plotWidth = width - pad.left - pad.right, plotHeight = height - pad.top - pad.bottom;
+    const slotWidth = plotWidth / bins.length, barWidth = slotWidth * 0.68;
+    const y = (value) => pad.top + (tickMax - value) * plotHeight / tickMax;
+    const ticks = Array.from({length: Math.floor(tickMax / tickStep) + 1}, (_, index) => index * tickStep);
+    const grid = ticks.map((tick) => `<line class="${tick === 0 ? "chart-zero" : "chart-grid-line"}" x1="${pad.left}" x2="${width - pad.right}" y1="${y(tick)}" y2="${y(tick)}"/><text class="chart-label" x="${pad.left - 12}" y="${y(tick) + 5}" text-anchor="end">${core.formatInteger(tick)}</text>`).join("");
+    const bars = bins.map((bin, index) => {
+      const x = pad.left + index * slotWidth + (slotWidth - barWidth) / 2;
+      const barY = y(bin.count), barHeight = Math.max(1, y(0) - barY);
+      const color = bin.end <= 0 ? "var(--red)" : bin.start >= 0 ? "var(--green)" : "var(--muted)";
+      const label = `${bin.start < 0 ? "−" : "+"}${Math.abs(bin.start)} تا ${bin.end < 0 ? "−" : "+"}${Math.abs(bin.end)}`;
+      const countY = bin.count ? Math.min(y(0) - 12, barY + Math.max(20, barHeight / 2 + 6)) : y(0) - 10;
+      return `<g class="price-distribution-bar"><rect x="${x}" y="${barY}" width="${barWidth}" height="${barHeight}" rx="5" fill="${color}"/><text class="price-distribution-count" x="${x + barWidth / 2}" y="${countY}" text-anchor="middle">${core.formatInteger(bin.count)}</text><text class="chart-label price-distribution-label" x="${x + barWidth / 2}" y="${height - 20}" text-anchor="middle">${core.faDigits(label)}</text></g>`;
+    }).join("");
+    svg.innerHTML = `${grid}${bars}`;
+  }
 
   function renderQueueChart(data) {
     const svg = $("#queueChart");
@@ -557,6 +564,7 @@
     renderMetrics(data);
     renderQueueChart(data);
     renderQueueCountChart(data);
+    renderPriceDistributionChart(data);
     renderChart(data);
     renderTables(data);
     renderIndustries(data);
