@@ -150,7 +150,7 @@ th[role="button"][aria-sort="descending"]:after{content:"↓";color:var(--blue);
 /* Two equal overview charts replace the snapshot cards and allocation slider. */
 .top-charts{grid-template-columns:repeat(2,minmax(0,1fr));align-items:stretch;margin-top:22px}
 .top-charts .panel{min-width:0}
-.top-charts .chart-label{font-size:18px;font-weight:700}.top-charts .panel{padding:12px 18px 10px;min-height:0;height:auto}.top-charts .panel-heading{margin-bottom:0}.top-charts .chart-wrap{height:460px;margin-top:0}.top-charts .chart-legend{margin-top:-8px;padding-top:4px}
+.top-charts .chart-label{font-size:18px;font-weight:700}.top-charts .panel{padding:12px 18px 10px;min-height:0;height:auto}.top-charts .panel-heading{margin-bottom:0}.top-charts .chart-wrap{height:460px;margin-top:0;overflow:hidden}.top-charts .chart-legend{margin-top:-8px;padding-top:4px}
 .top-charts .queue-chart-panel .chart-legend{font-size:13px}
 .chart-buy{stroke:var(--green)!important}
 .chart-sell{stroke:var(--red)!important}
