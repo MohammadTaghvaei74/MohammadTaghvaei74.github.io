@@ -279,7 +279,7 @@
       const color = bin.end <= 0 ? "var(--red)" : bin.start >= 0 ? "var(--green)" : "var(--muted)";
       const label = `${bin.start < 0 ? "−" : "+"}${Math.abs(bin.start)} تا ${bin.end < 0 ? "−" : "+"}${Math.abs(bin.end)}`;
       const countY = bin.count ? Math.min(y(0) - 12, barY + Math.max(20, barHeight / 2 + 6)) : y(0) - 10;
-      return `<g class="price-distribution-bar"><rect x="${x}" y="${barY}" width="${barWidth}" height="${barHeight}" rx="5" fill="${color}"/><text class="price-distribution-count" x="${x + barWidth / 2}" y="${countY}" text-anchor="middle">${core.formatInteger(bin.count)}</text><text class="chart-label price-distribution-label" x="${x + barWidth / 2}" y="${height - 20}" text-anchor="middle">${core.faDigits(label)}</text></g>`;
+      return `<g class="price-distribution-bar"><rect x="${x}" y="${barY}" width="${barWidth}" height="${barHeight}" rx="5" fill="${color}"/><text class="price-distribution-count" x="${x + barWidth / 2}" y="${countY}" text-anchor="middle">${core.formatInteger(bin.count)}</text><text class="chart-label price-distribution-label" x="${x + barWidth / 2}" y="${height - 20}" text-anchor="middle"><tspan x="${x + barWidth / 2 - 34}" direction="ltr" unicode-bidi="bidi-override">${core.faDigits(bin.start === 0 ? "0" : (bin.start < 0 ? "−" : "+") + Math.abs(bin.start))}</tspan><tspan x="${x + barWidth / 2}" direction="rtl">تا</tspan><tspan x="${x + barWidth / 2 + 34}" direction="ltr" unicode-bidi="bidi-override">${core.faDigits(bin.end === 0 ? "0" : (bin.end < 0 ? "−" : "+") + Math.abs(bin.end))}</tspan></text></g>`;
     }).join("");
     svg.innerHTML = `${grid}${bars}`;
   }
