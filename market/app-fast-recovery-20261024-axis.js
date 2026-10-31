@@ -640,7 +640,12 @@
   function optionsStatusLabel(status) { return ({ ready: "داده معتبر آماده است.", no_opportunity: "فعلاً جفت واجد شرایط پیدا نشد.", insufficient_data: "داده کافی برای محاسبه کامل نیست.", stale: "داده آپشن قدیمی است.", unavailable: "منبع داده آپشن در دسترس نیست." }[status] || "وضعیت داده نامشخص است."); }
   function renderFundReport(data) {
     const payload = data && data.fund_report || {};
-    const rows = Array.isArray(payload.rows) ? payload.rows : [];
+    const normalizeFund = value => String(value || "").replace(/ي/g, "ی").replace(/ك/g, "ک").replace(/[\s\u200c]/g, "");
+    const leveragedSymbols = new Set((Array.isArray(data && data.leveraged) ? data.leveraged : []).map(row => normalizeFund(row.symbol)));
+    // This equity-only list must not alter the dedicated leveraged-fund data.
+    const rows = (Array.isArray(payload.rows) ? payload.rows : []).filter(row =>
+      !normalizeFund(row.description).includes("اهرم") && !leveragedSymbols.has(normalizeFund(row.symbol))
+    );
     const element = $("#fundReportRows");
     if (!element) return;
     const n = (value, digits = 1) => numeric(value) === null ? "—" : core.faDigits(Number(value).toLocaleString("fa-IR", {minimumFractionDigits: digits, maximumFractionDigits: digits}));
