@@ -10,4 +10,14 @@
 #turnoverChart .ma20-path{stroke:#b642c9;stroke-width:3;fill:none;stroke-dasharray:none}
 #turnoverChart .turnover-date{font-size:17px;fill:var(--ink)}
 #turnoverChart .turnover-bar:hover,#turnoverChart .turnover-bar:focus{fill:#126ba5;outline:none}
+/* Shared heading and card rows keep both desktop charts aligned. */
+@media(min-width:761px){
+ .daily-overview-pair{align-items:stretch;grid-template-rows:auto 1fr}
+ .daily-overview-pair>section{display:grid;grid-row:span 2;grid-template-rows:subgrid;row-gap:0}
+ .daily-overview-pair .section-heading{align-self:start}
+ .daily-overview-pair>section>.panel{margin-top:0;display:flex;flex-direction:column;min-width:0;padding:18px}
+ .daily-overview-pair>section>.panel>.chart-wrap{height:340px;min-height:340px;box-sizing:border-box;flex:0 0 340px;margin:0;padding:12px 6px}
+ .daily-overview-pair>section>.panel>.chart-wrap>svg{height:100%;width:100%}
+ .daily-overview-pair .chart-legend{margin-top:auto}
+}
 @media(max-width:760px){.daily-overview-pair{grid-template-columns:minmax(0,1fr)}#turnoverChart{min-width:720px}.daily-overview-pair .section-heading h2{font-size:18px}}
