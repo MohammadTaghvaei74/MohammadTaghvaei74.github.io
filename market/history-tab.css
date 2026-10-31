@@ -1,0 +1,31 @@
+/* Persistent navigation and an isolated, auto-sized history chart document. */
+#history-tab-panel[hidden], main#overview[hidden] { display: none !important; }
+body.history-tab-active .mobile-nav { display: none !important; }
+#history-tab-panel { width: 100%; min-width: 0; padding: 0; }
+#median-history-frame { display: block; width: 100%; height: 1600px; border: 0; background: transparent; }
+body.history-tab-active .main-nav a:not([data-history-tab])::after { width: 0 !important; }
+body.history-tab-active .main-nav a[data-history-tab]::after { width: 100%; }
+.main-nav a[data-history-tab] { white-space: nowrap; }
+@media (min-width: 721px) {
+  .topbar .main-nav, .market-header .main-nav { gap: clamp(8px, 1.3vw, 20px); }
+}
+@media (max-width: 720px) {
+  /* All tabs stay in the shell on small screens, not behind a closed menu. */
+  .topbar:has(.main-nav), .market-header:has(.main-nav) {
+    height: auto !important; min-height: 62px !important;
+    flex-wrap: wrap; gap: 8px; padding-top: 8px; padding-bottom: 8px;
+  }
+  .topbar .main-nav, .market-header .main-nav,
+  .topbar.menu-open .main-nav {
+    display: grid !important; grid-template-columns: repeat(4, minmax(0, 1fr));
+    position: static !important; order: 10; flex: 0 0 100%; width: 100%;
+    height: auto; max-height: none; padding: 0; margin: 0; gap: 2px;
+    background: transparent; border: 0; box-shadow: none; overflow: visible;
+  }
+  .topbar .main-nav a, .market-header .main-nav a,
+  .topbar.menu-open .main-nav a {
+    height: 38px; min-width: 0; padding: 0 2px; justify-content: center;
+    font-size: 11px; border: 0;
+  }
+  .topbar .mobile-menu-toggle { display: none !important; }
+}
