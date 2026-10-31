@@ -237,6 +237,20 @@ def in_window(now: datetime) -> bool:
     return now.weekday() in (0, 1, 2, 5, 6) and now.replace(hour=8, minute=45, second=0, microsecond=0) <= now < now.replace(hour=12, minute=31, second=0, microsecond=0)
 
 
+def incremental_queue_counts(conn, day, previous, loader):
+    by_minute = {str(row.get("timestamp", ""))[:16]: row for row in (previous or [])
+                 if isinstance(row, dict) and str(row.get("timestamp", ""))[:10] == day}
+    start = max(by_minute)[11:16] if by_minute else "09:15"
+    for row in loader(conn, day, start):
+        by_minute[str(row["timestamp"])[:16]] = row
+    return [by_minute[key] for key in sorted(by_minute)]
+
+
+def publication_metadata(observed, published):
+    return {"published_at": published.isoformat(),
+            "source_age_seconds": round((published - observed).total_seconds(), 3)}
+
+
 def main() -> int:
     now = datetime.now(TEHRAN)
     if not in_window(now):
@@ -269,7 +283,7 @@ def main() -> int:
     with sqlite3.connect(DB_PATH) as chart_conn:
         queue_day = observed.date().isoformat()
         queue_rows = load_intraday_queue_rows(chart_conn, queue_day, "09:15")
-        queue_count_rows = load_intraday_queue_count_rows(chart_conn, queue_day, "09:15")
+        queue_count_rows = incremental_queue_counts(chart_conn, queue_day, old.get("queue_count_intraday"), load_intraday_queue_count_rows)
         source_queue_count = chart_conn.execute(
             "SELECT COUNT(*) FROM market_snapshots WHERE substr(timestamp,1,10)=? AND substr(timestamp,12,5)>=?",
             (queue_day, "09:15"),
@@ -370,6 +384,14 @@ def main() -> int:
     public_market_counts = validate_client_metrics(stocks, "public market")
     public_table_counts = validate_client_metrics(comprehensive_rows, "public comprehensive")
     print(f"CLIENT_METRICS public_market={public_market_counts} public_comprehensive={public_table_counts}", flush=True)
+    # Publication time must include query/processing latency, not its start.
+    now = datetime.now(TEHRAN)
+    metadata = publication_metadata(observed, now)
+    age = metadata["source_age_seconds"]
+    if age < -10 or age > MAX_SOURCE_AGE:
+        raise RuntimeError(f"source expired during publication: age={age:.1f}s")
+    market.update(metadata)
+    comprehensive.update(metadata)
     root = SITE / "market/data"
     atomic_json(root / "market.json", market)
     atomic_json(root / "comprehensive.json", comprehensive)

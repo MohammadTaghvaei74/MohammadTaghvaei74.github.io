@@ -171,9 +171,9 @@ def load_intraday_queue_count_rows(
     rows = conn.execute(
         """SELECT timestamp, symbol, buy_queue_value_toman, sell_queue_value_toman
            FROM stock_snapshots
-           WHERE trading_date=? AND valid=1 AND substr(timestamp,12,5)>=?
+           WHERE trading_date=? AND valid=1 AND timestamp>=?
            ORDER BY timestamp, rowid""",
-        (trading_date, start_time),
+        (trading_date, f"{trading_date}T{start_time}"),
     ).fetchall()
     by_minute: dict[str, dict[str, tuple[str, Any, Any]]] = {}
     for timestamp, symbol, buy_value, sell_value in rows:
