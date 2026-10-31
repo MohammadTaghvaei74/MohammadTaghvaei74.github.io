@@ -30,11 +30,12 @@
   const initialSymbol = (funds, requested, prior) => funds.find(f=>f.symbol===requested)?.symbol || funds.find(f=>f.symbol===prior)?.symbol || funds.find(f=>portfolioModel(f).available)?.symbol || funds[0]?.symbol || '';
   const fmt = (v,d=2) => number(v) === null ? '—' : v.toLocaleString('fa-IR',{maximumFractionDigits:d});
   const pct = v => number(v) === null ? 'نامشخص' : v > 0 && v < 0.005 ? 'کمتر از ۰٫۰۱٪' : `${fmt(v)}٪`;
+  const holdingLabel = h => String(h.symbol || h.name || '').replace(/ي/g,'ی').replace(/ك/g,'ک');
   const color = i => `hsl(${(i*137.5+165)%360} 48% 38%)`;
   function chartMarkup(items, model, id) {
     if (model.overflow) return '<p class="fund-warning">مجموع وزن‌های گزارش بیش از ۱۰۰٪ است؛ برای جلوگیری از نمایش گمراه‌کننده، نمودار رسم نمی‌شود. وزن‌های اصلی در جدول حفظ شده‌اند.</p>';
     if (!model.available || !items.some(x=>x.weight_pct !== null)) return '<p class="fund-empty">وزن معتبر برای رسم نمودار در دسترس نیست.</p>';
-    const slices = [...items].sort((a,b)=>(b.weight_pct ?? -1)-(a.weight_pct ?? -1)).map(x=>({name:x.name || x.symbol,weight_pct:x.weight_pct,unknown:x.unknown}));
+    const slices = [...items].sort((a,b)=>(b.weight_pct ?? -1)-(a.weight_pct ?? -1)).map(x=>({name:holdingLabel(x),weight_pct:x.weight_pct,unknown:x.unknown}));
     if (model.remainder>0) slices.push({name:'افشا‌نشده / غیرسهامی',weight_pct:model.remainder,remainder:true});
     let offset=0;
     const arcs=slices.map((x,i)=>{
@@ -89,7 +90,7 @@
         else $('sourceLink').removeAttribute('href');
         $('portfolioStatus').textContent=(model.available?`${fmt(model.holdings.length,0)} ردیف سهام؛ مجموع وزن معلوم ${pct(model.total)}.${model.unknown?` وزن ${fmt(model.unknown,0)} ردیف نامشخص است.`:''}${model.overflow?' هشدار: مجموع وزن‌ها بیش از ۱۰۰٪؛ نمودارها غیرفعال شده‌اند.':''}`:'ریز سهام معتبر برای این صندوق در دسترس نیست. اگر فایل منبع موجود است، گزارش اصلی را بررسی کنید.')+(fund.note?` ${publicNote(fund.note)}`:'');
         $('holdingsCount').textContent=`${fmt(model.holdings.length,0)} ردیف سهام گزارش`;
-        $('holdingsRows').innerHTML=[...model.holdings].sort((a,b)=>(b.weight_pct ?? -1)-(a.weight_pct ?? -1)).map(h=>`<tr><td>${escapeHtml(h.name || h.symbol)}</td><td>${escapeHtml(h.symbol || '—')}</td><td>${escapeHtml(h.industry)}</td><td><bdi>${pct(h.weight_pct)}</bdi></td><td>${escapeHtml(h.source_sheet || '—')} / ${escapeHtml(faText(h.source_row ?? '—'))}</td></tr>`).join('') || empty(5,'ریز سهام در دسترس نیست.');
+        $('holdingsRows').innerHTML=[...model.holdings].sort((a,b)=>(b.weight_pct ?? -1)-(a.weight_pct ?? -1)).map(h=>`<tr><td>${escapeHtml(holdingLabel(h))}</td><td>${escapeHtml(h.industry)}</td><td><bdi>${pct(h.weight_pct)}</bdi></td><td>${escapeHtml(h.source_sheet || '—')} / ${escapeHtml(faText(h.source_row ?? '—'))}</td></tr>`).join('') || empty(4,'ریز سهام در دسترس نیست.');
         $('industryRows').innerHTML=model.industries.map(g=>`<tr><td>${escapeHtml(g.name)}</td><td>${fmt(g.count,0)}</td><td><bdi>${pct(g.weight_pct)}</bdi></td><td>${g.unknown?`${fmt(g.unknown,0)} وزن نامشخص؛ جمع فقط وزن‌های معلوم`:'وزن‌های معلوم'}</td></tr>`).join('') || empty(4,'اطلاعات صنایع در دسترس نیست.');
         $('stockChart').innerHTML=chartMarkup(model.holdings,model,'stock');
         $('industryChart').innerHTML=chartMarkup(model.industries,model,'industry');
@@ -102,7 +103,7 @@
     $('retryLoad').onclick=load;
     await load();
   }
-  const api = {portfolioModel, escapeHtml, safeSource, selectionFunds, chartMarkup, boot, initialSymbol, faText, publicNote};
+  const api = {holdingLabel, portfolioModel, escapeHtml, safeSource, selectionFunds, chartMarkup, boot, initialSymbol, faText, publicNote};
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.FundsPage = api;
   if (typeof document === 'object') boot(document, root.fetch.bind(root));
