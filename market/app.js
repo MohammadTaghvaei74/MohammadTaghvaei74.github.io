@@ -268,7 +268,7 @@
     const path = (series) => series.map((v, i) => v === null ? "" : `${i && series[i-1] !== null ? "L" : "M"}${x(i).toFixed(2)},${y(v).toFixed(2)}`).filter(Boolean).join(" ");
     const ticks = Array.from({length: Math.round(max / step) + 1}, (_, i) => i * step).map((v) => `<line class="chart-grid-line" x1="${pad.left}" x2="${width-pad.right}" y1="${y(v)}" y2="${y(v)}"/><text class="chart-label turnover-tick" data-value="${v}" x="${pad.left-12}" y="${y(v)+4}" text-anchor="end">${format(v)}</text>`).join("");
     const bars = days.map((day, i) => {
-      const exact = (v) => v === null ? "—" : `${v.toLocaleString("fa-IR", {maximumFractionDigits: 12})} همت`;
+      const exact = (v) => v === null ? "—" : `${Math.round(v).toLocaleString("fa-IR")} همت`;
       const title = `تاریخ: ${persianDate(day.trading_date)}\nارزش معاملات: ${exact(values[i])}\nمیانگین ۵ روزه: ${exact(ma5[i])}\nمیانگین ۲۰ روزه: ${exact(ma20[i])}`;
       return `<rect class="turnover-bar" data-date="${day.trading_date}" data-value-hmt="${values[i]}" x="${x(i)-barWidth/2}" y="${y(values[i])}" width="${barWidth}" height="${y(0)-y(values[i])}" fill="#2686c5" tabindex="0" aria-label="${escapeHtml(title)}"></rect>`;
     }).join("");
