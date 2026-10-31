@@ -25,7 +25,7 @@ with sync_playwright() as p:
     assert result['columns'] == 8, result
     assert result['overflow'] <= 1, result
     assert result['headings'] == 0, result
-    assert set(result['operators']) == {'', '=', '<', '>'}, result
+    assert set(result['operators']) == {'=', '<', '>'}, result
     result['numericRows'] = page.evaluate('''() => [...document.querySelectorAll('#industriesGrid tr')].map(tr => {
       const cells = [...tr.cells];
       return {industry: cells[0].innerText, today: Number(cells[4].dataset.sortValue),
@@ -38,7 +38,7 @@ with sync_playwright() as p:
     result['numericSample'] = result['numericRows'][:1]
     del result['numericRows']
     result['allOperators'] = page.locator('select.filter-operator option').evaluate_all('(options) => [...new Set(options.map(o=>o.value))]')
-    assert not set(result['allOperators']) - {'', '=', '<', '>'}
+    assert not set(result['allOperators']) - {'=', '<', '>'}
     page.click('[data-industry-preset="money-where"]')
     assert page.locator('[data-industry-filter="rank"][data-slot="0"]').input_value() == '25'
     result['presetRank'] = 25
