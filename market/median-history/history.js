@@ -93,7 +93,7 @@
       const py = (e.clientY-box.top) * 390 / box.height;
       const r = hit.reduce((a,b) => Math.hypot(a.x-px,a.y-py) < Math.hypot(b.x-px,b.y-py) ? a : b);
       cross.setAttribute('visibility','visible'); vx.setAttribute('x1',r.x); vx.setAttribute('x2',r.x); hy.setAttribute('y1',r.y); hy.setAttribute('y2',r.y);
-      const label = r.r.key.length === 10 ? 'روزانه' : `${time(r.r.first)} تا ${time(r.r.last)}`;
+      const label = `${time(r.r.first)} تا ${time(r.r.last)}`;
       tooltip.innerHTML = `<strong>تاریخ: ${date(r.r.date)}</strong><span>لحظه: ${label}</span><span class="selected-value">عدد نقطه: ${fa.format(r.r.c)}</span><span>باز: ${fa.format(r.r.o)} · بیشینه: ${fa.format(r.r.h)}</span><span>کمینه: ${fa.format(r.r.l)} · بسته: ${fa.format(r.r.c)}</span>`;
       tooltip.hidden = false;
       const anchorX = (r.x / 1000) * box.width + (box.left-shellBox.left);
