@@ -11,7 +11,7 @@
   let refreshTimer = null;
   let industryFilterBound = false;
   let activeIndustryPreset = null;
-  const industryColumnFilters = {industry: [{op: "contains", value: ""}], rank: [{op: "", value: ""}, {op: "", value: ""}], count: [{op: "", value: ""}, {op: "", value: ""}], median: [{op: "", value: ""}, {op: "", value: ""}], turnover: [{op: "", value: ""}, {op: "", value: ""}], average: [{op: "", value: ""}, {op: "", value: ""}], ratio: [{op: "", value: ""}, {op: "", value: ""}], diff: [{op: "", value: ""}, {op: "", value: ""}]};
+  const industryColumnFilters = {industry: [{op: "contains", value: ""}], rank: [{op: "<", value: ""}, {op: "<", value: ""}], count: [{op: "<", value: ""}, {op: "<", value: ""}], median: [{op: "<", value: ""}, {op: "<", value: ""}], turnover: [{op: "<", value: ""}, {op: "<", value: ""}], average: [{op: "<", value: ""}, {op: "<", value: ""}], ratio: [{op: "<", value: ""}, {op: "<", value: ""}], diff: [{op: "<", value: ""}, {op: "<", value: ""}]};
   const industryFilterJoin = {rank: "and", count: "and", median: "and", turnover: "and", diff: "and"};
 
   if (!core) {
@@ -601,7 +601,7 @@
         if (currentData) renderIndustries(currentData);
       });
     }
-    const operators = `<option value="">شرط</option><option value=">">&gt;</option><option value="=">=</option><option value="<">&lt;</option>`;
+    const operators = `<option value="<">&lt;</option><option value="=">=</option><option value=">">&gt;</option>`;
     table.querySelectorAll("[data-filter-cell]").forEach((cell) => {
       const key = cell.getAttribute("data-filter-cell");
       const placeholder = (key === "turnover" || key === "average") ? "میلیارد" : key === "diff" ? "درصد" : "عدد";
@@ -625,9 +625,9 @@
       turnoverFilter.op = ">";
       turnoverFilter.value = "500";
     } else {
-      rankFilter.op = "";
+      rankFilter.op = "<";
       rankFilter.value = "";
-      turnoverFilter.op = "";
+      turnoverFilter.op = "<";
       turnoverFilter.value = "";
     }
     bindIndustryColumnFilters();

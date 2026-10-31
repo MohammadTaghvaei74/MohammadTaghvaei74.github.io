@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#f4f6ef"><meta name="description" content="ترکیب سهام و صنایع صندوق‌ها با وزن نسبت به کل دارایی و فایل اصلی گزارش">
+<title>SORENA WATCH | صندوق‌ها و ترکیب پرتفو</title>
+<link rel="icon" type="image/svg+xml" href="../../assets/market-pulse.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../styles.css"><link rel="stylesheet" href="../mobile.css"><link rel="stylesheet" href="../header.css?v=shared-header-1"><link rel="stylesheet" href="funds.css?v=1">
+<script src="funds.js?v=1" defer></script>
+</head>
+<body class="funds-page"><div class="shell">
+<header class="topbar">
+<a class="brand" href="/market/" aria-label="سورنا واچ، صفحه اصلی"><span class="sorena-logo-mark" aria-hidden="true"><svg viewBox="0 0 48 48"><path d="M5 36 15 20l8 8L34 10l9 26Z"/><path d="M7 40h34"/></svg></span><span class="brand-copy"><b>SORENA WATCH</b><small>MARKET INTELLIGENCE / DATA DESK</small></span></a>
+<nav class="main-nav" id="mobileMainNav" aria-label="ناوبری اصلی"><a href="../#overview">نمای کلی</a><a href="../signals/">سیگنال‌ها</a><a href="../symbols/">سهام</a><a href="../industries/">صنایع</a><a href="../options/">آپشن</a><a href="./" class="active" aria-current="page">صندوق‌ها</a><a href="../portfolio/">امتیاز پرتفو</a></nav>
+<button class="mobile-menu-toggle" id="mobileMenuToggle" type="button" aria-expanded="false" aria-controls="mobileMainNav">☰ منو</button>
+</header>
+<main>
+<section class="fund-hero"><span class="category-tag">FUND PORTFOLIOS / ترکیب دارایی</span><h1>داخل سبد صندوق‌ها</h1><p>از نمای مقایسه‌ای صندوق‌ها به ریز سهام و وزن صنایع برسید؛ با گزارش اصلی، تاریخ مشخص و بدون تغییر مقیاس وزن‌ها.</p><p id="loadStatus" role="status" aria-live="polite">در حال دریافت اطلاعات…</p><button id="retryLoad" type="button" hidden>تلاش دوباره</button></section>
+<section class="fund-card" aria-labelledby="summaryTitle"><div class="fund-heading"><h2 id="summaryTitle">صندوق‌های سهامی با نقدشوندگی بالا</h2><span>برای بررسی ترکیب، نام صندوق را انتخاب کنید</span></div><div class="table-scroll" tabindex="0" role="region" aria-label="جدول مقایسه صندوق‌ها"><table><thead><tr><th scope="col">رتبه</th><th scope="col">صندوق</th><th scope="col">میانگین ارزش روزانه</th><th scope="col">آخرین به‌روزرسانی پرتفو</th><th scope="col">حباب</th><th scope="col">امتیاز پرتفو</th><th scope="col">امتیاز تابلو</th><th scope="col">اختلاف</th></tr></thead><tbody id="fundReportRows"><tr><td colspan="8">در حال دریافت…</td></tr></tbody></table></div></section>
+<section class="fund-card fund-selection" aria-labelledby="detailTitle"><div><label for="fundSelect">انتخاب صندوق برای بررسی پرتفو</label><select id="fundSelect" disabled><option>در حال دریافت…</option></select></div><div class="fund-source"><h2 id="detailTitle">ترکیب پرتفو</h2><p>تاریخ گزارش: <strong id="reportDate">—</strong></p><a id="sourceLink" hidden target="_blank" rel="noopener noreferrer">↓ دریافت فایل اصلی گزارش</a><span id="sourceMissing">فایل منبع در دسترس نیست</span></div></section>
+<div id="portfolioStatus" class="fund-notice" role="status" aria-live="polite">صندوق را انتخاب کنید.</div>
+<p class="fund-method">مبنای همه درصدها <strong>کل دارایی صندوق</strong> است، نه فقط سبد سهام. بخش «افشا‌نشده / غیرسهامی» الزاماً وجه نقد نیست؛ شامل دارایی‌های دیگر و وزن‌های نامعلوم است. وزن‌های نامشخص صفر محسوب نمی‌شوند.</p>
+<div class="fund-charts"><section class="fund-card" aria-labelledby="stocksChartTitle"><h2 id="stocksChartTitle">توزیع سهام</h2><div id="stockChart"></div></section><section class="fund-card" aria-labelledby="industriesChartTitle"><h2 id="industriesChartTitle">توزیع صنایع</h2><div id="industryChart"></div></section></div>
+<section class="fund-card" aria-labelledby="holdingsTitle"><div class="fund-heading"><h2 id="holdingsTitle">تمام سهام گزارش</h2><span id="holdingsCount">—</span></div><div class="table-scroll" tabindex="0" role="region" aria-label="ریز سهام صندوق"><table><thead><tr><th scope="col">نام دارایی</th><th scope="col">نماد</th><th scope="col">صنعت</th><th scope="col">درصد کل دارایی</th><th scope="col">برگه / ردیف منبع</th></tr></thead><tbody id="holdingsRows"><tr><td colspan="5">هنوز اطلاعاتی دریافت نشده است.</td></tr></tbody></table></div></section>
+<section class="fund-card" aria-labelledby="industryTitle"><h2 id="industryTitle">تجمیع صنایع</h2><div class="table-scroll" tabindex="0" role="region" aria-label="وزن صنایع صندوق"><table><thead><tr><th scope="col">صنعت</th><th scope="col">تعداد سهام</th><th scope="col">درصد کل دارایی</th><th scope="col">وضعیت وزن</th></tr></thead><tbody id="industryRows"><tr><td colspan="4">هنوز اطلاعاتی دریافت نشده است.</td></tr></tbody></table></div></section>
+<noscript><p class="fund-warning">برای دریافت جداول و نمودارها، جاوااسکریپت مرورگر را فعال کنید.</p></noscript>
+</main><footer class="site-footer"><span>SORENA WATCH / ساخته‌شده برای تصمیم‌های دقیق‌تر</span><span>داده پژوهشی است؛ توصیه سرمایه‌گذاری نیست.</span></footer></div></body></html>
