@@ -1,0 +1,119 @@
+{
+  "rows": {
+    "موج": {
+      "codal_portfolio_attachment_url": "https://codal.ir/Reports/DownloadFile.aspx?id=qA03vx4QQQaQQQBwmSXOOObOOOCBS2ERGQ%3d%3d",
+      "portfolio_last_update": "۱۴۰۵/۰۶/۳۱",
+      "discovery_note": "historical notice; attachment fetched again; not latest claim"
+    },
+    "دوایکس": {
+      "codal_portfolio_attachment_url": "https://codal.ir/Reports/DownloadFile.aspx?id=yQQQaQQQleftYp5VJQYQQQaQQQqeEZqfXA%3d%3d",
+      "portfolio_last_update": "۱۴۰۵/۰۶/۳۱",
+      "discovery_note": "historical notice; attachment fetched again; not latest claim"
+    },
+    "فیروزه": {
+      "codal_portfolio_attachment_url": "https://codal.ir/Reports/DownloadFile.aspx?id=jiK68pLxOOObOOOo2LX0xtDf49Zw%3d%3d",
+      "portfolio_last_update": "۱۴۰۵/۰۶/۳۱",
+      "discovery_note": "verified source mapping; latest report not asserted"
+    },
+    "متال": {
+      "codal_portfolio_attachment_url": "https://codal.ir/Reports/DownloadFile.aspx?id=wuj2NwVefv8dMqfNCTgkLA%3d%3d",
+      "portfolio_last_update": "۱۴۰۵/۰۶/۳۱",
+      "discovery_note": "verified source mapping; latest report not asserted"
+    },
+    "استیل": {
+      "codal_portfolio_attachment_url": "https://codal.ir/Reports/DownloadFile.aspx?id=m0M9xyC2OXbgCmTeeqClSA%3d%3d",
+      "portfolio_last_update": "۱۴۰۵/۰۶/۳۱",
+      "discovery_note": "verified source mapping; latest report not asserted"
+    },
+    "بیدار": {
+      "codal_portfolio_attachment_url": null,
+      "portfolio_last_update": "۱۴۰۵/۰۶/۳۱",
+      "discovery_note": "HTTPSConnectionPool(host='search.codal.ir', port=443): Read timed out. (read timeout=75)"
+    },
+    "اهرم": {
+      "codal_portfolio_attachment_url": "https://www.codal.ir/Reports/DownloadFile.aspx?id=bC9VY0d6U6h7uQSFPcZBpQ%3d%3d",
+      "portfolio_last_update": "۱۴۰۵/۰۶/۳۱",
+      "discovery_note": "historical source; must verify downloaded workbook"
+    },
+    "رشدی کیان": {
+      "codal_portfolio_attachment_url": "https://codal.ir/Reports/DownloadFile.aspx?id=35rAJrEK8xExs2yx0AArHA%3d%3d",
+      "portfolio_last_update": "۱۴۰۵/۰۶/۳۱",
+      "discovery_note": "verified source mapping; latest report not asserted"
+    },
+    "شتاب": {
+      "codal_portfolio_attachment_url": null,
+      "portfolio_last_update": "۱۴۰۵/۰۵/۳۱",
+      "discovery_note": "HTTPSConnectionPool(host='search.codal.ir', port=443): Read timed out. (read timeout=75)"
+    },
+    "نارنج اهرم": {
+      "codal_portfolio_attachment_url": "https://codal.ir/Reports/DownloadFile.aspx?id=6OOObOOOQQQaQQQzzr5eYvbk6kmqtCrjzg%3d%3d",
+      "portfolio_last_update": "۱۴۰۵/۰۶/۳۱",
+      "discovery_note": "historical notice; attachment fetched again; not latest claim"
+    },
+    "آذرین": {
+      "codal_portfolio_attachment_url": "https://codal.ir/Reports/DownloadFile.aspx?id=H4wU1wNBoiWH1lxU7jhRFg%3d%3d",
+      "portfolio_last_update": "۱۴۰۵/۰۶/۳۱",
+      "discovery_note": "verified source mapping; latest report not asserted"
+    },
+    "جوانه کوچک": {
+      "codal_portfolio_attachment_url": "https://codal.ir/Reports/DownloadFile.aspx?id=w3DgXa8gzB6P5LrZ1SOOObOOOLGw%3d%3d",
+      "portfolio_last_update": "۱۴۰۵/۰۶/۳۱",
+      "discovery_note": "verified source mapping; latest report not asserted"
+    },
+    "توان": {
+      "codal_portfolio_attachment_url": "https://www.codal.ir/Reports/DownloadFile.aspx?id=IR3CJWaONkGYlkuMJUAMug%3d%3d",
+      "portfolio_last_update": "۱۴۰۵/۰۶/۳۱",
+      "discovery_note": "historical notice; attachment fetched again; not latest claim"
+    },
+    "سلام": {
+      "codal_portfolio_attachment_url": "https://codal.ir/Reports/DownloadFile.aspx?id=OOObOOO8t5Aiikbk7ml8d4OOObOOOvKAgw%3d%3d",
+      "portfolio_last_update": "۱۴۰۵/۰۶/۳۱",
+      "discovery_note": "verified source mapping; latest report not asserted"
+    },
+    "هم تراز": {
+      "codal_portfolio_attachment_url": "https://codal.ir/Reports/DownloadFile.aspx?id=2KS2WHlqGS6d4jIs8c4Srw%3d%3d",
+      "portfolio_last_update": "۱۴۰۵/۰۶/۳۱",
+      "discovery_note": "verified source mapping; latest report not asserted"
+    },
+    "آساس": {
+      "codal_portfolio_attachment_url": null,
+      "portfolio_last_update": "۱۴۰۵/۰۶/۳۱",
+      "discovery_note": "('Connection aborted.', ConnectionResetError(104, 'Connection reset by peer'))"
+    },
+    "جهش": {
+      "codal_portfolio_attachment_url": null,
+      "portfolio_last_update": "۱۴۰۵/۰۶/۳۱",
+      "discovery_note": "('Connection aborted.', ConnectionResetError(104, 'Connection reset by peer'))"
+    },
+    "دی سهام": {
+      "codal_portfolio_attachment_url": "https://codal.ir/Reports/DownloadFile.aspx?id=FnLkZVVI3wnA1OSI0KxmvA%3d%3d",
+      "portfolio_last_update": "۱۴۰۵/۰۶/۲۲",
+      "discovery_note": "verified source mapping; latest report not asserted"
+    },
+    "دارا یکم": {
+      "codal_portfolio_attachment_url": "https://codal.ir/Reports/DownloadFile.aspx?id=8HbHAfEw05rX9sKR5fZhCg%3d%3d",
+      "portfolio_last_update": "۱۴۰۵/۰۶/۳۱",
+      "discovery_note": "verified source mapping; latest report not asserted"
+    },
+    "ارزش": {
+      "codal_portfolio_attachment_url": "https://codal.ir/Reports/DownloadFile.aspx?id=tWr6fWj5PdReifh5xF6eow%3d%3d",
+      "portfolio_last_update": "۱۴۰۵/۰۶/۳۱",
+      "discovery_note": "verified source mapping; latest report not asserted"
+    },
+    "سرو": {
+      "codal_portfolio_attachment_url": "https://codal.ir/Reports/DownloadFile.aspx?id=pkKX0DJ1BV7n8q5LMeQttw%3d%3d",
+      "portfolio_last_update": "۱۴۰۵/۰۶/۳۱",
+      "discovery_note": "verified source mapping; latest report not asserted"
+    },
+    "فارمانی": {
+      "codal_portfolio_attachment_url": "https://codal.ir/Reports/DownloadFile.aspx?id=mKiCaIQxbPSbE78EvrNozw%3d%3d",
+      "portfolio_last_update": "۱۴۰۵/۰۶/۳۱",
+      "discovery_note": "verified source mapping; latest report not asserted"
+    },
+    "انار": {
+      "codal_portfolio_attachment_url": "https://codal.ir/Reports/DownloadFile.aspx?id=Ex6qTvIvQQQaQQQMVOOObOOOYtzDQHhHXw%3d%3d",
+      "portfolio_last_update": "۱۴۰۵/۰۶/۳۱",
+      "discovery_note": "verified source mapping; latest report not asserted"
+    }
+  }
+}
