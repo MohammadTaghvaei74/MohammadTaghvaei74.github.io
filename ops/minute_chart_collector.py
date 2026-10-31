@@ -309,8 +309,10 @@ def persist_live(rows, observed: datetime) -> int:
         refresh.get("refreshed"), refresh.get("batch_size", 0),
         refresh.get("ok", 0), refresh.get("missing", 0),
     )
-    with sqlite3.connect(main.DB_PATH, timeout=300) as conn:
-        conn.execute("PRAGMA busy_timeout=300000")
+    # The live handoff is already durable; archive contention must not stall
+    # subsequent live observations. Outer loop logs a failure and retries next tick.
+    with sqlite3.connect(main.DB_PATH, timeout=2) as conn:
+        conn.execute("PRAGMA busy_timeout=2000")
         conn.executemany(
             "INSERT OR REPLACE INTO stock_snapshots VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
             stock_rows,
