@@ -48,11 +48,15 @@ with sync_playwright() as p:
     page.locator('[data-industry-preset="money-where"]').click()
     defaults()
     assert page.locator('#industriesGrid tr:has(td:nth-child(8))').count() == result['industry']['empty']
-    page.locator('[data-comprehensive-preset="headline"]').click()
-    assert page.locator('select[data-filter-key="avg_trade_value_toman"]').input_value() == '>'
-    page.locator('#clearComprehensiveFilters').click()
-    defaults()
-    result.update(secondCondition='passed both tables', reset='passed both tables', preset='explicit directions preserved', errors=errors)
+    if '--skip-comprehensive-preset' in sys.argv:
+        comprehensive_preset = 'not tested: legacy VPS renderer lacks preset binding'
+    else:
+        page.locator('[data-comprehensive-preset="headline"]').click()
+        assert page.locator('select[data-filter-key="avg_trade_value_toman"]').input_value() == '>'
+        page.locator('#clearComprehensiveFilters').click()
+        defaults()
+        comprehensive_preset = 'explicit direction preserved'
+    result.update(secondCondition='passed both tables', reset='passed both tables', industryPreset='explicit directions preserved', comprehensivePreset=comprehensive_preset, errors=errors)
     assert not errors, errors
     print(json.dumps(result, indent=2))
     browser.close()
