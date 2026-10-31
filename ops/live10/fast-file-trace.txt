@@ -1,0 +1,12 @@
+1612269 openat(AT_FDCWD, "/etc/hosts", O_RDONLY|O_CLOEXEC) = 3
+1612269 openat(AT_FDCWD, "/srv/bourse-migration-20261013T1635Z/runtime/lib/python3.12/site-packages/certifi/cacert.pem", O_RDONLY) = 4
+1612269 openat(AT_FDCWD, "/root/bourse-alert/live_market.json", O_RDONLY|O_CLOEXEC) = 3
+1612269 openat(AT_FDCWD, "/etc/hosts", O_RDONLY|O_CLOEXEC) = 3
+1612269 openat(AT_FDCWD, "/srv/bourse-migration-20261013T1635Z/runtime/lib/python3.12/site-packages/certifi/cacert.pem", O_RDONLY) = 4
+1612269 openat(AT_FDCWD, "/root/bourse-alert/live_market.json", O_RDONLY|O_CLOEXEC) = 3
+1612269 openat(AT_FDCWD, "/etc/hosts", O_RDONLY|O_CLOEXEC) = 3
+1612269 openat(AT_FDCWD, "/srv/bourse-migration-20261013T1635Z/runtime/lib/python3.12/site-packages/certifi/cacert.pem", O_RDONLY) = 4
+1612269 openat(AT_FDCWD, "/root/bourse-alert/live_market.json", O_RDONLY|O_CLOEXEC) = 3
+1612269 openat(AT_FDCWD, "/etc/hosts", O_RDONLY|O_CLOEXEC) = 3
+1612269 openat(AT_FDCWD, "/srv/bourse-migration-20261013T1635Z/runtime/lib/python3.12/site-packages/certifi/cacert.pem", O_RDONLY) = 4
+1612269 openat(AT_FDCWD, "/root/bourse-alert/live_market.json", O_RDONLY|O_CLOEXEC) = 3

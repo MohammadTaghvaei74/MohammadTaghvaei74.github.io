@@ -1,0 +1,62 @@
+{
+  "time": "2026-10-31T12:06:50.966597+03:30",
+  "hashes": {
+    "/root/bourse-alert/main.py": "222d7e7040e3b22844032c9cf7450712b34674bd89e446f9fded7475eee1a6af",
+    "/root/bourse-alert/minute_chart_collector.py": "7ad69f04db1e85547c26f57d40260fa2f49fbcd1ee6c7731da34e8f3396eff2f",
+    "/root/bourse-alert/minute_archive_outbox.py": "c8736e12f8e25ff07f4fbd3288b71a3bd7893a31592558875d6fb780321bf56c",
+    "/root/bourse-live-10s/fast_live_collector.py": "be083b2266f2db18b9d7e2e410c7ff4f18ed09703f33e5c6d7745dde92a31a3c"
+  },
+  "snapshot": {
+    "timestamp": "2026-10-31T12:06:01.461912+03:30",
+    "stocks": 750,
+    "industry_count": 49,
+    "stocks_with_industry": 750,
+    "leveraged": 7,
+    "intraday": 170
+  },
+  "units": "Id=bourse-chart-collector.service\nActiveState=active\nUnitFileState=enabled\nMainPID=1832963\nNRestarts=0\nMemoryCurrent=87597056\n\nId=bourse-fast-live.service\nActiveState=active\nUnitFileState=enabled\nMainPID=1612269\nNRestarts=0\nMemoryCurrent=34738176\n\nId=bourse-live-fast.service\nActiveState=inactive\nUnitFileState=disabled\nMainPID=0\nNRestarts=0\nMemoryCurrent=[not set]\n",
+  "fast_open_fds": "/dev/null\nsocket:[20749587]\nsocket:[20749587]\n",
+  "health": {
+    "ok": true,
+    "infrastructure_ok": true,
+    "data_fresh": true,
+    "market_open": true,
+    "source": "/root/bourse-alert/live_market.json",
+    "source_age_seconds": 1.307656,
+    "last_success": "2026-10-31T08:36:51.796556+00:00",
+    "last_error": null,
+    "redis_ok": true,
+    "transport_source": "redis-pubsub",
+    "clients": 1
+  },
+  "latest": {
+    "source": "tsetmc-fast-live-collector",
+    "generated_at": "2026-10-31T12:06:50.489018+03:30",
+    "keys": [
+      "schema_version",
+      "source",
+      "generated_at",
+      "collector_observed_at",
+      "market",
+      "stocks",
+      "top_stocks",
+      "top_buy_queue",
+      "groups",
+      "industries",
+      "industry_table",
+      "leveraged",
+      "daily",
+      "intraday",
+      "queue_intraday"
+    ],
+    "stocks": 750,
+    "industries": 49
+  },
+  "latest_db": {
+    "market_snapshots": "2026-10-31T12:06:01.461912+03:30",
+    "stock_snapshots": "2026-10-31T12:06:01.461912+03:30",
+    "group_snapshots": "2026-10-31T12:06:01.461912+03:30",
+    "industry_detail_snapshots": "2026-10-31T12:06:01.461912+03:30",
+    "raw_tse_snapshots": "2026-10-31T12:01:00.001833+03:30"
+  }
+}

@@ -1,0 +1,466 @@
+{
+  "start": "2026-10-31T11:56:53.137184+03:30",
+  "end": "2026-10-31T12:03:19.309087+03:30",
+  "samples": [
+    {
+      "wall": "2026-10-31T11:56:53.139128+03:30",
+      "stamps": [],
+      "pending": []
+    },
+    {
+      "wall": "2026-10-31T11:57:03.140964+03:30",
+      "stamps": [],
+      "pending": [
+        [
+          "2026-10-31T11:57:00.970291+03:30"
+        ]
+      ]
+    },
+    {
+      "wall": "2026-10-31T11:57:13.145235+03:30",
+      "stamps": [],
+      "pending": [
+        [
+          "2026-10-31T11:57:00.970291+03:30"
+        ]
+      ]
+    },
+    {
+      "wall": "2026-10-31T11:57:23.700716+03:30",
+      "stamps": [
+        "2026-10-31T11:57:00.970291+03:30"
+      ],
+      "pending": []
+    },
+    {
+      "wall": "2026-10-31T11:57:33.703465+03:30",
+      "stamps": [
+        "2026-10-31T11:57:00.970291+03:30"
+      ],
+      "pending": []
+    },
+    {
+      "wall": "2026-10-31T11:57:43.705286+03:30",
+      "stamps": [
+        "2026-10-31T11:57:00.970291+03:30"
+      ],
+      "pending": []
+    },
+    {
+      "wall": "2026-10-31T11:57:53.808135+03:30",
+      "stamps": [
+        "2026-10-31T11:57:00.970291+03:30"
+      ],
+      "pending": []
+    },
+    {
+      "wall": "2026-10-31T11:58:04.626403+03:30",
+      "stamps": [
+        "2026-10-31T11:57:00.970291+03:30"
+      ],
+      "pending": []
+    },
+    {
+      "wall": "2026-10-31T11:58:14.629977+03:30",
+      "stamps": [
+        "2026-10-31T11:57:00.970291+03:30",
+        "2026-10-31T11:58:11.151459+03:30"
+      ],
+      "pending": []
+    },
+    {
+      "wall": "2026-10-31T11:58:24.635085+03:30",
+      "stamps": [
+        "2026-10-31T11:57:00.970291+03:30",
+        "2026-10-31T11:58:11.151459+03:30"
+      ],
+      "pending": []
+    },
+    {
+      "wall": "2026-10-31T11:58:34.638223+03:30",
+      "stamps": [
+        "2026-10-31T11:57:00.970291+03:30",
+        "2026-10-31T11:58:11.151459+03:30"
+      ],
+      "pending": []
+    },
+    {
+      "wall": "2026-10-31T11:58:44.640033+03:30",
+      "stamps": [
+        "2026-10-31T11:57:00.970291+03:30",
+        "2026-10-31T11:58:11.151459+03:30"
+      ],
+      "pending": []
+    },
+    {
+      "wall": "2026-10-31T11:58:54.643693+03:30",
+      "stamps": [
+        "2026-10-31T11:57:00.970291+03:30",
+        "2026-10-31T11:58:11.151459+03:30"
+      ],
+      "pending": []
+    },
+    {
+      "wall": "2026-10-31T11:59:04.646820+03:30",
+      "stamps": [
+        "2026-10-31T11:57:00.970291+03:30",
+        "2026-10-31T11:58:11.151459+03:30",
+        "2026-10-31T11:59:01.246276+03:30"
+      ],
+      "pending": []
+    },
+    {
+      "wall": "2026-10-31T11:59:14.649064+03:30",
+      "stamps": [
+        "2026-10-31T11:57:00.970291+03:30",
+        "2026-10-31T11:58:11.151459+03:30",
+        "2026-10-31T11:59:01.246276+03:30"
+      ],
+      "pending": []
+    },
+    {
+      "wall": "2026-10-31T11:59:24.651807+03:30",
+      "stamps": [
+        "2026-10-31T11:57:00.970291+03:30",
+        "2026-10-31T11:58:11.151459+03:30",
+        "2026-10-31T11:59:01.246276+03:30"
+      ],
+      "pending": []
+    },
+    {
+      "wall": "2026-10-31T11:59:34.654688+03:30",
+      "stamps": [
+        "2026-10-31T11:57:00.970291+03:30",
+        "2026-10-31T11:58:11.151459+03:30",
+        "2026-10-31T11:59:01.246276+03:30"
+      ],
+      "pending": []
+    },
+    {
+      "wall": "2026-10-31T11:59:44.658118+03:30",
+      "stamps": [
+        "2026-10-31T11:57:00.970291+03:30",
+        "2026-10-31T11:58:11.151459+03:30",
+        "2026-10-31T11:59:01.246276+03:30"
+      ],
+      "pending": []
+    },
+    {
+      "wall": "2026-10-31T11:59:54.659928+03:30",
+      "stamps": [
+        "2026-10-31T11:57:00.970291+03:30",
+        "2026-10-31T11:58:11.151459+03:30",
+        "2026-10-31T11:59:01.246276+03:30"
+      ],
+      "pending": []
+    },
+    {
+      "wall": "2026-10-31T12:00:04.661995+03:30",
+      "stamps": [
+        "2026-10-31T11:57:00.970291+03:30",
+        "2026-10-31T11:58:11.151459+03:30",
+        "2026-10-31T11:59:01.246276+03:30",
+        "2026-10-31T12:00:00.514560+03:30"
+      ],
+      "pending": []
+    },
+    {
+      "wall": "2026-10-31T12:00:14.664683+03:30",
+      "stamps": [
+        "2026-10-31T11:57:00.970291+03:30",
+        "2026-10-31T11:58:11.151459+03:30",
+        "2026-10-31T11:59:01.246276+03:30",
+        "2026-10-31T12:00:00.514560+03:30"
+      ],
+      "pending": []
+    },
+    {
+      "wall": "2026-10-31T12:00:24.666556+03:30",
+      "stamps": [
+        "2026-10-31T11:57:00.970291+03:30",
+        "2026-10-31T11:58:11.151459+03:30",
+        "2026-10-31T11:59:01.246276+03:30",
+        "2026-10-31T12:00:00.000244+03:30",
+        "2026-10-31T12:00:00.514560+03:30"
+      ],
+      "pending": []
+    },
+    {
+      "wall": "2026-10-31T12:00:34.673830+03:30",
+      "stamps": [
+        "2026-10-31T11:57:00.970291+03:30",
+        "2026-10-31T11:58:11.151459+03:30",
+        "2026-10-31T11:59:01.246276+03:30",
+        "2026-10-31T12:00:00.000244+03:30",
+        "2026-10-31T12:00:00.514560+03:30"
+      ],
+      "pending": []
+    },
+    {
+      "wall": "2026-10-31T12:00:44.678499+03:30",
+      "stamps": [
+        "2026-10-31T11:57:00.970291+03:30",
+        "2026-10-31T11:58:11.151459+03:30",
+        "2026-10-31T11:59:01.246276+03:30",
+        "2026-10-31T12:00:00.000244+03:30",
+        "2026-10-31T12:00:00.514560+03:30"
+      ],
+      "pending": []
+    },
+    {
+      "wall": "2026-10-31T12:00:54.680416+03:30",
+      "stamps": [
+        "2026-10-31T11:57:00.970291+03:30",
+        "2026-10-31T11:58:11.151459+03:30",
+        "2026-10-31T11:59:01.246276+03:30",
+        "2026-10-31T12:00:00.000244+03:30",
+        "2026-10-31T12:00:00.514560+03:30"
+      ],
+      "pending": []
+    },
+    {
+      "wall": "2026-10-31T12:01:05.003665+03:30",
+      "stamps": [
+        "2026-10-31T11:57:00.970291+03:30",
+        "2026-10-31T11:58:11.151459+03:30",
+        "2026-10-31T11:59:01.246276+03:30",
+        "2026-10-31T12:00:00.000244+03:30",
+        "2026-10-31T12:00:00.514560+03:30"
+      ],
+      "pending": []
+    },
+    {
+      "wall": "2026-10-31T12:01:15.949344+03:30",
+      "stamps": [
+        "2026-10-31T11:57:00.970291+03:30",
+        "2026-10-31T11:58:11.151459+03:30",
+        "2026-10-31T11:59:01.246276+03:30",
+        "2026-10-31T12:00:00.000244+03:30",
+        "2026-10-31T12:00:00.514560+03:30"
+      ],
+      "pending": []
+    },
+    {
+      "wall": "2026-10-31T12:01:26.198241+03:30",
+      "stamps": [
+        "2026-10-31T11:57:00.970291+03:30",
+        "2026-10-31T11:58:11.151459+03:30",
+        "2026-10-31T11:59:01.246276+03:30",
+        "2026-10-31T12:00:00.000244+03:30",
+        "2026-10-31T12:00:00.514560+03:30"
+      ],
+      "pending": [
+        [
+          "2026-10-31T12:01:20.072932+03:30"
+        ]
+      ]
+    },
+    {
+      "wall": "2026-10-31T12:01:36.491880+03:30",
+      "stamps": [
+        "2026-10-31T11:57:00.970291+03:30",
+        "2026-10-31T11:58:11.151459+03:30",
+        "2026-10-31T11:59:01.246276+03:30",
+        "2026-10-31T12:00:00.000244+03:30",
+        "2026-10-31T12:00:00.514560+03:30"
+      ],
+      "pending": [
+        [
+          "2026-10-31T12:01:20.072932+03:30"
+        ]
+      ]
+    },
+    {
+      "wall": "2026-10-31T12:01:46.685871+03:30",
+      "stamps": [
+        "2026-10-31T11:57:00.970291+03:30",
+        "2026-10-31T11:58:11.151459+03:30",
+        "2026-10-31T11:59:01.246276+03:30",
+        "2026-10-31T12:00:00.000244+03:30",
+        "2026-10-31T12:00:00.514560+03:30"
+      ],
+      "pending": [
+        [
+          "2026-10-31T12:01:20.072932+03:30"
+        ]
+      ]
+    },
+    {
+      "wall": "2026-10-31T12:01:56.688614+03:30",
+      "stamps": [
+        "2026-10-31T11:57:00.970291+03:30",
+        "2026-10-31T11:58:11.151459+03:30",
+        "2026-10-31T11:59:01.246276+03:30",
+        "2026-10-31T12:00:00.000244+03:30",
+        "2026-10-31T12:00:00.514560+03:30"
+      ],
+      "pending": [
+        [
+          "2026-10-31T12:01:20.072932+03:30"
+        ]
+      ]
+    },
+    {
+      "wall": "2026-10-31T12:02:06.690511+03:30",
+      "stamps": [
+        "2026-10-31T11:57:00.970291+03:30",
+        "2026-10-31T11:58:11.151459+03:30",
+        "2026-10-31T11:59:01.246276+03:30",
+        "2026-10-31T12:00:00.000244+03:30",
+        "2026-10-31T12:00:00.514560+03:30"
+      ],
+      "pending": [
+        [
+          "2026-10-31T12:01:20.072932+03:30"
+        ],
+        [
+          "2026-10-31T12:02:00.379615+03:30"
+        ]
+      ]
+    },
+    {
+      "wall": "2026-10-31T12:02:16.696635+03:30",
+      "stamps": [
+        "2026-10-31T11:57:00.970291+03:30",
+        "2026-10-31T11:58:11.151459+03:30",
+        "2026-10-31T11:59:01.246276+03:30",
+        "2026-10-31T12:00:00.000244+03:30",
+        "2026-10-31T12:00:00.514560+03:30"
+      ],
+      "pending": [
+        [
+          "2026-10-31T12:01:20.072932+03:30"
+        ],
+        [
+          "2026-10-31T12:02:00.379615+03:30"
+        ]
+      ]
+    },
+    {
+      "wall": "2026-10-31T12:02:26.712852+03:30",
+      "stamps": [
+        "2026-10-31T11:57:00.970291+03:30",
+        "2026-10-31T11:58:11.151459+03:30",
+        "2026-10-31T11:59:01.246276+03:30",
+        "2026-10-31T12:00:00.000244+03:30",
+        "2026-10-31T12:00:00.514560+03:30"
+      ],
+      "pending": [
+        [
+          "2026-10-31T12:01:20.072932+03:30"
+        ],
+        [
+          "2026-10-31T12:02:00.379615+03:30"
+        ]
+      ]
+    },
+    {
+      "wall": "2026-10-31T12:02:37.049875+03:30",
+      "stamps": [
+        "2026-10-31T11:57:00.970291+03:30",
+        "2026-10-31T11:58:11.151459+03:30",
+        "2026-10-31T11:59:01.246276+03:30",
+        "2026-10-31T12:00:00.000244+03:30",
+        "2026-10-31T12:00:00.514560+03:30"
+      ],
+      "pending": [
+        [
+          "2026-10-31T12:01:20.072932+03:30"
+        ],
+        [
+          "2026-10-31T12:02:00.379615+03:30"
+        ]
+      ]
+    },
+    {
+      "wall": "2026-10-31T12:02:49.063976+03:30",
+      "stamps": [
+        "2026-10-31T11:57:00.970291+03:30",
+        "2026-10-31T11:58:11.151459+03:30",
+        "2026-10-31T11:59:01.246276+03:30",
+        "2026-10-31T12:00:00.000244+03:30",
+        "2026-10-31T12:00:00.514560+03:30"
+      ],
+      "pending": [
+        [
+          "2026-10-31T12:01:20.072932+03:30"
+        ],
+        [
+          "2026-10-31T12:02:00.379615+03:30"
+        ]
+      ]
+    },
+    {
+      "wall": "2026-10-31T12:02:59.068232+03:30",
+      "stamps": [
+        "2026-10-31T11:57:00.970291+03:30",
+        "2026-10-31T11:58:11.151459+03:30",
+        "2026-10-31T11:59:01.246276+03:30",
+        "2026-10-31T12:00:00.000244+03:30",
+        "2026-10-31T12:00:00.514560+03:30"
+      ],
+      "pending": [
+        [
+          "2026-10-31T12:01:20.072932+03:30"
+        ],
+        [
+          "2026-10-31T12:02:00.379615+03:30"
+        ]
+      ]
+    }
+  ],
+  "committed": [
+    "2026-10-31T11:57:00.970291+03:30",
+    "2026-10-31T11:58:11.151459+03:30",
+    "2026-10-31T11:59:01.246276+03:30",
+    "2026-10-31T12:00:00.514560+03:30"
+  ],
+  "minute_deltas_seconds": [
+    60.0,
+    60.0,
+    60.0
+  ],
+  "tables": {
+    "market_snapshots": [
+      "2026-10-31T11:57:00.970291+03:30",
+      "2026-10-31T11:58:11.151459+03:30",
+      "2026-10-31T11:59:01.246276+03:30",
+      "2026-10-31T12:00:00.000244+03:30",
+      "2026-10-31T12:00:00.514560+03:30"
+    ],
+    "stock_snapshots": [
+      "2026-10-31T11:57:00.970291+03:30",
+      "2026-10-31T11:58:11.151459+03:30",
+      "2026-10-31T11:59:01.246276+03:30",
+      "2026-10-31T12:00:00.000244+03:30",
+      "2026-10-31T12:00:00.514560+03:30"
+    ],
+    "group_snapshots": [
+      "2026-10-31T11:57:00.970291+03:30",
+      "2026-10-31T11:58:11.151459+03:30",
+      "2026-10-31T11:59:01.246276+03:30",
+      "2026-10-31T12:00:00.000244+03:30",
+      "2026-10-31T12:00:00.514560+03:30"
+    ],
+    "industry_detail_snapshots": [
+      "2026-10-31T11:57:00.970291+03:30",
+      "2026-10-31T11:58:11.151459+03:30",
+      "2026-10-31T11:59:01.246276+03:30",
+      "2026-10-31T12:00:00.000244+03:30",
+      "2026-10-31T12:00:00.514560+03:30"
+    ],
+    "raw_tse_snapshots": [
+      "2026-10-31T12:00:00.000244+03:30"
+    ]
+  },
+  "journal": "2026-10-31 11:57:01,398 [INFO] REDIS_LIVE_PUBLISHED timestamp=2026-10-31T11:57:00.970291+03:30 symbols=749\n2026-10-31 11:57:01,401 [INFO] CLIENT_TYPE_REFRESH refreshed=False batch=0 ok=0 missing=0\n2026-10-31 11:57:01,401 [INFO] LIVE_SNAPSHOT_SAVED observed=2026-10-31T11:57:00.970291+03:30 symbols=1620 eligible=749\n2026-10-31 11:57:03,146 [WARNING] MINUTE_ARCHIVE_RETRY observed=2026-10-31T11:57:00.970291+03:30 reason=database is locked\n2026-10-31 11:57:06,185 [WARNING] MINUTE_ARCHIVE_RETRY observed=2026-10-31T11:57:00.970291+03:30 reason=database is locked\n2026-10-31 11:57:09,239 [WARNING] MINUTE_ARCHIVE_RETRY observed=2026-10-31T11:57:00.970291+03:30 reason=database is locked\n2026-10-31 11:57:12,275 [WARNING] MINUTE_ARCHIVE_RETRY observed=2026-10-31T11:57:00.970291+03:30 reason=database is locked\n2026-10-31 11:57:16,545 [INFO] MINUTE_ARCHIVE_COMMITTED observed=2026-10-31T11:57:00.970291+03:30 pending=0\n2026-10-31 11:58:12,266 [INFO] MINUTE_ARCHIVE_COMMITTED observed=2026-10-31T11:58:11.151459+03:30 pending=0\n2026-10-31 11:58:28,145 [INFO] REDIS_LIVE_PUBLISHED timestamp=2026-10-31T11:58:11.151459+03:30 symbols=749\n2026-10-31 11:58:28,146 [INFO] CLIENT_TYPE_REFRESH refreshed=True batch=200 ok=200 missing=0\n2026-10-31 11:58:28,146 [INFO] LIVE_SNAPSHOT_SAVED observed=2026-10-31T11:58:11.151459+03:30 symbols=1622 eligible=749\n2026-10-31 11:59:01,641 [INFO] REDIS_LIVE_PUBLISHED timestamp=2026-10-31T11:59:01.246276+03:30 symbols=749\n2026-10-31 11:59:01,642 [INFO] CLIENT_TYPE_REFRESH refreshed=False batch=0 ok=0 missing=0\n2026-10-31 11:59:01,643 [INFO] LIVE_SNAPSHOT_SAVED observed=2026-10-31T11:59:01.246276+03:30 symbols=1623 eligible=749\n2026-10-31 11:59:01,858 [INFO] MINUTE_ARCHIVE_COMMITTED observed=2026-10-31T11:59:01.246276+03:30 pending=0\n2026-10-31 12:00:03,975 [INFO] MINUTE_ARCHIVE_COMMITTED observed=2026-10-31T12:00:00.514560+03:30 pending=0\n2026-10-31 12:00:15,137 [INFO] REDIS_LIVE_PUBLISHED timestamp=2026-10-31T12:00:00.514560+03:30 symbols=749\n2026-10-31 12:00:15,137 [INFO] CLIENT_TYPE_REFRESH refreshed=True batch=200 ok=200 missing=0\n2026-10-31 12:00:15,141 [INFO] LIVE_SNAPSHOT_SAVED observed=2026-10-31T12:00:00.514560+03:30 symbols=1624 eligible=749\n2026-10-31 12:01:24,481 [WARNING] MINUTE_ARCHIVE_RETRY observed=2026-10-31T12:01:20.072932+03:30 reason=database is locked\n2026-10-31 12:01:28,833 [WARNING] MINUTE_ARCHIVE_RETRY observed=2026-10-31T12:01:20.072932+03:30 reason=database is locked\n2026-10-31 12:01:31,938 [WARNING] MINUTE_ARCHIVE_RETRY observed=2026-10-31T12:01:20.072932+03:30 reason=database is locked\n2026-10-31 12:01:35,195 [WARNING] MINUTE_ARCHIVE_RETRY observed=2026-10-31T12:01:20.072932+03:30 reason=database is locked\n2026-10-31 12:01:39,908 [WARNING] MINUTE_ARCHIVE_RETRY observed=2026-10-31T12:01:20.072932+03:30 reason=database is locked\n2026-10-31 12:01:44,919 [WARNING] MINUTE_ARCHIVE_RETRY observed=2026-10-31T12:01:20.072932+03:30 reason=database is locked\n2026-10-31 12:01:49,943 [WARNING] MINUTE_ARCHIVE_RETRY observed=2026-10-31T12:01:20.072932+03:30 reason=database is locked\n2026-10-31 12:01:50,207 [INFO] REDIS_LIVE_PUBLISHED timestamp=2026-10-31T12:01:20.072932+03:30 symbols=750\n2026-10-31 12:01:50,207 [INFO] CLIENT_TYPE_REFRESH refreshed=True batch=200 ok=200 missing=0\n2026-10-31 12:01:50,207 [INFO] LIVE_SNAPSHOT_SAVED observed=2026-10-31T12:01:20.072932+03:30 symbols=1625 eligible=750\n2026-10-31 12:01:52,993 [WARNING] MINUTE_ARCHIVE_RETRY observed=2026-10-31T12:01:20.072932+03:30 reason=database is locked\n2026-10-31 12:01:56,026 [WARNING] MINUTE_ARCHIVE_RETRY observed=2026-10-31T12:01:20.072932+03:30 reason=database is locked\n2026-10-31 12:01:59,059 [WARNING] MINUTE_ARCHIVE_RETRY observed=2026-10-31T12:01:20.072932+03:30 reason=database is locked\n2026-10-31 12:02:00,663 [INFO] REDIS_LIVE_PUBLISHED timestamp=2026-10-31T12:02:00.379615+03:30 symbols=750\n2026-10-31 12:02:00,664 [INFO] CLIENT_TYPE_REFRESH refreshed=False batch=0 ok=0 missing=0\n2026-10-31 12:02:00,664 [INFO] LIVE_SNAPSHOT_SAVED observed=2026-10-31T12:02:00.379615+03:30 symbols=1625 eligible=750\n2026-10-31 12:02:02,160 [WARNING] MINUTE_ARCHIVE_RETRY observed=2026-10-31T12:01:20.072932+03:30 reason=database is locked\n2026-10-31 12:02:04,516 [WARNING] MINUTE_ARCHIVE_RETRY observed=2026-10-31T12:01:20.072932+03:30 reason=database is locked\n2026-10-31 12:02:07,550 [WARNING] MINUTE_ARCHIVE_RETRY observed=2026-10-31T12:01:20.072932+03:30 reason=database is locked\n2026-10-31 12:02:10,589 [WARNING] MINUTE_ARCHIVE_RETRY observed=2026-10-31T12:01:20.072932+03:30 reason=database is locked\n2026-10-31 12:02:13,620 [WARNING] MINUTE_ARCHIVE_RETRY observed=2026-10-31T12:01:20.072932+03:30 reason=database is locked\n2026-10-31 12:02:16,656 [WARNING] MINUTE_ARCHIVE_RETRY observed=2026-10-31T12:01:20.072932+03:30 reason=database is locked\n2026-10-31 12:02:19,693 [WARNING] MINUTE_ARCHIVE_RETRY observed=2026-10-31T12:01:20.072932+03:30 reason=database is locked\n2026-10-31 12:02:22,762 [WARNING] MINUTE_ARCHIVE_RETRY observed=2026-10-31T12:01:20.072932+03:30 reason=database is locked\n2026-10-31 12:02:25,794 [WARNING] MINUTE_ARCHIVE_RETRY observed=2026-10-31T12:01:20.072932+03:30 reason=database is locked\n",
+  "fast_journal": "2026-10-31 11:57:01,794 INFO FAST_LIVE_PUBLISHED observed=2026-10-31T11:57:01.373179+03:30 symbols=749 db_write=false json_write=false\n2026-10-31 11:57:11,583 INFO FAST_LIVE_PUBLISHED observed=2026-10-31T11:57:11.170303+03:30 symbols=749 db_write=false json_write=false\n2026-10-31 11:57:21,976 INFO FAST_LIVE_PUBLISHED observed=2026-10-31T11:57:21.478145+03:30 symbols=749 db_write=false json_write=false\n2026-10-31 11:57:31,774 INFO FAST_LIVE_PUBLISHED observed=2026-10-31T11:57:31.290628+03:30 symbols=749 db_write=false json_write=false\n2026-10-31 11:57:41,498 INFO FAST_LIVE_PUBLISHED observed=2026-10-31T11:57:41.085641+03:30 symbols=749 db_write=false json_write=false\n2026-10-31 11:57:51,592 INFO FAST_LIVE_PUBLISHED observed=2026-10-31T11:57:51.177858+03:30 symbols=749 db_write=false json_write=false\n2026-10-31 11:58:01,678 INFO FAST_LIVE_PUBLISHED observed=2026-10-31T11:58:01.192213+03:30 symbols=749 db_write=false json_write=false\n2026-10-31 11:58:11,406 INFO FAST_LIVE_PUBLISHED observed=2026-10-31T11:58:10.973120+03:30 symbols=749 db_write=false json_write=false\n2026-10-31 11:58:21,589 INFO FAST_LIVE_PUBLISHED observed=2026-10-31T11:58:21.175539+03:30 symbols=749 db_write=false json_write=false\n2026-10-31 11:58:32,091 INFO FAST_LIVE_PUBLISHED observed=2026-10-31T11:58:31.674906+03:30 symbols=749 db_write=false json_write=false\n2026-10-31 11:58:41,493 INFO FAST_LIVE_PUBLISHED observed=2026-10-31T11:58:41.074147+03:30 symbols=749 db_write=false json_write=false\n2026-10-31 11:58:51,675 INFO FAST_LIVE_PUBLISHED observed=2026-10-31T11:58:51.185228+03:30 symbols=749 db_write=false json_write=false\n2026-10-31 11:59:00,994 INFO FAST_LIVE_PUBLISHED observed=2026-10-31T11:59:00.573257+03:30 symbols=749 db_write=false json_write=false\n2026-10-31 11:59:12,499 INFO FAST_LIVE_PUBLISHED observed=2026-10-31T11:59:12.086191+03:30 symbols=749 db_write=false json_write=false\n2026-10-31 11:59:21,487 INFO FAST_LIVE_PUBLISHED observed=2026-10-31T11:59:21.073880+03:30 symbols=749 db_write=false json_write=false\n2026-10-31 11:59:31,589 INFO FAST_LIVE_PUBLISHED observed=2026-10-31T11:59:31.083495+03:30 symbols=749 db_write=false json_write=false\n2026-10-31 11:59:41,790 INFO FAST_LIVE_PUBLISHED observed=2026-10-31T11:59:41.289871+03:30 symbols=749 db_write=false json_write=false\n2026-10-31 11:59:51,481 INFO FAST_LIVE_PUBLISHED observed=2026-10-31T11:59:51.075459+03:30 symbols=749 db_write=false json_write=false\n2026-10-31 12:00:01,732 INFO FAST_LIVE_PUBLISHED observed=2026-10-31T12:00:01.295844+03:30 symbols=749 db_write=false json_write=false\n2026-10-31 12:00:11,491 INFO FAST_LIVE_PUBLISHED observed=2026-10-31T12:00:11.083743+03:30 symbols=749 db_write=false json_write=false\n2026-10-31 12:00:21,573 INFO FAST_LIVE_PUBLISHED observed=2026-10-31T12:00:21.084364+03:30 symbols=750 db_write=false json_write=false\n2026-10-31 12:00:32,183 INFO FAST_LIVE_PUBLISHED observed=2026-10-31T12:00:31.694859+03:30 symbols=750 db_write=false json_write=false\n2026-10-31 12:00:41,680 INFO FAST_LIVE_PUBLISHED observed=2026-10-31T12:00:41.190228+03:30 symbols=750 db_write=false json_write=false\n2026-10-31 12:00:51,787 INFO FAST_LIVE_PUBLISHED observed=2026-10-31T12:00:51.294687+03:30 symbols=750 db_write=false json_write=false\n2026-10-31 12:01:01,882 INFO FAST_LIVE_PUBLISHED observed=2026-10-31T12:01:01.285580+03:30 symbols=750 db_write=false json_write=false\n2026-10-31 12:01:11,779 INFO FAST_LIVE_PUBLISHED observed=2026-10-31T12:01:10.996157+03:30 symbols=750 db_write=false json_write=false\n2026-10-31 12:01:21,716 INFO FAST_LIVE_PUBLISHED observed=2026-10-31T12:01:21.288686+03:30 symbols=750 db_write=false json_write=false\n2026-10-31 12:01:31,782 INFO FAST_LIVE_PUBLISHED observed=2026-10-31T12:01:31.294795+03:30 symbols=750 db_write=false json_write=false\n2026-10-31 12:01:41,790 INFO FAST_LIVE_PUBLISHED observed=2026-10-31T12:01:41.377494+03:30 symbols=750 db_write=false json_write=false\n2026-10-31 12:01:51,975 INFO FAST_LIVE_PUBLISHED observed=2026-10-31T12:01:51.493137+03:30 symbols=750 db_write=false json_write=false\n2026-10-31 12:02:01,720 INFO FAST_LIVE_PUBLISHED observed=2026-10-31T12:02:01.280745+03:30 symbols=750 db_write=false json_write=false\n2026-10-31 12:02:11,496 INFO FAST_LIVE_PUBLISHED observed=2026-10-31T12:02:11.079629+03:30 symbols=750 db_write=false json_write=false\n2026-10-31 12:02:21,677 INFO FAST_LIVE_PUBLISHED observed=2026-10-31T12:02:21.189728+03:30 symbols=750 db_write=false json_write=false\n2026-10-31 12:02:31,689 INFO FAST_LIVE_PUBLISHED observed=2026-10-31T12:02:31.190135+03:30 symbols=750 db_write=false json_write=false\n2026-10-31 12:02:41,583 INFO FAST_LIVE_PUBLISHED observed=2026-10-31T12:02:41.170467+03:30 symbols=750 db_write=false json_write=false\n2026-10-31 12:02:52,379 INFO FAST_LIVE_PUBLISHED observed=2026-10-31T12:02:51.883766+03:30 symbols=750 db_write=false json_write=false\n2026-10-31 12:03:01,979 INFO FAST_LIVE_PUBLISHED observed=2026-10-31T12:03:01.498946+03:30 symbols=750 db_write=false json_write=false\n2026-10-31 12:03:12,176 INFO FAST_LIVE_PUBLISHED observed=2026-10-31T12:03:11.694676+03:30 symbols=750 db_write=false json_write=false\n2026-10-31 12:03:21,488 INFO FAST_LIVE_PUBLISHED observed=2026-10-31T12:03:20.993668+03:30 symbols=750 db_write=false json_write=false\n",
+  "units": "Id=bourse-chart-collector.service\nActiveState=active\nUnitFileState=enabled\nMainPID=1832963\nNRestarts=0\n\nId=bourse-fast-live.service\nActiveState=active\nUnitFileState=enabled\nMainPID=1612269\nNRestarts=0\n\nId=bourse-live-fast.service\nActiveState=inactive\nUnitFileState=disabled\nMainPID=0\nNRestarts=0\n",
+  "assertions": {
+    "at_least_five_minutes": false,
+    "consecutive_minutes": true,
+    "committed_present_all_stock_market_group": true,
+    "no_fast_cadence": true,
+    "outbox_empty": false
+  }
+}
