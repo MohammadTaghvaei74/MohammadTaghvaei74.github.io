@@ -6,10 +6,10 @@
   const panel = document.createElement('main');
   panel.id = 'history-tab-panel';
   panel.hidden = true;
-  panel.setAttribute('aria-label', 'تاریخچه میانه بازار و لیدرها');
+  panel.setAttribute('aria-label', 'تاریخچه امتیاز کل بازار');
   const frame = document.createElement('iframe');
   frame.id = 'median-history-frame';
-  frame.title = 'کندل و خط ۱۰ دقیقه‌ای میانه بازار و لیدرها';
+  frame.title = 'کندل تاریخچه امتیاز کل بازار';
   frame.setAttribute('scrolling', 'no');
   panel.append(frame);
   overview.after(panel);

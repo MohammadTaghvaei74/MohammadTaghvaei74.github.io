@@ -1,1 +1,17 @@
-body{background:#f3f6fb;color:#172c45;margin:0}#median-history{max-width:1280px;margin:auto;padding:24px;font-family:Vazirmatn,Tahoma,sans-serif}#median-history h1{font-size:25px}#median-history h2{font-size:20px}#median-history p{line-height:1.9}#median-history section{background:white;border:1px solid #d9e2ee;border-radius:18px;padding:20px;margin:20px 0}#median-history .history-controls{display:flex;gap:16px;flex-wrap:wrap}#median-history label{display:grid;gap:6px;min-width:180px;font-weight:bold}#median-history select{padding:12px;color:#172c45;background:white;border:1px solid #9aadc4;border-radius:9px;font:inherit}#median-history select:focus-visible{outline:3px solid #2379db}#median-history .legend{display:flex;flex-wrap:wrap;gap:18px;margin:18px 0;font-size:14px}#median-history .chart-shell{overflow-x:auto;direction:ltr}#median-history svg{display:block;width:100%;min-width:680px;max-height:none;touch-action:auto}#median-history .axis{font-family:Tahoma,sans-serif;font-size:15px;fill:#40546b;direction:ltr}#median-history .small{font-size:12px}#median-history .cross-label{font-family:Tahoma,sans-serif;font-size:14px;fill:#8a4d0b;stroke:white;stroke-width:4px;paint-order:stroke;direction:ltr}#median-history .history-tip{display:block;min-height:56px;padding:12px;background:#edf3fb;border-radius:8px;line-height:1.8;font-size:14px}#median-history #coverage p{padding:12px;border-bottom:1px solid #e3e8ef}#median-history details{padding:12px;background:#edf3fb;border-radius:8px}#median-history #status{background:#e2edfb;padding:14px;border-radius:10px}@media(max-width:600px){#median-history{padding:12px}#median-history h1{font-size:21px}#median-history section{padding:10px}#median-history label{min-width:0;flex:1 1 100%}#median-history .history-controls{gap:12px}#median-history .legend{font-size:13px}#median-history .chart-shell:after{content:'برای دیدن ادامه نمودار، افقی پیمایش کنید';display:block;direction:rtl;font-size:12px;color:#50647c;padding:8px}}
+/* History-only layout tokens; typography and colors inherit the dashboard shell. */
+#median-history{max-width:1280px;margin:0 auto;padding:24px;color:var(--ink,#172c45);font-family:inherit}
+#median-history .market-header{display:block;background:transparent;border:0;padding:0}
+#median-history h1{font-size:25px;margin:0 0 8px}
+#median-history h2{font-size:20px}
+#median-history p{line-height:1.9}
+#median-history section{background:var(--card,#fff);border:1px solid #d9e2ee;border-radius:18px;padding:20px;margin:20px 0}
+#median-history .history-controls{display:flex;gap:16px;flex-wrap:wrap}
+#median-history label{display:grid;gap:6px;min-width:180px;font-weight:bold}
+#median-history select{padding:12px;color:inherit;background:var(--card,#fff);border:1px solid #9aadc4;border-radius:9px;font:inherit}
+#median-history select:focus-visible{outline:3px solid #2379db}
+#median-history .chart-shell{overflow-x:auto;direction:ltr}
+#median-history svg{display:block;width:100%;min-width:680px;touch-action:auto}
+#median-history .axis{font-family:inherit;font-size:15px;fill:#40546b;direction:ltr}
+#median-history .history-tip{display:block;min-height:56px;padding:12px;background:#edf3fb;border-radius:8px;line-height:1.8;font-size:14px}
+#median-history #status{background:#e2edfb;padding:14px;border-radius:10px}
+@media(max-width:600px){#median-history{padding:12px}#median-history h1{font-size:21px}#median-history section{padding:10px}#median-history label{min-width:0;flex:1 1 100%}}

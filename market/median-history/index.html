@@ -1,1 +1,35 @@
-<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>تاریخچه میانه بازار و لیدرها | سورنا</title><link rel="stylesheet" href="../styles.css"><link rel="stylesheet" href="history.css"></head><body><main id="median-history"><header><a href="../">← بازگشت به داشبورد سورنا</a><h1>تاریخچه میانه امتیاز بازار و لیدرها</h1><p>نگهداری ۳۰ روز تقویمی · ثبت مشاهده‌های دقیقه‌ای · ساعت تهران ۰۹:۱۵ تا ۱۲:۳۰</p></header><p id="status" role="status">در حال دریافت تاریخچه…</p><div class="history-controls"><label>سری<select id="series"><option value="both">بازار و لیدرها</option><option value="market">کل بازار</option><option value="leaders">لیدرها</option></select></label><label>روز نمودار درون‌روزی<select id="day"><option value="all">همه روزهای موجود</option></select></label><label>بازه کندل<select id="frame"><option value="daily">روزانه (۳۰ روز تقویمی)</option><option value="15">۱۵ دقیقه</option><option value="30">۳۰ دقیقه</option><option value="60">۶۰ دقیقه</option></select></label></div><div class="legend"><span style="color:#172c45">● کل بازار</span><span style="color:#2379db">● لیدرها</span><span>رنگ سری ثابت · بدنه توپر: بسته کمتر از باز · توخالی: بسته بیشتر یا برابر باز</span></div><section><h2>کندل میانه امتیاز</h2><p>باز / بیشینه / کمینه / بسته از مشاهده‌های معتبر همان بازه؛ کندل روز ناقص با خط‌چین مشخص است، نه کندل ساختگی.</p><div class="chart-shell"><svg id="candles" viewBox="0 0 1000 390" role="img" aria-label="کندل میانه امتیاز بازار و لیدرها"></svg></div><output id="candle-tip" class="history-tip" aria-live="polite">برای مشاهده OHLC روی کندل حرکت کنید یا لمس کنید.</output></section><section><h2>خط ۱۰ دقیقه‌ای میانه امتیاز</h2><p>آخرین مشاهده هر سبد ۱۰ دقیقه‌ای از ۰۹:۱۵ (نه میانگین). سبد آخر ۱۲:۲۵ تا ۱۲:۳۰ است. با هر دقیقه مفقود، خط قطع می‌شود؛ هیچ درون‌یابی یا اتصال بین روزها انجام نمی‌شود.</p><div class="chart-shell"><svg id="line" viewBox="0 0 1000 390" role="img" aria-label="خط ده دقیقه ای بازار و لیدرها"></svg></div><output id="line-tip" class="history-tip" aria-live="polite">برای مشاهده مقدار و زمان واقعی روی نقطه حرکت کنید یا لمس کنید.</output></section><section><h2>پوشش واقعی و فاصله‌های فاقد داده</h2><p>میانه امتیاز سهام واجد شرایط و معامله‌شده؛ لیدرها زیرمجموعه همان جامعه در زمان مشاهده‌اند، نه پنج سهم برتر امروز. واحد «امتیاز» است، نه قیمت یا درصد بازده.</p><p>«ناقص» یعنی یک یا چند دقیقه از جلسه کامل ثبت نشده؛ روز جاری نیز تا پایان جلسه ناقص است. روز فاقد مشاهده ممکن است تعطیل یا فاقد ثبت باشد؛ کندلی برای آن ساخته نمی‌شود.</p><div id="coverage"></div><details><summary>روزهای بدون مشاهده در پنجره ۳۰ روزه</summary><p id="missing-days"></p></details><p id="provenance"></p></section></main><script src="history.js"></script></body></html>
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>تاریخچه امتیاز کل بازار | سورنا</title>
+  <link rel="stylesheet" href="../styles.css">
+  <link rel="stylesheet" href="history.css">
+</head>
+<body>
+<main id="median-history" class="shell">
+  <header class="market-header">
+    <h1>تاریخچه امتیاز کل بازار</h1>
+    <p>نگهداری ۳۰ روز تقویمی · فقط مشاهده‌های واقعی و معتبر · ساعت تهران ۰۹:۰۰ تا پایان بازار</p>
+  </header>
+  <p id="status" role="status">در حال دریافت تاریخچه…</p>
+  <div class="history-controls">
+    <label>بازه کندل
+      <select id="frame" aria-label="بازه کندل">
+        <option value="1">۱ دقیقه</option>
+        <option value="5">۵ دقیقه</option>
+        <option value="30">۳۰ دقیقه</option>
+        <option value="daily">روزانه</option>
+      </select>
+    </label>
+  </div>
+  <section>
+    <h2>کندل امتیاز کل بازار</h2>
+    <p>OHLC فقط از مشاهده‌های دقیقه‌ای معتبر ساخته می‌شود. کندل‌های ناقص یا دارای فاصله، بدون پرکردن و بازسازی، حذف می‌شوند.</p>
+    <div class="chart-shell"><svg id="candles" viewBox="0 0 1000 390" role="img" aria-label="کندل امتیاز کل بازار"></svg></div>
+    <output id="candle-tip" class="history-tip" aria-live="polite">برای مشاهده OHLC روی کندل حرکت کنید یا لمس کنید.</output>
+  </section>
+</main>
+<script src="history.js?v=market-score-spec-1"></script>
+</body>
+</html>
