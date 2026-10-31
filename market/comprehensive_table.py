@@ -57,8 +57,8 @@ def load_score_samples(conn, latest_day: str, limit: int = HISTORY_DAYS) -> tupl
     args: list[str] = []
     for day in days:
         for start_time, end_time in windows:
-            ranges.append("(timestamp>=? AND timestamp<=?)")
-            args.extend((f"{day}T{start_time}", f"{day}T{end_time}"))
+            ranges.append("(trading_date=? AND valid=1 AND timestamp>=? AND timestamp<=?)")
+            args.extend((day, f"{day}T{start_time}", f"{day}T{end_time}"))
     query = f"""
         SELECT rowid, symbol, trading_date, score, timestamp
         FROM stock_snapshots
