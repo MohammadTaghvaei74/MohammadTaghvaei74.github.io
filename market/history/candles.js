@@ -20,6 +20,6 @@ function renderScoreCandles(symbol) {
   showCandleDetails(last);
 }
 window.renderScoreCandles=renderScoreCandles;
-fetch(`data/score-candles.json?ts=${Date.now()}`,{cache:"no-store"}).then(r=>{if(!r.ok) throw new Error(`HTTP ${r.status}`); return r.json();}).then(d=>{scoreCandles=d; renderScoreCandles(document.querySelector("#symbolInput").value.trim());}).catch(()=>{const e=document.querySelector("#candleStatus");if(e)e.textContent="دریافت کندل‌ها انجام نشد.";});
+fetch(`data/score-candles.json?ts=${Date.now()}`,{cache:"no-store"}).then(r=>{if(!r.ok) throw new Error(`HTTP ${r.status}`); return r.json();}).then(d=>{scoreCandles=d; renderScoreCandles(document.querySelector("#symbolInput").value.trim()); window.ObservationSafety.accept(d);}).catch(()=>{const e=document.querySelector("#candleStatus");if(e)e.textContent="دریافت کندل‌ها انجام نشد.";});
 window.addEventListener("score-archive-ready", e=>renderScoreCandles(e.detail));
 // history.js calls renderScoreCandles after the archive selection is rendered.

@@ -67,9 +67,8 @@
   }
 
   function freshnessLabel(data) {
-    const age = sourceAge(core.sourceTimestamp(data));
-    if (age === null) return "زمان منبع نامعتبر";
-    return age <= 24 * 60 * 60 * 1000 ? "snapshot به‌روز" : "snapshot قدیمی";
+    const status = window.ObservationSafety.state(core.sourceTimestamp(data));
+    return status === 'fresh' ? 'مشاهده منبع در ۲ دقیقه اخیر' : status === 'stale' ? 'داده قدیمی؛ تحلیل لحظه‌ای ناموجود' : 'زمان منبع نامعلوم';
   }
 
   function setStatus(message, kind = "normal") {
@@ -116,7 +115,7 @@
       // A positive market-vs-leaders gap means stronger هم‌وزن, so move left.
       marker.style.left = allocation.gap === null ? "50%" : `${Math.max(5, Math.min(95, 50 - allocation.gap * 12))}%`;
     }
-    setStatus(freshnessLabel(data), sourceAge(core.sourceTimestamp(data)) > 24 * 60 * 60 * 1000 ? "stale" : "normal");
+    setStatus(freshnessLabel(data), window.ObservationSafety.state(core.sourceTimestamp(data)) !== "fresh" ? "stale" : "normal");
   }
 
   function pathFor(values, x, y) {
@@ -533,7 +532,7 @@
       return `<tr><td class="industry-name-cell"><a href="industries/?industry=${encodeURIComponent(industry)}" aria-label="مشاهده سهام صنعت ${escapeHtml(industry)}">${escapeHtml(industry)}</a></td><td data-sort-value="${rank}"><bdi dir="ltr" title="رتبه ${escapeHtml(integer(rank))} از ${escapeHtml(integer(totalIndustries))}"><strong>${escapeHtml(integer(rankPercent))}</strong> <span class="percent-unit">٪</span></bdi></td><td>${escapeHtml(integer(row.count))}</td><td><span class="industry-median ${positive ? "" : "negative"}">${escapeHtml(signed(score))}</span></td><td data-sort-value="${numeric(row.turnover_toman) === null ? "" : row.turnover_toman}">${escapeHtml(formatValueBillion(row.turnover_toman))}</td><td data-sort-value="${numeric(row.avg_trade_value_15d_toman) === null ? "" : row.avg_trade_value_15d_toman}">${escapeHtml(formatValueBillion(row.avg_trade_value_15d_toman))}</td><td data-sort-value="${row.turnover_to_15d_ratio === null ? "" : row.turnover_to_15d_ratio}"><bdi dir="ltr">${row.turnover_to_15d_ratio === null ? "—" : escapeHtml(optionsNumber(row.turnover_to_15d_ratio, 2)) + "×"}</bdi></td><td data-sort-value="${numeric(row.avg_last_close_diff_pct) === null ? "" : row.avg_last_close_diff_pct}"><bdi dir="ltr" class="industry-signed-value">${percentMarkup(row.avg_last_close_diff_pct)}</bdi></td></tr>`;
     }).join("");
     const element = $("#industriesGrid");
-    if (element) element.innerHTML = markup || `<tr><td colspan="8" class="industry-empty">داده صنعت هنوز آماده نیست.</td></tr>`;
+    if (element) element.innerHTML = markup || `<tr><td colspan="8" class="industry-empty">هیچ صنعتی با فیلتر فعلی منطبق نیست؛ فیلترها را پاک کنید.</td></tr>`;
   }
 
   function bindIndustryColumnFilters() {
@@ -677,7 +676,7 @@ const LIVE_DATA_ORIGIN = "https://94-101-184-98.sslip.io/market/";
   async function fetchFundReportInBackground() {
     try {
       const funds = await fetchJson("data/funds.json", "default");
-      if (currentData) { currentData.fund_report = funds; renderFundReport(currentData); }
+      if (currentData) { currentData.fund_report = funds; renderFundReport(currentData); window.ObservationSafety.accept(funds); }
     } catch (error) {
       console.warn("Fund report snapshot unavailable", error);
       if (currentData) renderFundReport(currentData);
@@ -698,7 +697,7 @@ const LIVE_DATA_ORIGIN = "https://94-101-184-98.sslip.io/market/";
     try {
       const comprehensive = await fetchJson("data/comprehensive.json?cb=" + String(Date.now()), "no-store");
       if (currentData && typeof window.dispatchEvent === "function") {
-        const detail = {...currentData, comprehensive_stocks: Array.isArray(comprehensive.rows) ? comprehensive.rows : [], comprehensive_meta: comprehensive.meta || {}};
+        const detail = {...currentData, observationPayload: comprehensive, comprehensive_stocks: Array.isArray(comprehensive.rows) ? comprehensive.rows : [], comprehensive_meta: comprehensive.meta || {}};
         const event = typeof window.CustomEvent === "function" ? new window.CustomEvent("market:snapshot", {detail}) : null;
         if (event) window.dispatchEvent(event);
       }
@@ -714,6 +713,7 @@ const LIVE_DATA_ORIGIN = "https://94-101-184-98.sslip.io/market/";
       // options feed must never delay the first useful paint.
       const data = core.validateSnapshot(await fetchJson("data/market.json", "no-store"));
       render(data, emptyOptions());
+      window.ObservationSafety.accept(data);
       text("#sourceStatus", `منبع: ${currentData.source} · زمان منبع: ${core.formatDate(core.sourceTimestamp(currentData))}`);
       lastLoadAt = Date.now();
       // Keep the first useful paint isolated from large secondary feeds.

@@ -158,7 +158,7 @@
     $('#dailyXlsx').onclick = () => { if (!window.XLSX) return; const sheet = XLSX.utils.json_to_sheet(daily.map((r) => ({ 'تاریخ':r.day,'نماد':r.symbol,'تعداد نمونه':r.count,'میانگین امتیاز':r.mean,'میانه امتیاز':r.median,'کمینه':r.min,'بیشینه':r.max,'آخرین امتیاز':r.last,'کیفیت':r.quality }))); const book = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(book, sheet, 'Score History'); XLSX.writeFile(book, symbol + '-score-history.xlsx'); };
     const info = manifest[symbol];
     if (!info) { renderScorePanel({ candles: {} }); return; }
-    load('data/' + info.file).then((payload) => { renderScorePanel(payload); }).catch(() => { renderScorePanel({ candles: {} }); });
+    load('data/' + info.file).then((payload) => { renderScorePanel(payload); window.ObservationSafety.accept(payload); }).catch(() => { renderScorePanel({ candles: {} }); });
   }
 
   function refresh() {
@@ -168,7 +168,7 @@
       (archive.rows || []).forEach((row) => { if(!bySymbol.has(row.symbol)) bySymbol.set(row.symbol,{symbol:row.symbol,current:null,history:[]}); bySymbol.get(row.symbol).history.push(row); });
       items=Array.from(bySymbol.values());
       $('#archiveDays').textContent=C.integer(archive.valid_day_count); $('#archiveRows').textContent=C.integer(archive.row_count); $('#archiveLastDay').textContent=faDate(archive.generated_at);
-      const wanted=new URLSearchParams(location.search).get('symbol'); select(wanted || (items[0] ? items[0].symbol : null)); $('#availability').textContent='داده سهم آماده است';
+      const wanted=new URLSearchParams(location.search).get('symbol'); select(wanted || (items[0] ? items[0].symbol : null)); $('#availability').textContent='داده سهم آماده است'; [m,h,man].forEach(window.ObservationSafety.accept);
     }).catch(() => { $('#availability').textContent='دریافت داده ناموفق بود'; $('#list').innerHTML='<p class="empty">داده سهم در دسترس نیست.</p>'; });
   }
   $('#q').oninput=renderList; $('#sort').onchange=renderList; $('#refresh').onclick=refresh; const archiveDownload=$('#downloadAllArchive'); if(archiveDownload) archiveDownload.onclick=()=>{ location.href='../history/data/market-score-history.xlsx'; }; window.addEventListener('popstate',()=>select(new URLSearchParams(location.search).get('symbol'))); refresh();

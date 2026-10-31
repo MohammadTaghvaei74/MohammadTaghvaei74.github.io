@@ -46,7 +46,7 @@ function formatQueueBillion(value) {
   const parsed = number(value);
   return parsed === null || parsed <= 0 ? "—" : formatBillion(parsed, "", 0);
 }
-function sourceTimestamp(data) { return data && data.market && data.market.timestamp || data && data.generated_at || null; }
+function sourceTimestamp(data) { return data && data.market && data.market.timestamp || null; }
 function formatDate(value, includeSeconds = false) {
   if (!value) return "—";
   const date = new Date(value);

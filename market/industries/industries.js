@@ -443,7 +443,7 @@ if (typeof window !== "undefined") {
         if (!response.ok) throw new Error("http");
         return response.json();
       }).then(function (data) {
-        state.last = data; state.error = null; state.groups = E.buildIndustries(data); renderIndustryChoiceFilter(); applyVisible(); updateStatus(data, null, false);
+        state.last = data; state.error = null; state.groups = E.buildIndustries(data); renderIndustryChoiceFilter(); applyVisible(); updateStatus(data, null, false); window.ObservationSafety.accept(data);
       }).catch(function (error) {
         state.error = error; updateStatus(state.last, error, false);
         if (!state.last) { state.groups = []; state.visible = []; state.selected = null; render(); }

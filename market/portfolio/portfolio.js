@@ -15,6 +15,16 @@
   let specialScores = new Map();
   let rowId = 0;
   let calculateTimer = 0;
+  let lastResult = null;
+  window.enforcePortfolioObservation = function () {
+    if (!lastResult) return;
+    const safe=window.ObservationSafety.portfolioSafe(lastResult.holdings);
+    if (!safe) {
+      ['#totalScore','#investedScore','#scoreGap'].forEach(s=>{const el=$(s);if(el)el.textContent='—';});
+      $('#resultStatus').textContent='نتیجه امروز ناموجود: ورودی قدیمی یا زمان نامعلوم';
+      $('#comparisonText').textContent='مقایسه جاری مسدود است؛ تاریخ هر ورودی را در جزئیات بررسی کنید.';
+    }
+  };
 
   const escapeHtml = (value) => String(value === null || value === undefined ? "—" : value).replace(/[&<>"']/g, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[character]));
   const money = (value) => { const parsed = portfolio.num(value); return parsed === null ? "—" : core.faDigits(parsed.toLocaleString("fa-IR", {maximumFractionDigits: 2, minimumFractionDigits: 0})); };
@@ -251,9 +261,9 @@
     element.innerHTML = result.holdings.map((item) => {
       const row = item.row || {};
       const rank = rankMarkup(item.rank);
-      const sourceDate = row.scoreDate || row.historyTimestamp || "";
+      const sourceDate = row.timestamp || row.source_at || row.historyTimestamp || "زمان منبع نامعلوم";
       const sourceLabel = sourceDate ? ` · ${sourceDate}` : "";
-      const status = item.status === "ready" ? "معتبر" : item.status === "untraded_zero" ? "بدون معامله · امتیاز ۰" : item.status === "missing_score" ? "امتیاز ناموجود" : item.status === "history_current_score" ? `امتیاز snapshot${sourceLabel}` : item.status === "historical_score" ? `آخرین امتیاز معتبر${sourceLabel}` : item.status === "snapshot_missing" ? "در snapshot امروز نیست" : "در فهرست داده نیست";
+      const status = item.status === "ready" ? `مشاهده منبع${sourceLabel}` : item.status === "untraded_zero" ? "بدون معامله · امتیاز ۰" : item.status === "missing_score" ? "امتیاز ناموجود" : item.status === "history_current_score" ? `امتیاز snapshot${sourceLabel}` : item.status === "historical_score" ? `آخرین امتیاز معتبر${sourceLabel}` : item.status === "snapshot_missing" ? "در snapshot امروز نیست" : "در فهرست داده نیست";
       const contribution = item.contribution === null ? "—" : score(item.contribution);
       const industry = row.industry || (item.status === "snapshot_missing" ? "داده جاری موجود نیست" : "—");
       return `<tr><td><input class="table-symbol-edit" list="portfolioSymbols" data-row-id="${escapeHtml(item.rowId || "")}" value="${escapeHtml(item.symbol || "")}" aria-label="ویرایش نماد"></td><td>${escapeHtml(industry)}</td><td><div class="table-value-editor"><input class="table-value-edit" data-row-id="${escapeHtml(item.rowId || "")}" type="number" min="0" step="0.1" value="${escapeHtml(item.value)}" aria-label="ویرایش ارزش خرید"><small>میلیون</small></div></td><td dir="ltr">${percent(item.weight)}</td><td dir="ltr">${escapeHtml(score(item.score))}</td><td dir="ltr">${rank}</td><td dir="ltr">${escapeHtml(contribution)}</td><td><span class="row-status ${item.status}">${escapeHtml(status)}</span></td></tr>`;
@@ -267,7 +277,7 @@
     const fallbackRows = await loadFallbackScores(draft.holdings);
     const marketRows = (Array.isArray(snapshot.stocks) ? snapshot.stocks : []).concat(Array.isArray(snapshot.leveraged) ? snapshot.leveraged : []);
     const result = portfolio.calculatePortfolio({holdings: draft.holdings, cash: draft.cash || 0, marketMedian: snapshot.market && snapshot.market.median, stocks: marketRows, catalog, fallbackRows});
-    renderResult(result); renderRows(result); saveDraft();
+    lastResult=result; window.ObservationSafety.portfolioRows=result.holdings.filter(h=>h.value>0).map(h=>({timestamp:window.ObservationSafety.observation(h.row)||h.row?.historyTimestamp})); renderResult(result); renderRows(result); window.enforcePortfolioObservation(); saveDraft();
     if (result.totalScore !== null) toast("امتیاز پرتفو محاسبه شد");
   }
 
@@ -290,8 +300,9 @@
       catalog = buildCatalog(marketData, optional[0], optional[1], optional[2]);
       setupSymbols();
       $("#marketDate").textContent = core.formatDate(core.sourceTimestamp(snapshot));
-      setStatus(`snapshot به‌روز · ${core.formatDate(core.sourceTimestamp(snapshot))} · ${core.faDigits(catalog.length)} نماد قابل جست‌وجو`);
+      setStatus(`snapshot منبع · ${core.formatDate(core.sourceTimestamp(snapshot))} · ${core.faDigits(catalog.length)} نماد قابل جست‌وجو`);
       $("#calculatePortfolio").disabled = false;
+      [marketData,...optional].forEach(window.ObservationSafety.accept);
     } catch (error) {
       setStatus("دریافت snapshot ناموفق", "stale");
       toast("دریافت داده بازار انجام نشد");
