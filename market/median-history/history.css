@@ -9,9 +9,14 @@
 #median-history label{display:grid;gap:6px;min-width:180px;font-weight:bold}
 #median-history select{padding:12px;color:inherit;background:var(--card,#fff);border:1px solid #9aadc4;border-radius:9px;font:inherit}
 #median-history select:focus-visible{outline:3px solid #2379db}
-#median-history .chart-shell{overflow-x:auto;direction:ltr}
-#median-history svg{display:block;width:100%;min-width:680px;touch-action:auto}
+#median-history .chart-shell{position:relative;overflow-x:auto;overflow-y:visible;direction:ltr}
+#median-history svg{display:block;width:100%;min-width:680px;touch-action:auto;cursor:crosshair}
 #median-history .axis{font-family:inherit;font-size:15px;fill:#40546b;direction:ltr}
+#median-history .candle-point{pointer-events:none}
+#median-history .chart-tooltip{position:absolute;z-index:3;min-width:190px;max-width:270px;padding:10px 12px;border:1px solid #c9d6e4;border-radius:10px;background:#172c45;color:#fff;box-shadow:0 8px 22px rgb(23 44 69 / 22%);font-size:13px;line-height:1.9;text-align:right;direction:rtl;pointer-events:none}
+#median-history .chart-tooltip[hidden]{display:none}
+#median-history .chart-tooltip strong,#median-history .chart-tooltip span{display:block}
+#median-history .chart-tooltip .selected-value{color:#ffd08a;font-weight:800}
 #median-history .history-tip{display:block;min-height:56px;padding:12px;background:#edf3fb;border-radius:8px;line-height:1.8;font-size:14px}
 #median-history #status{background:#e2edfb;padding:14px;border-radius:10px}
 @media(max-width:600px){#median-history{padding:12px}#median-history h1{font-size:21px}#median-history section{padding:10px}#median-history label{min-width:0;flex:1 1 100%}}
