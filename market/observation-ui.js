@@ -46,12 +46,8 @@
    if (within('#industries,.industry-summary-section,.detail-section,.map-section')) return {...base,r:range(m.stocks),name:'سهام مبنای صنعت',note:'میانگین ۱۵روزه تاریخی است؛ پایان بازه مستقل در منبع باید بررسی شود.'};
    if (within('.metric-group')) { const behavior=element.textContent.includes('رفتار معامله');return {...base,r:behavior?range(current?[{timestamp:current.client_type_date}]:[]):range(current?[current]:[]),name:behavior?'حقیقی/حقوقی سهم':'نمونه سهم',note:behavior?'تاریخ داده معامله‌گران، نه زمان دریافت فایل':'میانگین‌های چندروزه تاریخی؛ زمان مستقل آن‌ها اعلام نشده'}; }
    if (within('#scoreChart')) {
-     const info=(feed('/symbols/data/history-manifest.json')||{}).symbols?.[symbol];
-     const payload=info?feed('/symbols/data/'+info.file):null;
-     const frame=document.querySelector('[data-score-timeframe].active')?.dataset.scoreTimeframe || '15m';
-     const day=document.querySelector('#scoreDay')?.value;
-     const points=rows(payload?.candles?.[frame]).filter(r=>!day||r.day===day);
-     return {...base,r:F.range(points,r=>r.last_timestamp||r.day),archive:true,name:'آرشیو نمودار سهم',note:'زمان واقعی آخرین نمونه هر کندل؛ اگر ساعت منبع موجود نباشد فقط روز داده نمایش داده می‌شود.'};
+     const points=element.closest('#scoreChart')?.observedScorePoints || [];
+     return {...base,r:F.range(points,r=>r.last_timestamp||r.day),empty:!points.length,archive:true,name:'آرشیو نمودار سهم',note:'فقط نمونه‌های واقعاً رسم‌شده در بازه انتخاب‌شده؛ زمان واقعی آخرین نمونه هر کندل، بدون ساخت ساعت برای روزهای بدون ساعت.'};
    }
    if (within('#scoreCandleChart')) return {...base,r:F.range(rows((feed('/history/data/score-candles.json')||{}).rows).filter(r=>r.symbol===symbol),r=>r.last_timestamp||r.day),archive:true,name:'آرشیو کندل همین سهم'};
    if (within('.archive-strip')) return {...base,r:range(rows((feed('/history/data/history.json')||{}).rows),true),archive:true,name:'آرشیو روزانه'};
@@ -80,16 +76,16 @@
      if (!badge) { badge=document.createElement('small');badge.className='observation-clock';host.prepend(badge); }
      badge.dataset.status=s;
      const label=d.archive?'آرشیو — ':s==='fresh'?'مشاهده منبع — ':s==='stale'?'⚠ داده قدیمی؛ تحلیل امروز ناموجود — ':'⚠ زمان منبع نامعلوم؛ تحلیل امروز ناموجود — ';
-     badge.textContent=label+d.name+': '+format(d.r.first)+(d.r.last&&d.r.last!==d.r.first?' تا '+format(d.r.last):'')+(d.r.unknown&&d.r.first?'؛ بخشی نامعلوم':'')+' · تهران';
+     badge.textContent=d.empty?'مشاهده‌ای در بازه انتخاب‌شده موجود نیست':label+d.name+': '+format(d.r.first)+(d.r.last&&d.r.last!==d.r.first?' تا '+format(d.r.last):'')+(d.r.unknown&&d.r.first?'؛ بخشی نامعلوم':'')+' · تهران';
      badge.title=(d.note?d.note+' · ':'')+'زمان مشاهده داده، نه انتشار فایل یا بارگذاری صفحه. اعتبار تحلیل لحظه‌ای حداکثر ۲ دقیقه و فقط روز جاری تهران است.';
    });
    const m=feed('/data/market.json')||{}, mr=range(m.stocks), marketSafe=F.rangeState(mr)==='fresh';
    document.querySelectorAll('[data-industry-preset],[data-comprehensive-preset]').forEach(button=>{
      const comprehensive=button.hasAttribute('data-comprehensive-preset');
      const r=comprehensive?range((feed('/data/comprehensive.json')||{}).rows):mr;
-     const safe=F.rangeState(r)==='fresh';
+     const safe=comprehensive?!!F.comprehensivePresetSafe?.(button.dataset.comprehensivePreset):F.rangeState(r)==='fresh';
      button.disabled=!safe;button.setAttribute('aria-disabled',String(!safe));
-     button.title=safe?'داده مشاهده‌شده در ۲ دقیقه اخیر':'ناموجود: داده قدیمی یا زمان منبع نامعلوم؛ این پریست برای امروز قابل استفاده نیست';
+     button.title=safe?'مشاهدات جاری و پوشش تاریخی ورودی‌های پریست تأیید شده':'ناموجود: مشاهده معتبر و جاری همه ورودی‌ها یا پوشش تاریخی تأیید نشده؛ زمان تابلو به‌تنهایی کافی نیست';
      if (!safe) button.setAttribute('aria-pressed','false');
    });
    // A preset already selected before expiry must not leave a recommendation visible.

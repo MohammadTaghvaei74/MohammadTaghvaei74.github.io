@@ -30,7 +30,9 @@
   const group = (title, fields) => '<section class="metric-group"><h3>' + esc(title) + '</h3><div class="fields">' + fields.map((f) => '<div class="field"><span>' + esc(f[0]) + '</span><b><bdi>' + esc(f[1] === null || f[1] === undefined ? '—' : f[1]) + '</bdi></b></div>').join('') + '</div></section>';
 
 
+  let scoreRenderedPoints = [];
   function scoreCandles(candlesByFrame, timeframe, day, mode) {
+    scoreRenderedPoints = [];
     const source = Array.isArray(candlesByFrame && candlesByFrame[timeframe]) ? candlesByFrame[timeframe] : [];
     const days = Array.from(new Set(source.map((row) => row && row.day).filter(Boolean))).sort();
     const currentDay = tehranDay();
@@ -80,6 +82,7 @@
       if (!row) { flushSegment(); return; }
       const o = num(row.open), h = num(row.high), l = num(row.low), c = num(row.close);
       if ([o, h, l, c].some((value) => value === null)) { flushSegment(); return; }
+      scoreRenderedPoints.push(row);
       const cx = xFor(row, index), bodyTop = y(Math.max(o, c)), bodyBottom = y(Math.min(o, c)), rising = c >= o;
       const label = timeframe === '1d' ? faDate(row.day) : faTime(String(row.time).slice(11, 16));
       const range = candleRange(row, timeframe);
@@ -122,6 +125,7 @@
     const available = Array.isArray(candlesByFrame[scoreView.timeframe]) && candlesByFrame[scoreView.timeframe].length;
     if (!available && scoreView.timeframe !== '1d' && Array.isArray(candlesByFrame['1d']) && candlesByFrame['1d'].length) scoreView = { timeframe: '1d', day: null, mode: scoreView.mode };
     $('#scoreChart').innerHTML = scoreCandles(candlesByFrame, scoreView.timeframe, scoreView.day, scoreView.mode);
+    $('#scoreChart').observedScorePoints = scoreRenderedPoints;
     $('#scoreChart').querySelectorAll('[data-score-timeframe]').forEach((button) => { button.onclick = () => { scoreView = { timeframe: button.dataset.scoreTimeframe, day: scoreView.day, mode: button.dataset.scoreTimeframe === '1m' ? 'line' : scoreView.mode }; renderScorePanel(payload); }; });
     $('#scoreChart').querySelectorAll('[data-score-mode]').forEach((button) => { button.onclick = () => { scoreView = { timeframe: scoreView.timeframe, day: scoreView.day, mode: button.dataset.scoreMode }; renderScorePanel(payload); }; });
     const daySelect = $('#scoreDay'); if (daySelect) daySelect.onchange = () => { scoreView.day = daySelect.value; renderScorePanel(payload); };

@@ -114,10 +114,18 @@
     return sourceRows.map((row) => {
       const fallback = fallbackBySymbol.get(String(row.symbol || "")) || {};
       const merged = {...fallback, ...row};
+      // Proof belongs to this exact metric bundle, not another merged snapshot.
+      for (const key of ['client_type_date','client_type_status','client_type_observed_at','avg_trade_value_provenance']) merged[key] = row[key];
+      if (row.legal_buy_pct == null || row.legal_sell_pct == null) merged.client_type_observed_at = null;
+      if (row.avg_trade_value_toman == null) merged.avg_trade_value_provenance = null;
       ["buy_per_capita_toman", "buyer_power", "legal_buy_pct", "legal_sell_pct"].forEach((key) => {
-        if (merged[key] == null && fallback[key] != null) merged[key] = fallback[key];
+        if (merged[key] == null && fallback[key] != null) {
+          merged[key] = fallback[key];
+          // A carried client metric cannot borrow another source's observation.
+          if (key === "legal_buy_pct" || key === "legal_sell_pct") merged.client_type_observed_at = null;
+        }
       });
-      if (merged.avg_trade_value_toman == null) merged.avg_trade_value_toman = merged.avg15_trade_value_toman;
+      if (merged.avg_trade_value_toman == null) { merged.avg_trade_value_toman = merged.avg15_trade_value_toman; merged.avg_trade_value_provenance = null; }
       if (merged.queue_value_toman == null) {
         const buy = num(merged.buy_queue_value_toman), sell = num(merged.sell_queue_value_toman);
         merged.queue_value_toman = buy != null && buy > 0 ? buy : sell != null && sell > 0 ? -sell : buy != null || sell != null ? 0 : null;
@@ -131,6 +139,7 @@
   }
 
   function render() {
+    window.ObservationSafety.comprehensivePresetSafe = name => !!presets[name] && window.ObservationSafety.comprehensiveSafe(rows, Object.keys(presets[name]));
     const display = displayedRows();
     lastRendered = display;
     body.innerHTML = display.map((row) => `<tr><td class="comprehensive-symbol"><a href="symbols/?symbol=${encodeURIComponent(row.symbol || "")}">${esc(row.symbol)}</a></td>${metricCell(row.industry, "industry", row.industry)}${metricCell(row.score, "score", row.score)}${metricCell(row.score_10d_total, "score", row.score_10d_total)}${metricCell(positionPercent(row.score_rank, row.score_rank_total), "position", positionPercent(row.score_rank, row.score_rank_total))}${metricCell(positionPercent(row.industry_score_rank, row.industry_score_rank_total), "position", positionPercent(row.industry_score_rank, row.industry_score_rank_total))}${metricCell(row.avg_trade_value_toman, "billion", row.avg_trade_value_toman)}${metricCell(row.last_close_diff_pct, "pct1", row.last_close_diff_pct)}${metricCell(row.queue_value_toman, "billion", row.queue_value_toman)}${metricCell(row.buy_per_capita_toman, "million0", row.buy_per_capita_toman)}${metricCell(row.buyer_power, "power", row.buyer_power)}${metricCell(row.legal_buy_pct, "pct0", row.legal_buy_pct)}${metricCell(row.legal_sell_pct, "pct0", row.legal_sell_pct)}</tr>`).join("") || `<tr><td colspan="13" class="comprehensive-empty">با این فیلتر داده‌ای پیدا نشد.</td></tr>`;
@@ -208,7 +217,7 @@
   }
   function applyPreset(name) {
     const preset = presets[name];
-    if (!preset) return;
+    if (!preset || !window.ObservationSafety.comprehensivePresetSafe?.(name)) return;
     clearFilterControls();
     Object.entries(preset).forEach(([key, conditions]) => conditions.forEach(([operator, value], index) => setPresetCondition(key, index, operator, value)));
     activePreset = name;
