@@ -26,6 +26,19 @@ with sync_playwright() as p:
     assert result['overflow'] <= 1, result
     assert result['headings'] == 0, result
     assert set(result['operators']) == {'', '=', '<', '>'}, result
+    result['numericRows'] = page.evaluate('''() => [...document.querySelectorAll('#industriesGrid tr')].map(tr => {
+      const cells = [...tr.cells];
+      return {industry: cells[0].innerText, today: Number(cells[4].dataset.sortValue),
+        mean: cells[5].dataset.sortValue, ratio: cells[6].dataset.sortValue,
+        rendered: [cells[5].innerText, cells[6].innerText]};
+    }).filter(r=>r.mean !== '')''')
+    for row in result['numericRows']:
+        assert abs(row['today'] / float(row['mean']) - float(row['ratio'])) < 1e-10
+    result['numericCount'] = len(result['numericRows'])
+    result['numericSample'] = result['numericRows'][:1]
+    del result['numericRows']
+    result['allOperators'] = page.locator('select.filter-operator option').evaluate_all('(options) => [...new Set(options.map(o=>o.value))]')
+    assert not set(result['allOperators']) - {'', '=', '<', '>'}
     page.click('[data-industry-preset="money-where"]')
     assert page.locator('[data-industry-filter="rank"][data-slot="0"]').input_value() == '25'
     result['presetRank'] = 25
