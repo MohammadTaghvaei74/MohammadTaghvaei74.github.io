@@ -1,3 +1,8 @@
+/* Tooltip lives outside the horizontally scrolling chart. */
+#daily-turnover-tooltip{position:fixed;z-index:10000;pointer-events:none;white-space:pre-line;max-width:calc(100vw - 16px);box-sizing:border-box;padding:10px 14px;border:1px solid #7391ad;border-radius:10px;background:#102333;color:#fff;font:13px/1.9 Vazirmatn,Tahoma,sans-serif;box-shadow:0 5px 20px #0004;text-align:right}
+#daily-turnover-tooltip[hidden]{display:none}
+#turnoverChart .ma5-path,#turnoverChart .ma20-path{pointer-events:none}
+#turnoverChart .turnover-bar:focus-visible{stroke:#102333;stroke-width:3}
 /* Desktop: daily turnover is the left half, distribution is the right half. */
 .daily-overview-pair{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px;direction:ltr;align-items:start}
 .daily-overview-pair>section{min-width:0;direction:rtl;margin-top:0}
