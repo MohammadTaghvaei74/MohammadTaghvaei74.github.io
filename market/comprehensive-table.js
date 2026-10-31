@@ -169,18 +169,18 @@
   const filterKeys = ["symbol", "industry", "score", "score_10d_total", "score_position_pct", "industry_score_position_pct", "avg_trade_value_toman", "last_close_diff_pct", "queue_value_toman", "buy_per_capita_toman", "buyer_power", "legal_buy_pct", "legal_sell_pct"];
   const filterText = new Set(["symbol", "industry"]);
   const filterRow = table.querySelector(".comprehensive-filter-row");
-  if (filterRow) filterRow.innerHTML = filterKeys.map((key) => filterText.has(key) ? `<th><input class="column-filter" data-filter-key="${key}" type="search" placeholder="${key === "industry" ? "صنعت" : "نماد"}" aria-label="فیلتر ${key}"></th>` : `<th><span class="filter-pair" dir="ltr"><select class="filter-operator" data-filter-key="${key}" aria-label="عملگر فیلتر"><option value="">شرط</option><option value=">=">≥</option><option value=">">&gt;</option><option value="<=">≤</option><option value="<">&lt;</option><option value="=">=</option></select><input class="column-filter" data-filter-key="${key}" inputmode="decimal" placeholder="عدد" aria-label="عدد فیلتر"></span></th>`).join("");
+  if (filterRow) filterRow.innerHTML = filterKeys.map((key) => filterText.has(key) ? `<th><span class="filter-pair"><input class="column-filter" data-filter-key="${key}" type="search" placeholder="${key === "industry" ? "صنعت" : "نماد"}" aria-label="فیلتر ${key}"></span></th>` : `<th><span class="filter-pair" dir="ltr"><select class="filter-operator" data-filter-key="${key}" aria-label="عملگر فیلتر"><option value="<">&lt;</option><option value="=">=</option><option value=">">&gt;</option><option value=">=">≥</option><option value="<=">≤</option></select><input class="column-filter" data-filter-key="${key}" inputmode="decimal" placeholder="عدد" aria-label="عدد فیلتر"></span></th>`).join("");
 
   function addConditionControl(key, host) {
     const pair = document.createElement("span"); pair.className = "filter-pair extra-filter-pair"; pair.dir = "ltr";
-    pair.innerHTML = `<select class="filter-operator" data-filter-key="${key}" aria-label="عملگر شرط دوم"><option value="">شرط</option><option value=">=">≥</option><option value=">">&gt;</option><option value="<=">≤</option><option value="<">&lt;</option><option value="=">=</option></select><input class="column-filter" data-filter-key="${key}" inputmode="decimal" placeholder="عدد" aria-label="عدد شرط دوم"><button type="button" class="remove-filter" aria-label="حذف شرط">×</button>`;
+    pair.innerHTML = `<select class="filter-operator" data-filter-key="${key}" aria-label="عملگر شرط دوم"><option value="<">&lt;</option><option value="=">=</option><option value=">">&gt;</option><option value=">=">≥</option><option value="<=">≤</option></select><input class="column-filter" data-filter-key="${key}" inputmode="decimal" placeholder="عدد" aria-label="عدد شرط دوم"><button type="button" class="remove-filter" aria-label="حذف شرط">×</button>`;
     host.appendChild(pair);
     pair.querySelector("input").addEventListener("input", syncFilters);
     pair.querySelector("select").addEventListener("change", syncFilters);
     pair.querySelector(".remove-filter").addEventListener("click", () => { pair.remove(); syncFilters(); });
   }
   function syncFilters(preservePreset = false) {
-    if (!preservePreset) activePreset = null;
+    if (preservePreset !== true) activePreset = null;
     table.querySelectorAll(".comprehensive-filter-row th").forEach((th) => { const key = th.dataset.filterKey; if (!key) return; filters[key] = {conditions: Array.from(th.querySelectorAll(".filter-pair")).map((pair) => { const select = pair.querySelector("select"); const input = pair.querySelector("input"); return {operator: select ? select.value : "", value: input ? input.value : ""}; })}; });
     render();
   }
@@ -191,9 +191,9 @@
   });
   function clearFilterControls() {
     table.querySelectorAll(".column-filter").forEach((input) => { input.value = ""; });
-    table.querySelectorAll(".filter-operator").forEach((select) => { select.value = ""; });
+    table.querySelectorAll(".filter-operator").forEach((select) => { select.value = "<"; });
     table.querySelectorAll(".extra-filter-pair").forEach((pair) => pair.remove());
-    Object.keys(filters).forEach((key) => { filters[key] = {conditions: [{operator: "", value: ""}]}; });
+    Object.keys(filters).forEach((key) => { filters[key] = {conditions: [{operator: "<", value: ""}]}; });
   }
   function setPresetCondition(key, index, operator, value) {
     const host = table.querySelector(`.comprehensive-filter-row th[data-filter-key="${key}"]`);
