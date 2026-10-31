@@ -196,6 +196,50 @@
     return result;
   }
 
+  function movingAverage(values, period) {
+    return values.map((value, index) => {
+      if (numeric(value) === null || index + 1 < period) return null;
+      const window = values.slice(index + 1 - period, index + 1).map(numeric);
+      return window.every((item) => item !== null) ? window.reduce((sum, item) => sum + item, 0) / period : null;
+    });
+  }
+
+  function renderTurnoverChart(data) {
+    const svg = $("#turnoverChart");
+    if (!svg) return;
+    const byDay = new Map();
+    (Array.isArray(data.daily) ? data.daily : []).forEach((row) => {
+      const value = numeric(row.final_turnover_toman);
+      if (/^\d{4}-\d{2}-\d{2}$/.test(row.trading_date) && value !== null && value >= 0) byDay.set(row.trading_date, row);
+    });
+    const days = [...byDay.values()].sort((a, b) => a.trading_date.localeCompare(b.trading_date));
+    const values = days.map((row) => numeric(row.final_turnover_toman) / 1e12);
+    const ma5 = movingAverage(values, 5), ma20 = movingAverage(values, 20);
+    const width = 1200, height = 440, pad = {top: 25, right: 25, bottom: 100, left: 75};
+    if (!values.length) {
+      svg.innerHTML = `<text class="chart-empty" x="600" y="200" text-anchor="middle">تاریخچه ارزش معاملات معتبر موجود نیست.</text>`;
+      text("#turnoverStatus", "داده معتبر کافی نیست؛ میانگین ۲۰ روزه در دسترس نیست.");
+      return;
+    }
+    const max = Math.max(...values, 1) * 1.12;
+    const slot = (width - pad.left - pad.right) / days.length;
+    const barWidth = slot * 0.68;
+    const x = (i) => pad.left + slot * (i + 0.5);
+    const y = (v) => pad.top + (max - v) * (height - pad.top - pad.bottom) / max;
+    const format = (v) => v.toLocaleString("fa-IR", {maximumFractionDigits: 2});
+    const persianDate = (day) => new Intl.DateTimeFormat("fa-IR-u-ca-persian", {year:"numeric", month:"2-digit", day:"2-digit", timeZone:"Asia/Tehran"}).format(new Date(`${day}T12:00:00+03:30`));
+    const path = (series) => series.map((v, i) => v === null ? "" : `${i && series[i-1] !== null ? "L" : "M"}${x(i).toFixed(2)},${y(v).toFixed(2)}`).filter(Boolean).join(" ");
+    const ticks = [0, 1, 2, 3, 4].map((i) => max * i / 4).map((v) => `<line class="chart-grid-line" x1="${pad.left}" x2="${width-pad.right}" y1="${y(v)}" y2="${y(v)}"/><text class="chart-label" x="${pad.left-12}" y="${y(v)+4}" text-anchor="end">${format(v)}</text>`).join("");
+    const bars = days.map((day, i) => {
+      const title = `${persianDate(day.trading_date)} | ارزش معاملات: ${format(values[i])} همت${ma5[i] === null ? "" : ` | میانگین ۵ روزه: ${format(ma5[i])} همت`}${ma20[i] === null ? "" : ` | میانگین ۲۰ روزه: ${format(ma20[i])} همت`}`;
+      return `<rect class="turnover-bar" data-date="${day.trading_date}" data-value-hmt="${values[i]}" x="${x(i)-barWidth/2}" y="${y(values[i])}" width="${barWidth}" height="${y(0)-y(values[i])}" fill="#2686c5" tabindex="0" aria-label="${escapeHtml(title)}"><title>${escapeHtml(title)}</title></rect>`;
+    }).join("");
+    const labels = days.map((day, i) => `<text class="chart-label turnover-date" x="${x(i)}" y="${height-pad.bottom+20}" transform="rotate(-50 ${x(i)} ${height-pad.bottom+20})" text-anchor="end" direction="ltr">${escapeHtml(persianDate(day.trading_date))}</text>`).join("");
+    const count5 = ma5.filter((v) => v !== null).length, count20 = ma20.filter((v) => v !== null).length;
+    svg.innerHTML = `<g data-ma5-count="${count5}" data-ma20-count="${count20}"><text class="chart-label" x="${pad.left}" y="16">همت</text>${ticks}${bars}${labels}<path class="ma5-path" fill="none" stroke="#ed8b23" stroke-width="2.5" d="${path(ma5)}"/><path class="ma20-path" fill="none" stroke="#b642c9" stroke-width="2.5" d="${path(ma20)}"/></g>`;
+    text("#turnoverStatus", `${core.faDigits(days.length)} روز کامل و تأییدشده${count20 ? "" : "؛ میانگین ۲۰ روزه: حداقل ۲۰ روز معتبر لازم است."}${count5 ? "" : "؛ میانگین ۵ روزه: حداقل ۵ روز معتبر لازم است."}`);
+  }
+
   function renderQueueCountChart(data) {
     const svg = $("#queueCountChart");
     if (!svg) return;
@@ -641,6 +685,7 @@
   function render(data, options) {
     currentData = data;
     renderMetrics(data);
+    renderTurnoverChart(data);
     renderQueueChart(data);
     renderQueueCountChart(data);
     renderPriceDistributionChart(data);

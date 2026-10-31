@@ -42,6 +42,13 @@
       </div>
 
       <main id="overview">
+        <section id="turnover-section" class="content-section" aria-labelledby="turnoverTitle">
+          <div class="section-heading"><div><h2 id="turnoverTitle">ارزش معاملات روزانه بازار</h2><p>سهام عادی · همت (هزار میلیارد تومان) · فقط روزهای نهایی‌شده</p></div><p id="turnoverStatus" role="status">در حال دریافت تاریخچه…</p></div>
+          <article class="panel turnover-panel">
+            <div class="chart-wrap"><svg id="turnoverChart" viewBox="0 0 1200 440" role="img" aria-label="ارزش معاملات روزانه به همت با میانگین ۵ و ۲۰ روز معاملاتی"></svg></div>
+            <div class="chart-legend"><span><i style="background:#2686c5;width:12px;height:12px;display:inline-block"></i> ارزش معاملات روزانه</span><span><i class="legend-line" style="background:#ed8b23"></i> میانگین ۵ روزه</span><span><i class="legend-line" style="background:#b642c9"></i> میانگین ۲۰ روزه</span></div>
+          </article>
+        </section>
 
         <section class="dashboard-grid top-charts" aria-label="روندهای درون‌روزی بازار">
           <article class="panel queue-chart-panel">
@@ -137,7 +144,7 @@
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
     <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
     <script src="core.js?v=observation-safety-1" defer></script>
-    <script src="app-fast-recovery-20261024-axis.js?v=observation-safety-1" defer></script>
+    <script src="app-fast-recovery-20261024-axis.js?v=daily-completed-bars-observation-safety-1" defer></script>
     <script src="ranking.js?v=queue-no-unit-3a82a231" defer></script>
     <script src="sortable-tables.js?v=three-state-2" defer></script>
     <script src="comprehensive-table.js?v=observation-safety-1" defer></script>
