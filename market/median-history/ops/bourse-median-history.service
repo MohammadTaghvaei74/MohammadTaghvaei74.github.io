@@ -1,0 +1,14 @@
+[Unit]
+Description=Persist and export bounded market median history
+After=bourse-chart-collector.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/python3 /root/bourse-alert/median_history.py
+User=root
+UMask=0022
+TimeoutStartSec=20
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/root/bourse-alert /srv/sorena/market/data

@@ -1,0 +1,10 @@
+const assert=require('node:assert/strict');const {candles,samples}=require('./history.js');
+const p=(time,m=1,l=2,day='2026-10-28')=>({minute:day+'T'+time+':00+03:30',market:m,leaders:l});
+let rows=[p('09:15',3),p('09:16',1),p('09:17',5),p('09:18',2)];let c=candles(rows,'market','daily');assert.equal(c.length,1);assert.deepEqual([c[0].o,c[0].h,c[0].l,c[0].c],[3,5,1,2]);assert.equal(c[0].partial,true);
+assert.equal(candles([p('09:15'),p('09:30')],'market','15').length,2);
+assert.equal(candles([p('09:15',null)],'market','daily').length,0);
+let full=Array.from({length:20},(_,i)=>p('09:'+String(15+i).padStart(2,'0'),i));let s=samples(full,'market');assert.deepEqual(s.map(x=>x.value),[9,19]);assert.equal(s[1].connected,true);
+full.splice(11,1);assert.equal(samples(full,'market')[1].connected,false);
+assert.equal(samples([p('09:15'),p('09:15',2,2,'2026-10-31')],'market')[1].connected,false);
+assert.equal(samples([p('09:15'),p('09:45')],'market')[1].connected,false);
+console.log('PASS: OHLC, partial, 15m buckets, nulls, last-observed 10m, minute gaps, day gaps');

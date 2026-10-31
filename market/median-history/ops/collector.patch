@@ -1,0 +1,40 @@
+--- minute_chart_collector.py
++++ minute_chart_collector.py
+@@ -218,2 +218,5 @@
+-    if not intraday or intraday[-1].get("timestamp") != point["timestamp"]:
+-        intraday.append(point)
++    # Keep one actual observation per minute, never a 240 raw-event ring.
++    # Duplicate collector processes historically evicted the opening hour.
++    by_minute = {item["timestamp"][:16]: item for item in intraday}
++    by_minute[point["timestamp"][:16]] = point
++    intraday = [by_minute[key] for key in sorted(by_minute)]
+@@ -285,0 +289,7 @@
++    # Isolated bounded history is persisted before archival DB work can block.
++    try:
++        from median_history import connect as history_connect, ingest as history_ingest
++        with history_connect("/root/bourse-alert/median_history.sqlite") as history_db:
++            history_ingest(history_db, [handoff["intraday"][-1]], observed, "collector-direct-v1")
++    except Exception:
++        logging.exception("MEDIAN_HISTORY_WRITE_FAILED; live handoff retained")
+@@ -347,10 +357,11 @@
+-if "--once" in sys.argv:
+-    collect_once()
+-else:
+-    while True:
+-        try:
+-            if main.is_market_open():
+-                collect_once()
+-        except Exception:
+-            logging.exception("Live minute collection failed; previous snapshot retained")
+-        time.sleep(main.seconds_until_next_minute(datetime.now(main.TEHRAN)))
++if __name__ == "__main__":
++    if "--once" in sys.argv:
++        collect_once()
++    else:
++        while True:
++            try:
++                if main.is_market_open():
++                    collect_once()
++            except Exception:
++                logging.exception("Live minute collection failed; previous snapshot retained")
++            time.sleep(main.seconds_until_next_minute(datetime.now(main.TEHRAN)))
