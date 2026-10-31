@@ -99,7 +99,7 @@
      const body=document.querySelector(sel);if(!body)return;
      const section=body.closest('section'), unavailable=section?.querySelector('[data-industry-preset]:disabled[aria-pressed="true"],[data-comprehensive-preset]:disabled[aria-pressed="true"]');
      body.dataset.observationStatus=unavailable?'stale':'fresh';
-     body.classList.toggle('observation-blocked',!!unavailable);
+     body.classList.remove('observation-blocked'); // stale recommendations are blocked at the preset control, never the current data table
      const download=section?.querySelector('#downloadComprehensiveXlsx');if(download){download.disabled=!!unavailable;download.title=unavailable?'دریافت تحلیل قدیمی یا نامعلوم مسدود است':'';}
    });
    document.querySelectorAll('.market-state').forEach(el=>{el.dataset.observationHealth=marketSafe?'fresh':'stale';});
