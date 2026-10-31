@@ -150,6 +150,10 @@ def carry_forward_enrichment(rows: list[dict], previous: dict, observed: datetim
 
 
 def build_handoff(rows: list[dict], observed: datetime) -> dict:
+    # Every row here is from this fetch, including excluded special instruments.
+    for row in rows:
+        row["timestamp"] = observed.isoformat()
+        row["trading_date"] = observed.date().isoformat()
     eligible = [
         row for row in rows
         if row.get("eligible_market_stock") and float(row.get("trade_volume", 0) or 0) > 0
@@ -178,6 +182,7 @@ def build_handoff(rows: list[dict], observed: datetime) -> dict:
         scores = [float(row.get("score", 0) or 0) for row in members]
         groups.append({
             "group_name": name,
+            "timestamp": observed.isoformat(),
             "count": len(scores),
             "average": statistics.mean(scores) if scores else 0,
             "median": statistics.median(scores) if scores else 0,
