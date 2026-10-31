@@ -73,6 +73,10 @@ def run():
                     baseline=json.loads(Path('/root/bourse-alert/live_market.json').read_text())
                     if (now-datetime.fromisoformat(baseline['collector_observed_at'])).total_seconds()>180:
                         raise ValueError('minute baseline stale; retaining last snapshot')
+                    public=json.loads(Path('/srv/sorena/market/data/market.json').read_text())
+                    public_rows={str(r.get('instrument')):r for r in public.get('stocks',[])}
+                    baseline['stocks']=[dict(public_rows.get(str(r.get('instrument')),{}),**r) for r in baseline.get('stocks',[])]
+                    baseline=dict(public,**baseline)
                     rows=main.parse_market_data(raw,depth)
                     payload=build_snapshot(rows,baseline,meta['received_at'],main.LEADERS,main.LEVERAGED_FUNDS)
                     payload.update(provider_source_at=meta['source_at'],provider_timestamp_kind=meta['source_timestamp_kind'],provider_digest=digest)
