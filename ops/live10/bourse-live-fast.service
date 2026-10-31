@@ -1,0 +1,25 @@
+[Unit]
+Description=Read-only ten-second market Redis producer
+After=network-online.target redis-server.service bourse-chart-collector.service
+Requires=redis-server.service
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/root/bourse-live10-release/ops/live10
+Environment=PYTHONUNBUFFERED=1
+Environment=PYTHONDONTWRITEBYTECODE=1
+ExecStart=/root/bourse-alert/venv/bin/python /root/bourse-live10-release/ops/live10/live_fast.py
+Restart=on-failure
+RestartSec=10
+MemoryMax=128M
+CPUQuota=20%
+Nice=10
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=read-only
+PrivateTmp=true
+ReadOnlyPaths=/root/bourse-alert /srv/sorena
+CapabilityBoundingSet=
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,11 @@
+const fs=require('fs'), vm=require('vm'),assert=require('assert');
+const source=fs.readFileSync(__dirname+'/app-fast-recovery-20261024-axis.js','utf8');
+const match=source.match(/function isNewerSnapshot\(incoming, current\) \{[\s\S]*?\n  \}/);
+assert(match,'missing monotonic snapshot guard');
+const context={}; vm.createContext(context);vm.runInContext(match[0],context);
+const row=t=>({market:{timestamp:t}});
+assert(!context.isNewerSnapshot(row('2026-10-31T11:00:00+03:30'),row('2026-10-31T11:00:10+03:30')));
+assert(!context.isNewerSnapshot(row('2026-10-31T11:00:10+03:30'),row('2026-10-31T11:00:10+03:30')));
+assert(context.isNewerSnapshot(row('2026-10-31T11:00:20+03:30'),row('2026-10-31T11:00:10+03:30')));
+assert(source.includes('new EventSource("/api/live/stream")'));
+console.log('monotonic SSE/fallback guard passed');
