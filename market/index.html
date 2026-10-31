@@ -16,11 +16,12 @@
     <link rel="stylesheet" href="ranking.css?v=compact-focus-3" />
     <link rel="stylesheet" href="comprehensive-table.css?v=feedback-layout-3" />
     <link rel="stylesheet" href="options.css" />
+    <link rel="stylesheet" href="daily-turnover.css?v=half-left-1" />
     <title>SORENA WATCH | داشبورد داده‌محور بازار</title>
 
 <link rel="stylesheet" href="observation-safety.css?v=2">
 <script src="observation-safety.js?v=1"></script>
-<script src="observation-ui.js?v=2"></script>
+<script src="observation-ui.js?v=daily-archive-3"></script>
 </head>
   <body>
     <div class="shell">
@@ -42,6 +43,7 @@
       </div>
 
       <main id="overview">
+        <div class="daily-overview-pair">
         <section id="turnover-section" class="content-section" aria-labelledby="turnoverTitle">
           <div class="section-heading"><div><h2 id="turnoverTitle">ارزش معاملات روزانه بازار</h2><p>سهام عادی · همت (هزار میلیارد تومان) · فقط روزهای نهایی‌شده</p></div><p id="turnoverStatus" role="status">در حال دریافت تاریخچه…</p></div>
           <article class="panel turnover-panel">
@@ -49,6 +51,13 @@
             <div class="chart-legend"><span><i style="background:#2686c5;width:12px;height:12px;display:inline-block"></i> ارزش معاملات روزانه</span><span><i class="legend-line" style="background:#ed8b23"></i> میانگین ۵ روزه</span><span><i class="legend-line" style="background:#b642c9"></i> میانگین ۲۰ روزه</span></div>
           </article>
         </section>
+        <section id="price-distribution" class="content-section price-distribution-section" aria-labelledby="priceDistributionTitle">
+          <div class="section-heading"><div><h2 id="priceDistributionTitle">توزیع سهام بر اساس تغییر آخرین معامله</h2></div></div>
+          <article class="panel price-distribution-panel">
+            <div class="chart-wrap"><svg id="priceDistributionChart" viewBox="0 0 1200 460" role="img" aria-label="تعداد سهام در بازه‌های یک درصدی تغییر آخرین معامله"></svg></div>
+          </article>
+        </section>
+        </div>
 
         <section class="dashboard-grid top-charts" aria-label="روندهای درون‌روزی بازار">
           <article class="panel queue-chart-panel">
@@ -71,12 +80,7 @@
           </article>
         </section>
 
-        <section id="price-distribution" class="content-section price-distribution-section" aria-labelledby="priceDistributionTitle">
-          <div class="section-heading"><div><h2 id="priceDistributionTitle">توزیع سهام بر اساس تغییر آخرین معامله</h2></div></div>
-          <article class="panel price-distribution-panel">
-            <div class="chart-wrap"><svg id="priceDistributionChart" viewBox="0 0 1200 460" role="img" aria-label="تعداد سهام در بازه‌های یک درصدی تغییر آخرین معامله"></svg></div>
-          </article>
-        </section>
+
 
         <section class="content-section fund-report-section" id="funds">
           <div class="section-heading"><div><h2>صندوق‌های سهامی</h2></div></div>

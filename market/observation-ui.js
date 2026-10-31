@@ -34,6 +34,7 @@
    const m=feed('/data/market.json')||{}, symbol=selectedSymbol(), current=rows(m.stocks).find(r=>r.symbol===symbol);
    const base={r:unknown(),name:'منبع این بخش',archive:false,note:''};
    const within=s=>element.matches(s)||!!element.closest(s);
+   if (within('#turnoverChart')) return {...base,r:range(m.daily,true),archive:true,name:'روزهای نهایی‌شده ارزش معاملات',note:'منبع: v2_days.complete=1؛ مقادیر تاریخی روزهای معاملاتی، نه داده لحظه‌ای امروز.'};
    if (within('#queueChart')) return {...base,r:range(m.queue_intraday),series:true,name:'نمونه‌های صف'};
    if (within('#marketChart')) return {...base,r:range(m.intraday),series:true,name:'نمونه‌های امتیاز'};
    if (within('#queueCountChart')) return {...base,r:range(m.queue_count_intraday),series:true,name:'نمونه‌های تعداد صف'};

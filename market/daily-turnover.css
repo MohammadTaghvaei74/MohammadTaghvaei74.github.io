@@ -1,0 +1,13 @@
+/* Desktop: daily turnover is the left half, distribution is the right half. */
+.daily-overview-pair{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px;direction:ltr;align-items:start}
+.daily-overview-pair>section{min-width:0;direction:rtl;margin-top:0}
+.daily-overview-pair .section-heading{flex-wrap:wrap;gap:8px}
+.daily-overview-pair .section-heading h2{font-size:20px}
+.daily-overview-pair .section-heading p{white-space:normal}
+#turnover-section .chart-wrap{overflow-x:auto;height:auto;min-height:0;padding:12px 6px}
+#turnoverChart{display:block;width:100%;height:auto;min-width:600px;max-width:none;aspect-ratio:1200/440}
+#turnoverChart .ma5-path{stroke:#ed8b23;stroke-width:3;fill:none;stroke-dasharray:none}
+#turnoverChart .ma20-path{stroke:#b642c9;stroke-width:3;fill:none;stroke-dasharray:none}
+#turnoverChart .turnover-date{font-size:17px;fill:var(--ink)}
+#turnoverChart .turnover-bar:hover,#turnoverChart .turnover-bar:focus{fill:#126ba5;outline:none}
+@media(max-width:760px){.daily-overview-pair{grid-template-columns:minmax(0,1fr)}#turnoverChart{min-width:720px}.daily-overview-pair .section-heading h2{font-size:18px}}

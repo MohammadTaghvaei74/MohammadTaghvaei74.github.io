@@ -22,3 +22,4 @@ for (const file of ['app.js','app-fast-recovery-20261024-axis.js']) {
  console.log(file, 'PASS bars, full-window MA, Persian calendar, tooltip, insufficient history');
 }
 assert.ok(fs.readFileSync('market/index.html','utf8').includes('id="turnover-section"'));
+assert.ok(fs.readFileSync('market/observation-ui.js','utf8').includes("if (within('#turnoverChart'))"), 'daily archive needs its own source range');
