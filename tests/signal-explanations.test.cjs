@@ -10,5 +10,6 @@ test('explicit explanation and honest legacy fallback',()=>{
 test('four wrapping columns, today filter and minute refresh survive',()=>{
  const html=fs.readFileSync('market/signals/index.html','utf8');const js=fs.readFileSync('market/signals/signals.js','utf8');const css=fs.readFileSync('market/signals/signals.css','utf8');
  assert.match(html,/>توضیحات<\/th>/);assert.match(js,/colspan="4"/);assert.match(js,/tdExplanation.textContent/);
+ assert.match(js,/typeof window.ObservationSafety.accept/);
  assert.match(js,/ObservationSafety.todayEvents/);assert.match(js,/60000/);assert.match(css,/explanation-cell/);
 });

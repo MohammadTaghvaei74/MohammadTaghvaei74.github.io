@@ -12,6 +12,7 @@ with sync_playwright() as p:
         assert url.startswith('http://127.0.0.1:'), 'fixtures are local QA only'
         page.route('**/data/signals.json?*',lambda route:route.fulfill(path=sys.argv[3],content_type='application/json'))
     errors=[];page.on('pageerror',lambda e:errors.append(str(e)))
+    page.on('console',lambda msg:print('BROWSER',msg.text) if msg.type=='error' else None)
     response=page.goto(url,wait_until='domcontentloaded',timeout=60000)
     page.wait_for_function("document.querySelector('#feedState').textContent.length>0",timeout=60000)
     assert response.status==200
@@ -19,7 +20,7 @@ with sync_playwright() as p:
     assert headers==['نوع سیگنال','نماد','ساعت تریگر','توضیحات'],headers
     rows=page.locator('#feed tr:has(.explanation-cell)')
     count=rows.count()
-    assert count>0, page.locator('#feedState').inner_text()
+    assert count>0, {'state':page.locator('#feedState').inner_text(),'errors':errors,'probe':page.evaluate("async()=>{try{const r=await fetch(SignalCore.feedUrl(location.hostname));const d=SignalCore.validate(await r.json());return {count:d.count,safety:typeof ObservationSafety,today:ObservationSafety.todayEvents(d.items).length}}catch(e){return String(e.stack)}}")}
     texts=page.locator('.explanation-cell').all_text_contents()
     assert all(t.strip() for t in texts)
     assert page.locator('.main-nav a').count()==7
