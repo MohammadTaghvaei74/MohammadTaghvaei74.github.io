@@ -11,6 +11,11 @@ from zoneinfo import ZoneInfo
 from pathlib import Path
 from typing import Any
 
+try:
+    from .signal_explanations import explain_signal
+except ImportError:
+    from signal_explanations import explain_signal
+
 SCHEMA_VERSION = 1
 SOURCE = "telegram_event_delivery"
 LIMIT = 100
@@ -47,7 +52,7 @@ def _connect(db_path: str | os.PathLike[str]) -> sqlite3.Connection:
 def _category(event_key: str) -> str:
     prefix = event_key.split(":", 1)[0].lower()
     if prefix == "gap":
-        return "pressure"
+        return "allocation"
     return prefix if prefix in CATEGORIES else "other"
 
 
@@ -129,6 +134,11 @@ def build_payload(db_path: str | os.PathLike[str]) -> dict[str, Any]:
                 ORDER BY o.timestamp DESC, o.event_key DESC
                 """
             ).fetchall()
+            explanations = {}
+            for row in rows:
+                item = _parse_sent(row, row["delivery_provider_message_id"])
+                if item is not None:
+                    explanations[item["id"]] = explain_signal(conn, row["event_key"], row["timestamp"], item["text"])
     except (OSError, sqlite3.Error) as exc:
         return _empty(f"signal feed unavailable: {exc.__class__.__name__}")
 
@@ -139,6 +149,7 @@ def build_payload(db_path: str | os.PathLike[str]) -> dict[str, Any]:
             continue
         item = _parse_sent(row, row["delivery_provider_message_id"])
         if item is not None:
+            item["explanation"] = explanations[item["id"]]
             parsed.append(item)
     if not parsed:
         return _empty("no corroborated sent signal data is available", observed, health)
@@ -173,12 +184,14 @@ def export(db_path: str | os.PathLike[str], output_path: str | os.PathLike[str])
     target = Path(output_path)
     content = _serialized(payload)
     if target.exists() and target.read_text(encoding="utf-8") == content:
+        target.chmod(0o644)
         return payload
     target.parent.mkdir(parents=True, exist_ok=True)
     fd, name = tempfile.mkstemp(prefix=target.name + ".", dir=target.parent)
     try:
         with os.fdopen(fd, "w", encoding="utf-8", newline="\n") as handle:
             handle.write(content)
+        os.chmod(name, 0o644)
         os.replace(name, target)
     finally:
         if os.path.exists(name):

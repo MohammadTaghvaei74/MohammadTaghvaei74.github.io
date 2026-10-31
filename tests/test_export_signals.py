@@ -63,7 +63,7 @@ def test_exact_acknowledged_telegram_text_and_public_contract(tmp_path):
         'last_signal_at': '2026-10-14T12:03:00+03:30',
         'items': [{'id': payload['items'][0]['id'], 'timestamp': '2026-10-14T12:03:00+03:30',
                    'category': 'leader', 'label': 'وبملت', 'text': '📈 #سیگنال_لیدر\n📌 وبملت',
-                   'experimental': False}],
+                   'experimental': False, 'explanation': exporter().explain_signal(None, 'leader:وبملت', '', '')}],
         'count': 1, 'has_more': False, 'health': {'last_ok_at': '2026-10-14T12:30:00+03:30'}}
     assert len(payload['items'][0]['id']) == 64
     assert 'PRIVATE' not in json.dumps(payload)
@@ -121,7 +121,7 @@ def test_public_category_values_and_experimental_tag(tmp_path):
     add_event(conn, timestamp='2026-10-14T12:05:00+03:30', key='unknown:foo', text='other')
     conn.close()
     items = exporter().build_payload(db)['items']
-    assert {item['category'] for item in items} == {'pressure', 'allocation', 'other'}
+    assert {item['category'] for item in items} == {'allocation', 'other'}
     assert items[2]['experimental'] is True
 
 
