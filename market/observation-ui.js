@@ -86,15 +86,24 @@
      const safe=comprehensive?!!F.comprehensivePresetSafe?.(button.dataset.comprehensivePreset):F.rangeState(r)==='fresh';
      button.disabled=!safe;button.setAttribute('aria-disabled',String(!safe));
      button.title=safe?'مشاهدات جاری و پوشش تاریخی ورودی‌های پریست تأیید شده':'ناموجود: مشاهده معتبر و جاری همه ورودی‌ها یا پوشش تاریخی تأیید نشده؛ زمان تابلو به‌تنهایی کافی نیست';
-     if (!safe) button.setAttribute('aria-pressed','false');
+     // Preserve selected state so an expired recommendation stays blocked.
    });
    // A preset already selected before expiry must not leave a recommendation visible.
    ['#industriesGrid','#comprehensiveRows'].forEach(sel=>{
      const body=document.querySelector(sel);if(!body)return;
-     const section=body.closest('section'), unavailable=section?.querySelector('[data-industry-preset]:disabled,[data-comprehensive-preset]:disabled');
-     body.dataset.observationStatus=unavailable?'stale':'fresh';
-     body.classList.toggle('observation-blocked',!!unavailable);
-     const download=section?.querySelector('#downloadComprehensiveXlsx');if(download){download.disabled=!!unavailable;download.title=unavailable?'دریافت تحلیل قدیمی یا نامعلوم مسدود است':'';}
+     const section=body.closest('section');
+     const preset=sel==='#industriesGrid'
+       ? section?.querySelector('[data-industry-preset]')
+       : section?.querySelector('[data-comprehensive-preset]');
+     // A disabled, unselected preset must not hide the valid ordinary table.
+     // Hide only the explicitly selected recommendation whose evidence expired.
+     const r=sel==='#industriesGrid'?mr:range((feed('/data/comprehensive.json')||{}).rows);
+     const selected=!!section?.querySelector('[data-industry-preset][aria-pressed="true"],[data-comprehensive-preset][aria-pressed="true"]');
+     const unavailable=!F.tableVisible(r,selected);
+     body.dataset.observationStatus=F.rangeState(r);
+     body.classList.toggle('observation-blocked',unavailable);
+     const download=section?.querySelector('#downloadComprehensiveXlsx');
+     if(download){download.disabled=unavailable;download.title=unavailable?'دریافت تحلیل قدیمی یا نامعلوم مسدود است':'';}
    });
    document.querySelectorAll('.market-state').forEach(el=>{el.dataset.observationHealth=marketSafe?'fresh':'stale';});
    const state=document.querySelector('#marketState');if(state&&!marketSafe) state.textContent='داده قدیمی یا نامعلوم — تحلیل لحظه‌ای ناموجود';

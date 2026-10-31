@@ -39,7 +39,13 @@
       return true;
     }));
   }
-  const api = {observation, state, range, todayEvents, portfolioSafe, rangeState, comprehensiveSafe};
+  // Display last known same-day observations, not expired recommendations.
+  function tableVisible(r, recommendation=false, now=Date.now()) {
+    if (!r || r.unknown || state(r.first,now)==='unknown' || state(r.last,now)==='unknown') return false;
+    if (day(r.first) !== day(now) || day(r.last) !== day(now)) return false;
+    return !recommendation || rangeState(r, now) === 'fresh';
+  }
+  const api = {observation, state, range, todayEvents, portfolioSafe, rangeState, comprehensiveSafe, tableVisible};
   if (typeof module === 'object' && module.exports) module.exports = api;
   if (root) root.ObservationSafety = api;
 })(typeof window === 'object' ? window : null);
