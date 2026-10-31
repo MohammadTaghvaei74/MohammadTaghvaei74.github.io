@@ -204,6 +204,41 @@
     });
   }
 
+  function bindTurnoverTooltip(svg) {
+    let tip = document.getElementById("daily-turnover-tooltip");
+    if (!tip) {
+      tip = document.createElement("div");
+      tip.id = "daily-turnover-tooltip";
+      tip.setAttribute("role", "tooltip");
+      tip.dir = "rtl";
+      tip.hidden = true;
+      document.body.appendChild(tip);
+      document.addEventListener("pointerdown", (event) => {
+        if (!event.target.closest("#turnoverChart .turnover-bar")) tip.hidden = true;
+      });
+      document.addEventListener("keydown", (event) => { if (event.key === "Escape") tip.hidden = true; });
+      window.addEventListener("scroll", () => { tip.hidden = true; }, true);
+      window.addEventListener("resize", () => { tip.hidden = true; });
+    }
+    tip.hidden = true;
+    const show = (bar) => {
+      tip.textContent = bar.getAttribute("aria-label");
+      tip.hidden = false;
+      const rect = bar.getBoundingClientRect();
+      const box = tip.getBoundingClientRect();
+      tip.style.left = `${Math.max(8, Math.min(rect.x + rect.width / 2 - box.width / 2, window.innerWidth - box.width - 8))}px`;
+      tip.style.top = `${Math.max(8, Math.min(rect.y - box.height - 10, window.innerHeight - box.height - 8))}px`;
+    };
+    svg.querySelectorAll(".turnover-bar").forEach((bar) => {
+      bar.setAttribute("aria-describedby", tip.id);
+      bar.addEventListener("pointerenter", () => show(bar));
+      bar.addEventListener("pointerleave", (event) => { if (event.pointerType !== "touch" && !window.matchMedia("(pointer: coarse)").matches) tip.hidden = true; });
+      bar.addEventListener("click", () => show(bar));
+      bar.addEventListener("focus", () => show(bar));
+      bar.addEventListener("blur", () => { tip.hidden = true; });
+    });
+  }
+
   function renderTurnoverChart(data) {
     const svg = $("#turnoverChart");
     if (!svg) return;
@@ -221,7 +256,10 @@
       text("#turnoverStatus", "داده معتبر کافی نیست؛ میانگین ۲۰ روزه در دسترس نیست.");
       return;
     }
-    const max = Math.max(...values, 1) * 1.12;
+    const rawStep = Math.max(...values, 1) * 1.12 / 4;
+    const magnitude = 10 ** Math.floor(Math.log10(rawStep));
+    const step = [1, 2, 5, 10].find((n) => n * magnitude >= rawStep) * magnitude;
+    const max = Math.ceil(Math.max(...values, 1) * 1.12 / step) * step;
     const slot = (width - pad.left - pad.right) / days.length;
     const barWidth = slot * 0.68;
     const x = (i) => pad.left + slot * (i + 0.5);
@@ -229,14 +267,16 @@
     const format = (v) => v.toLocaleString("fa-IR", {maximumFractionDigits: 2});
     const persianDate = (day) => new Intl.DateTimeFormat("fa-IR-u-ca-persian", {year:"numeric", month:"2-digit", day:"2-digit", timeZone:"Asia/Tehran"}).format(new Date(`${day}T12:00:00+03:30`));
     const path = (series) => series.map((v, i) => v === null ? "" : `${i && series[i-1] !== null ? "L" : "M"}${x(i).toFixed(2)},${y(v).toFixed(2)}`).filter(Boolean).join(" ");
-    const ticks = [0, 1, 2, 3, 4].map((i) => max * i / 4).map((v) => `<line class="chart-grid-line" x1="${pad.left}" x2="${width-pad.right}" y1="${y(v)}" y2="${y(v)}"/><text class="chart-label" x="${pad.left-12}" y="${y(v)+4}" text-anchor="end">${format(v)}</text>`).join("");
+    const ticks = Array.from({length: Math.round(max / step) + 1}, (_, i) => i * step).map((v) => `<line class="chart-grid-line" x1="${pad.left}" x2="${width-pad.right}" y1="${y(v)}" y2="${y(v)}"/><text class="chart-label turnover-tick" data-value="${v}" x="${pad.left-12}" y="${y(v)+4}" text-anchor="end">${format(v)}</text>`).join("");
     const bars = days.map((day, i) => {
-      const title = `${persianDate(day.trading_date)} | ارزش معاملات: ${format(values[i])} همت${ma5[i] === null ? "" : ` | میانگین ۵ روزه: ${format(ma5[i])} همت`}${ma20[i] === null ? "" : ` | میانگین ۲۰ روزه: ${format(ma20[i])} همت`}`;
-      return `<rect class="turnover-bar" data-date="${day.trading_date}" data-value-hmt="${values[i]}" x="${x(i)-barWidth/2}" y="${y(values[i])}" width="${barWidth}" height="${y(0)-y(values[i])}" fill="#2686c5" tabindex="0" aria-label="${escapeHtml(title)}"><title>${escapeHtml(title)}</title></rect>`;
+      const exact = (v) => v === null ? "—" : `${v.toLocaleString("fa-IR", {maximumFractionDigits: 12})} همت`;
+      const title = `تاریخ: ${persianDate(day.trading_date)}\nارزش معاملات: ${exact(values[i])}\nمیانگین ۵ روزه: ${exact(ma5[i])}\nمیانگین ۲۰ روزه: ${exact(ma20[i])}`;
+      return `<rect class="turnover-bar" data-date="${day.trading_date}" data-value-hmt="${values[i]}" x="${x(i)-barWidth/2}" y="${y(values[i])}" width="${barWidth}" height="${y(0)-y(values[i])}" fill="#2686c5" tabindex="0" aria-label="${escapeHtml(title)}"></rect>`;
     }).join("");
     const labels = days.map((day, i) => `<text class="chart-label turnover-date" x="${x(i)}" y="${height-pad.bottom+20}" transform="rotate(-50 ${x(i)} ${height-pad.bottom+20})" text-anchor="end" direction="ltr">${escapeHtml(persianDate(day.trading_date))}</text>`).join("");
     const count5 = ma5.filter((v) => v !== null).length, count20 = ma20.filter((v) => v !== null).length;
     svg.innerHTML = `<g data-ma5-count="${count5}" data-ma20-count="${count20}"><text class="chart-label" x="${pad.left}" y="16">همت</text>${ticks}${bars}${labels}<path class="ma5-path" fill="none" stroke="#ed8b23" stroke-width="2.5" d="${path(ma5)}"/><path class="ma20-path" fill="none" stroke="#b642c9" stroke-width="2.5" d="${path(ma20)}"/></g>`;
+    bindTurnoverTooltip(svg);
     text("#turnoverStatus", `${core.faDigits(days.length)} روز کامل و تأییدشده${count20 ? "" : "؛ میانگین ۲۰ روزه: حداقل ۲۰ روز معتبر لازم است."}${count5 ? "" : "؛ میانگین ۵ روزه: حداقل ۵ روز معتبر لازم است."}`);
   }
 
