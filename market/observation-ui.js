@@ -99,6 +99,7 @@
      body.classList.toggle('observation-blocked',!!unavailable);
      const download=section?.querySelector('#downloadComprehensiveXlsx');if(download){download.disabled=!!unavailable;download.title=unavailable?'دریافت تحلیل قدیمی یا نامعلوم مسدود است':'';}
    });
+   document.querySelectorAll('.market-state').forEach(el=>{el.dataset.observationHealth=marketSafe?'fresh':'stale';});
    const state=document.querySelector('#marketState');if(state&&!marketSafe) state.textContent='داده قدیمی یا نامعلوم — تحلیل لحظه‌ای ناموجود';
    if(location.pathname.includes('/portfolio/') && window.enforcePortfolioObservation) window.enforcePortfolioObservation();
    document.querySelectorAll('#sourceStatus,#availability').forEach(el=>{if(!marketSafe)el.textContent='داده قدیمی یا نامعلوم · '+format(F.observation(m.market));});
