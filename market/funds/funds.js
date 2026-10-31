@@ -29,12 +29,12 @@
   const publicNote = value => !value ? '' : /[A-Za-z]/.test(String(value)) ? 'جزئیات گزارش کامل نیست؛ فایل اصلی را بررسی کنید.' : String(value);
   const initialSymbol = (funds, requested, prior) => funds.find(f=>f.symbol===requested)?.symbol || funds.find(f=>f.symbol===prior)?.symbol || funds.find(f=>portfolioModel(f).available)?.symbol || funds[0]?.symbol || '';
   const fmt = (v,d=2) => number(v) === null ? '—' : v.toLocaleString('fa-IR',{maximumFractionDigits:d});
-  const pct = v => number(v) === null ? 'نامشخص' : `${fmt(v)}٪`;
+  const pct = v => number(v) === null ? 'نامشخص' : v > 0 && v < 0.005 ? 'کمتر از ۰٫۰۱٪' : `${fmt(v)}٪`;
   const color = i => `hsl(${(i*137.5+165)%360} 48% 38%)`;
   function chartMarkup(items, model, id) {
     if (model.overflow) return '<p class="fund-warning">مجموع وزن‌های گزارش بیش از ۱۰۰٪ است؛ برای جلوگیری از نمایش گمراه‌کننده، نمودار رسم نمی‌شود. وزن‌های اصلی در جدول حفظ شده‌اند.</p>';
     if (!model.available || !items.some(x=>x.weight_pct !== null)) return '<p class="fund-empty">وزن معتبر برای رسم نمودار در دسترس نیست.</p>';
-    const slices = items.map(x=>({name:x.name || x.symbol,weight_pct:x.weight_pct,unknown:x.unknown}));
+    const slices = [...items].sort((a,b)=>(b.weight_pct ?? -1)-(a.weight_pct ?? -1)).map(x=>({name:x.name || x.symbol,weight_pct:x.weight_pct,unknown:x.unknown}));
     if (model.remainder>0) slices.push({name:'افشا‌نشده / غیرسهامی',weight_pct:model.remainder,remainder:true});
     let offset=0;
     const arcs=slices.map((x,i)=>{

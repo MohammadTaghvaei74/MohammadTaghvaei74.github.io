@@ -1,0 +1,2 @@
+const {test}=require('node:test');const assert=require('node:assert/strict');const ui=require('../market/funds/funds.js');
+test('positive tiny weights never look like zero and chart is ranked',()=>{const model=ui.portfolioModel({holdings:[{name:'tiny',weight_pct:0.001},{name:'largest',weight_pct:30}]});const html=ui.chartMarkup(model.holdings,model,'probe');assert.match(html,/کمتر از ۰٫۰۱٪/);assert.ok(html.indexOf('largest')<html.indexOf('tiny'));});
