@@ -30,6 +30,7 @@ INPUT = Path(os.environ.get("BOURSE_LIVE_PATH", "/root/bourse-alert/live_market.
 TEHRAN = ZoneInfo("Asia/Tehran")
 MAX_SOURCE_AGE = int(os.environ.get("LIVE_MAX_SOURCE_AGE", "90"))
 DB_PATH = Path(os.environ.get("BOURSE_DB", "/root/bourse-alert/scores_history.db"))
+INDUSTRY_CACHE = Path(os.environ.get("INDUSTRY_CACHE", "/root/bourse-alert/industry_cache.json"))
 
 
 def build_public_comprehensive_rows(stocks: list[dict], generated: str):
@@ -39,16 +40,14 @@ def build_public_comprehensive_rows(stocks: list[dict], generated: str):
     from comprehensive_table import build_comprehensive_rows
     with sqlite3.connect(DB_PATH) as conn:
         conn.row_factory = sqlite3.Row
-        industry_by_symbol = {}
-        for row in conn.execute(
-            "SELECT symbol,MAX(industry) AS industry FROM stock_snapshots "
-            "WHERE valid=1 AND industry IS NOT NULL AND trim(industry)<>'' "
-            "GROUP BY symbol"
-        ):
-            industry_by_symbol.setdefault(row[0], row[1])
+        # Static instrument classification comes from the collector's provider
+        # cache, never an unbounded scan of millions of minute-history rows.
+        industry_by_instrument = json.loads(INDUSTRY_CACHE.read_text(encoding="utf-8"))
+        if not isinstance(industry_by_instrument, dict):
+            raise RuntimeError("invalid industry classification cache")
         for item in stocks:
             if not item.get("industry"):
-                item["industry"] = industry_by_symbol.get(item.get("symbol"))
+                item["industry"] = industry_by_instrument.get(str(item.get("instrument")))
         return build_comprehensive_rows(stocks, generated, conn)
 
 
