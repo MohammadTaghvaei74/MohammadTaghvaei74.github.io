@@ -29,7 +29,7 @@
   const publicNote = value => !value ? '' : /[A-Za-z]/.test(String(value)) ? 'جزئیات گزارش کامل نیست؛ فایل اصلی را بررسی کنید.' : String(value);
   const initialSymbol = (funds, requested, prior) => funds.find(f=>f.symbol===requested)?.symbol || funds.find(f=>f.symbol===prior)?.symbol || funds.find(f=>portfolioModel(f).available)?.symbol || funds[0]?.symbol || '';
   const fmt = (v,d=2) => number(v) === null ? '—' : v.toLocaleString('fa-IR',{maximumFractionDigits:d});
-  const pct = v => number(v) === null ? 'نامشخص' : v > 0 && v < 0.005 ? 'کمتر از ۰٫۰۱٪' : `${fmt(v)}٪`;
+  const pct = v => number(v) === null ? 'نامشخص' : v > 0 && v < 0.05 ? 'کمتر از ۰٫۱٪' : `${v.toLocaleString('fa-IR',{minimumFractionDigits:1,maximumFractionDigits:1})}٪`;
   const holdingLabel = h => String(h.symbol || h.name || '').replace(/ي/g,'ی').replace(/ك/g,'ک');
   const color = i => `hsl(${(i*137.5+165)%360} 48% 38%)`;
   function chartMarkup(items, model, id) {
