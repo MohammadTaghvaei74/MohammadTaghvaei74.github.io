@@ -58,6 +58,27 @@ def test_industry_table_aggregates_current_metrics_and_averages_completed_days()
     assert row["avg_trade_value_20d_toman"] == 36e9
 
 
+def test_strict_15_completed_day_baseline_and_ratio():
+    db = make_db()
+    days = [f"2026-10-{day:02}" for day in range(1, 18)]
+    db.executemany("INSERT INTO v2_days VALUES (?,?)", [(day, int(day != days[-2])) for day in days])
+    db.executemany("INSERT INTO daily_stock_summary VALUES (?,?,?,?)", [
+        (day, symbol, "bank", value) for day in days for symbol, value in [("A", 10e9), ("B", 20e9)]
+    ])
+    stocks = [{"symbol": "A", "industry": "bank", "trade_value_toman": 60e9}]
+    row = build_industry_table(stocks, days[-1] + "T12:00:00", db)[0]
+    assert row.get("avg_trade_value_15d_toman") == 30e9
+    assert row.get("turnover_to_15d_ratio") == 2
+    assert row["turnover_15d_days"] == list(reversed(days[:15]))
+    db.execute("UPDATE daily_stock_summary SET final_turnover_toman=NULL WHERE trading_date=? AND symbol='B'", (days[0],))
+    row = build_industry_table(stocks, days[-1] + "T12:00:00", db)[0]
+    assert row["avg_trade_value_15d_toman"] is None
+    db.execute("DELETE FROM daily_stock_summary WHERE trading_date=?", (days[0],))
+    row = build_industry_table(stocks, days[-1] + "T12:00:00", db)[0]
+    assert row["avg_trade_value_15d_toman"] is None
+    assert row["turnover_to_15d_ratio"] is None
+
+
 def test_missing_values_stay_missing_and_current_day_is_excluded():
     db = make_db()
     db.executemany("INSERT INTO v2_days VALUES (?,?)", [("2026-10-20", 1)])

@@ -11,7 +11,7 @@
   let refreshTimer = null;
   let industryFilterBound = false;
   let activeIndustryPreset = null;
-  const industryColumnFilters = {industry: [{op: "contains", value: ""}], rank: [{op: "", value: ""}, {op: "", value: ""}], count: [{op: "", value: ""}, {op: "", value: ""}], median: [{op: "", value: ""}, {op: "", value: ""}], turnover: [{op: "", value: ""}, {op: "", value: ""}], diff: [{op: "", value: ""}, {op: "", value: ""}]};
+  const industryColumnFilters = {industry: [{op: "contains", value: ""}], rank: [{op: "", value: ""}, {op: "", value: ""}], count: [{op: "", value: ""}, {op: "", value: ""}], median: [{op: "", value: ""}, {op: "", value: ""}], turnover: [{op: "", value: ""}, {op: "", value: ""}], average: [{op: "", value: ""}, {op: "", value: ""}], ratio: [{op: "", value: ""}, {op: "", value: ""}], diff: [{op: "", value: ""}, {op: "", value: ""}]};
   const industryFilterJoin = {rank: "and", count: "and", median: "and", turnover: "and", diff: "and"};
 
   if (!core) {
@@ -488,10 +488,14 @@
     const rows = sourceRows.map((row) => {
       const members = groups.get(String(row.industry || "").trim()) || [];
       const diffs = members.map(lastCloseDiffPct).filter((value) => value !== null);
-      const turnover = members.reduce((sum, stock) => sum + (numeric(stock.trade_value_toman) || 0), 0);
+      const values = members.map((stock) => numeric(stock.trade_value_toman)).filter((value) => value !== null);
+      const turnover = values.length ? values.reduce((sum, value) => sum + value, 0) : null;
       const avgDiff = diffs.length ? diffs.reduce((sum, value) => sum + value, 0) / diffs.length : numeric(row.avg_last_close_diff_pct);
+      const baseline = numeric(row.avg_trade_value_15d_toman);
+      const currentTurnover = turnover !== null ? turnover : numeric(row.turnover_toman !== undefined ? row.turnover_toman : row.trade_value_toman);
+      const ratio = baseline !== null && baseline > 0 && currentTurnover !== null ? currentTurnover / baseline : null;
       const rowScore = numeric(row.median !== undefined ? row.median : row.median_score);
-      return { ...row, count: members.length || row.count || row.stock_count, median: rowScore, turnover_toman: turnover || numeric(row.turnover_toman || row.trade_value_toman), avg_last_close_diff_pct: avgDiff };
+      return { ...row, turnover_to_15d_ratio: ratio, count: members.length || row.count || row.stock_count, median: rowScore, turnover_toman: currentTurnover, avg_last_close_diff_pct: avgDiff };
     });
     const totalIndustries = rows.length;
     const compareIndustryFilter = (value, filter, scale = 1) => {
@@ -510,15 +514,15 @@
     const matchesTwo = (value, filters, scale) => {
       const active = filters.filter((filter) => filter.op && filter.value !== "");
       if (!active.length) return true;
-      return industryFilterJoin.and === "and" ? active.every((filter) => compareIndustryFilter(value, filter, scale)) : active.some((filter) => compareIndustryFilter(value, filter, scale));
+      return active.every((filter) => compareIndustryFilter(value, filter, scale));
     };
     const query = String(industryColumnFilters.industry[0].value || "").trim().toLocaleLowerCase("fa");
     const visibleRows = rows.filter((row, index) => {
       const name = String(row.industry || "");
       const rank = numeric(row.rank) || index + 1;
       const rankPercent = numeric(row.rank_position_pct) || Math.round(rank / totalIndustries * 100);
-      const moneyWhere = activeIndustryPreset !== "money-where" || (rankPercent < 20 && numeric(row.turnover_toman) !== null && row.turnover_toman / 1000000000 > 500);
-      return moneyWhere && (!query || name.toLocaleLowerCase("fa").indexOf(query) >= 0) && matchesTwo(rankPercent, industryColumnFilters.rank, 1) && matchesTwo(row.count, industryColumnFilters.count, 1) && matchesTwo(row.median, industryColumnFilters.median, 1) && matchesTwo(row.turnover_toman, industryColumnFilters.turnover, 1000000000) && matchesTwo(row.avg_last_close_diff_pct, industryColumnFilters.diff, 1);
+      const moneyWhere = activeIndustryPreset !== "money-where" || (rankPercent < 25 && numeric(row.turnover_toman) !== null && row.turnover_toman / 1000000000 > 500);
+      return moneyWhere && (!query || name.toLocaleLowerCase("fa").indexOf(query) >= 0) && matchesTwo(rankPercent, industryColumnFilters.rank, 1) && matchesTwo(row.count, industryColumnFilters.count, 1) && matchesTwo(row.median, industryColumnFilters.median, 1) && matchesTwo(row.turnover_toman, industryColumnFilters.turnover, 1000000000) && matchesTwo(row.avg_trade_value_15d_toman, industryColumnFilters.average, 1000000000) && matchesTwo(row.turnover_to_15d_ratio, industryColumnFilters.ratio, 1) && matchesTwo(row.avg_last_close_diff_pct, industryColumnFilters.diff, 1);
     });
     const markup = visibleRows.map((row, index) => {
       const score = numeric(row.median !== undefined ? row.median : row.median_score);
@@ -526,10 +530,10 @@
       const industry = String(row.industry || "بدون صنعت");
       const rank = numeric(row.rank) || index + 1;
       const rankPercent = numeric(row.rank_position_pct) || Math.round(rank / totalIndustries * 100);
-      return `<tr><td class="industry-name-cell"><a href="industries/?industry=${encodeURIComponent(industry)}" aria-label="مشاهده سهام صنعت ${escapeHtml(industry)}">${escapeHtml(industry)}</a></td><td data-sort-value="${rank}"><bdi dir="ltr" title="رتبه ${escapeHtml(integer(rank))} از ${escapeHtml(integer(totalIndustries))}"><strong>${escapeHtml(integer(rankPercent))}</strong> <span class="percent-unit">٪</span></bdi></td><td>${escapeHtml(integer(row.count))}</td><td><span class="industry-median ${positive ? "" : "negative"}">${escapeHtml(signed(score))}</span></td><td data-sort-value="${numeric(row.turnover_toman) === null ? "" : row.turnover_toman}">${escapeHtml(formatValueBillion(row.turnover_toman))}</td><td data-sort-value="${numeric(row.avg_last_close_diff_pct) === null ? "" : row.avg_last_close_diff_pct}"><bdi dir="ltr" class="industry-signed-value">${percentMarkup(row.avg_last_close_diff_pct)}</bdi></td></tr>`;
+      return `<tr><td class="industry-name-cell"><a href="industries/?industry=${encodeURIComponent(industry)}" aria-label="مشاهده سهام صنعت ${escapeHtml(industry)}">${escapeHtml(industry)}</a></td><td data-sort-value="${rank}"><bdi dir="ltr" title="رتبه ${escapeHtml(integer(rank))} از ${escapeHtml(integer(totalIndustries))}"><strong>${escapeHtml(integer(rankPercent))}</strong> <span class="percent-unit">٪</span></bdi></td><td>${escapeHtml(integer(row.count))}</td><td><span class="industry-median ${positive ? "" : "negative"}">${escapeHtml(signed(score))}</span></td><td data-sort-value="${numeric(row.turnover_toman) === null ? "" : row.turnover_toman}">${escapeHtml(formatValueBillion(row.turnover_toman))}</td><td data-sort-value="${numeric(row.avg_trade_value_15d_toman) === null ? "" : row.avg_trade_value_15d_toman}">${escapeHtml(formatValueBillion(row.avg_trade_value_15d_toman))}</td><td data-sort-value="${row.turnover_to_15d_ratio === null ? "" : row.turnover_to_15d_ratio}"><bdi dir="ltr">${row.turnover_to_15d_ratio === null ? "—" : escapeHtml(optionsNumber(row.turnover_to_15d_ratio, 2)) + "×"}</bdi></td><td data-sort-value="${numeric(row.avg_last_close_diff_pct) === null ? "" : row.avg_last_close_diff_pct}"><bdi dir="ltr" class="industry-signed-value">${percentMarkup(row.avg_last_close_diff_pct)}</bdi></td></tr>`;
     }).join("");
     const element = $("#industriesGrid");
-    if (element) element.innerHTML = markup || `<tr><td colspan="6" class="industry-empty">داده صنعت هنوز آماده نیست.</td></tr>`;
+    if (element) element.innerHTML = markup || `<tr><td colspan="8" class="industry-empty">داده صنعت هنوز آماده نیست.</td></tr>`;
   }
 
   function bindIndustryColumnFilters() {
@@ -554,10 +558,10 @@
         if (currentData) renderIndustries(currentData);
       });
     }
-    const operators = `<option value="">شرط</option><option value=">">&gt;</option><option value=">=">≥</option><option value="=">=</option><option value="<">&lt;</option><option value="<=">≤</option>`;
+    const operators = `<option value="">شرط</option><option value=">">&gt;</option><option value="=">=</option><option value="<">&lt;</option>`;
     table.querySelectorAll("[data-filter-cell]").forEach((cell) => {
       const key = cell.getAttribute("data-filter-cell");
-      const placeholder = key === "turnover" ? "میلیارد" : key === "diff" ? "درصد" : "عدد";
+      const placeholder = (key === "turnover" || key === "average") ? "میلیارد" : key === "diff" ? "درصد" : "عدد";
       cell.innerHTML = `<div class="industry-filter-stack"><span class="industry-filter-pair" dir="ltr"><select data-industry-op="${key}" data-slot="0" aria-label="فیلتر اول ${key}">${operators}</select><input data-industry-filter="${key}" data-slot="0" inputmode="decimal" placeholder="${placeholder}" aria-label="مقدار فیلتر اول ${key}"></span><span class="industry-filter-pair" dir="ltr"><select data-industry-op="${key}" data-slot="1" aria-label="فیلتر دوم ${key}">${operators}</select><input data-industry-filter="${key}" data-slot="1" inputmode="decimal" placeholder="${placeholder}" aria-label="مقدار فیلتر دوم ${key}"></span></div>`;
       cell.querySelectorAll("[data-industry-op]").forEach((control) => { const slot = Number(control.getAttribute("data-slot")); control.value = industryColumnFilters[key][slot].op; });
       cell.querySelectorAll("[data-industry-filter]").forEach((control) => { const slot = Number(control.getAttribute("data-slot")); control.value = industryColumnFilters[key][slot].value; });
@@ -574,7 +578,7 @@
     const turnoverFilter = industryColumnFilters.turnover[0];
     if (activeIndustryPreset === "money-where") {
       rankFilter.op = "<";
-      rankFilter.value = "20";
+      rankFilter.value = "25";
       turnoverFilter.op = ">";
       turnoverFilter.value = "500";
     } else {

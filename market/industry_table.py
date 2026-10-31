@@ -13,7 +13,7 @@ from collections import defaultdict
 from datetime import date
 from typing import Any
 
-HORIZONS = (5, 10, 20)
+HORIZONS = (5, 10, 15, 20)
 
 
 def _finite(value: Any) -> float | None:
@@ -99,10 +99,14 @@ def _historical_turnover(conn, latest_day: str) -> tuple[dict[str, dict[int, flo
     # A symbol/day is one daily observation. If an old database contains a
     # duplicate row, keep its last positive value rather than double-counting.
     per_day_symbol: dict[tuple[str, str, str], float] = {}
+    invalid_industry_days: set[tuple[str, str]] = set()
     for row in rows:
         day, symbol, industry = str(row[0]), str(row[1]), row[2]
         value = _finite(row[3])
-        if not industry or value is None or value < 0:
+        if not industry:
+            continue
+        if value is None or value < 0:
+            invalid_industry_days.add((day, str(industry)))
             continue
         per_day_symbol[(day, symbol, str(industry))] = value
 
@@ -115,7 +119,7 @@ def _historical_turnover(conn, latest_day: str) -> tuple[dict[str, dict[int, flo
         output[industry] = {}
         for horizon in HORIZONS:
             values = [daily[day] for day in days[:horizon] if day in daily]
-            output[industry][horizon] = statistics.mean(values) if values else None
+            output[industry][horizon] = (statistics.mean(values) if values and (horizon != 15 or (len(values) == 15 and not any((day, industry) in invalid_industry_days for day in days[:15]))) else None)
     return output, days
 
 
@@ -153,6 +157,10 @@ def build_industry_table(stocks: list[dict[str, Any]], latest: str, conn) -> lis
             "avg_trade_value_5d_toman": historical_values.get(5),
             "avg_trade_value_10d_toman": historical_values.get(10),
             "avg_trade_value_20d_toman": historical_values.get(20),
+            "avg_trade_value_15d_toman": historical_values.get(15),
+            "turnover_15d_days": history_days[:15] if historical_values.get(15) is not None else [],
+            "turnover_to_15d_ratio": (sum(map(float, trade_value)) / historical_values[15]
+                                      if trade_value and historical_values.get(15) not in (None, 0) else None),
             "history_days": history_days,
         })
 
