@@ -114,18 +114,10 @@
     return sourceRows.map((row) => {
       const fallback = fallbackBySymbol.get(String(row.symbol || "")) || {};
       const merged = {...fallback, ...row};
-      // Proof belongs to this exact metric bundle, not another merged snapshot.
-      for (const key of ['client_type_date','client_type_status','client_type_observed_at','avg_trade_value_provenance']) merged[key] = row[key];
-      if (row.legal_buy_pct == null || row.legal_sell_pct == null) merged.client_type_observed_at = null;
-      if (row.avg_trade_value_toman == null) merged.avg_trade_value_provenance = null;
       ["buy_per_capita_toman", "buyer_power", "legal_buy_pct", "legal_sell_pct"].forEach((key) => {
-        if (merged[key] == null && fallback[key] != null) {
-          merged[key] = fallback[key];
-          // A carried client metric cannot borrow another source's observation.
-          if (key === "legal_buy_pct" || key === "legal_sell_pct") merged.client_type_observed_at = null;
-        }
+        if (merged[key] == null && fallback[key] != null) merged[key] = fallback[key];
       });
-      if (merged.avg_trade_value_toman == null) { merged.avg_trade_value_toman = merged.avg15_trade_value_toman; merged.avg_trade_value_provenance = null; }
+      if (merged.avg_trade_value_toman == null) merged.avg_trade_value_toman = merged.avg15_trade_value_toman;
       if (merged.queue_value_toman == null) {
         const buy = num(merged.buy_queue_value_toman), sell = num(merged.sell_queue_value_toman);
         merged.queue_value_toman = buy != null && buy > 0 ? buy : sell != null && sell > 0 ? -sell : buy != null || sell != null ? 0 : null;
@@ -139,7 +131,6 @@
   }
 
   function render() {
-    window.ObservationSafety.comprehensivePresetSafe = name => !!presets[name] && window.ObservationSafety.comprehensiveSafe(rows, Object.keys(presets[name]));
     const display = displayedRows();
     lastRendered = display;
     body.innerHTML = display.map((row) => `<tr><td class="comprehensive-symbol"><a href="symbols/?symbol=${encodeURIComponent(row.symbol || "")}">${esc(row.symbol)}</a></td>${metricCell(row.industry, "industry", row.industry)}${metricCell(row.score, "score", row.score)}${metricCell(row.score_10d_total, "score", row.score_10d_total)}${metricCell(positionPercent(row.score_rank, row.score_rank_total), "position", positionPercent(row.score_rank, row.score_rank_total))}${metricCell(positionPercent(row.industry_score_rank, row.industry_score_rank_total), "position", positionPercent(row.industry_score_rank, row.industry_score_rank_total))}${metricCell(row.avg_trade_value_toman, "billion", row.avg_trade_value_toman)}${metricCell(row.last_close_diff_pct, "pct1", row.last_close_diff_pct)}${metricCell(row.queue_value_toman, "billion", row.queue_value_toman)}${metricCell(row.buy_per_capita_toman, "million0", row.buy_per_capita_toman)}${metricCell(row.buyer_power, "power", row.buyer_power)}${metricCell(row.legal_buy_pct, "pct0", row.legal_buy_pct)}${metricCell(row.legal_sell_pct, "pct0", row.legal_sell_pct)}</tr>`).join("") || `<tr><td colspan="13" class="comprehensive-empty">با این فیلتر داده‌ای پیدا نشد.</td></tr>`;
@@ -178,18 +169,18 @@
   const filterKeys = ["symbol", "industry", "score", "score_10d_total", "score_position_pct", "industry_score_position_pct", "avg_trade_value_toman", "last_close_diff_pct", "queue_value_toman", "buy_per_capita_toman", "buyer_power", "legal_buy_pct", "legal_sell_pct"];
   const filterText = new Set(["symbol", "industry"]);
   const filterRow = table.querySelector(".comprehensive-filter-row");
-  if (filterRow) filterRow.innerHTML = filterKeys.map((key) => filterText.has(key) ? `<th><input class="column-filter" data-filter-key="${key}" type="search" placeholder="${key === "industry" ? "صنعت" : "نماد"}" aria-label="فیلتر ${key}"></th>` : `<th><span class="filter-pair" dir="ltr"><select class="filter-operator" data-filter-key="${key}" aria-label="عملگر فیلتر"><option value="<">&lt;</option><option value="=">=</option><option value=">">&gt;</option></select><input class="column-filter" data-filter-key="${key}" inputmode="decimal" placeholder="عدد" aria-label="عدد فیلتر"></span></th>`).join("");
+  if (filterRow) filterRow.innerHTML = filterKeys.map((key) => filterText.has(key) ? `<th><span class="filter-pair"><input class="column-filter" data-filter-key="${key}" type="search" placeholder="${key === "industry" ? "صنعت" : "نماد"}" aria-label="فیلتر ${key}"></span></th>` : `<th><span class="filter-pair" dir="ltr"><select class="filter-operator" data-filter-key="${key}" aria-label="عملگر فیلتر"><option value="<">&lt;</option><option value="=">=</option><option value=">">&gt;</option><option value=">=">≥</option><option value="<=">≤</option></select><input class="column-filter" data-filter-key="${key}" inputmode="decimal" placeholder="عدد" aria-label="عدد فیلتر"></span></th>`).join("");
 
   function addConditionControl(key, host) {
     const pair = document.createElement("span"); pair.className = "filter-pair extra-filter-pair"; pair.dir = "ltr";
-    pair.innerHTML = `<select class="filter-operator" data-filter-key="${key}" aria-label="عملگر شرط دوم"><option value="<">&lt;</option><option value="=">=</option><option value=">">&gt;</option></select><input class="column-filter" data-filter-key="${key}" inputmode="decimal" placeholder="عدد" aria-label="عدد شرط دوم"><button type="button" class="remove-filter" aria-label="حذف شرط">×</button>`;
+    pair.innerHTML = `<select class="filter-operator" data-filter-key="${key}" aria-label="عملگر شرط دوم"><option value="<">&lt;</option><option value="=">=</option><option value=">">&gt;</option><option value=">=">≥</option><option value="<=">≤</option></select><input class="column-filter" data-filter-key="${key}" inputmode="decimal" placeholder="عدد" aria-label="عدد شرط دوم"><button type="button" class="remove-filter" aria-label="حذف شرط">×</button>`;
     host.appendChild(pair);
     pair.querySelector("input").addEventListener("input", syncFilters);
     pair.querySelector("select").addEventListener("change", syncFilters);
     pair.querySelector(".remove-filter").addEventListener("click", () => { pair.remove(); syncFilters(); });
   }
   function syncFilters(preservePreset = false) {
-    if (!preservePreset) activePreset = null;
+    if (preservePreset !== true) activePreset = null;
     table.querySelectorAll(".comprehensive-filter-row th").forEach((th) => { const key = th.dataset.filterKey; if (!key) return; filters[key] = {conditions: Array.from(th.querySelectorAll(".filter-pair")).map((pair) => { const select = pair.querySelector("select"); const input = pair.querySelector("input"); return {operator: select ? select.value : "", value: input ? input.value : ""}; })}; });
     render();
   }
@@ -217,7 +208,7 @@
   }
   function applyPreset(name) {
     const preset = presets[name];
-    if (!preset || !window.ObservationSafety.comprehensivePresetSafe?.(name)) return;
+    if (!preset) return;
     clearFilterControls();
     Object.entries(preset).forEach(([key, conditions]) => conditions.forEach(([operator, value], index) => setPresetCondition(key, index, operator, value)));
     activePreset = name;
@@ -228,5 +219,5 @@
   document.querySelectorAll("[data-comprehensive-preset]").forEach((button) => { button.addEventListener("click", () => applyPreset(button.dataset.comprehensivePreset)); });
   const downloadButton = document.querySelector("#downloadComprehensiveXlsx");
   if (downloadButton) downloadButton.addEventListener("click", downloadXlsx);
-  window.addEventListener("market:snapshot", (event) => { const detail = event && event.detail ? event.detail : {}; rows = mergeSnapshotRows(detail); const ranked = rows.filter((row) => num(row.score) != null).sort((a, b) => num(b.score) - num(a.score) || String(a.symbol || "").localeCompare(String(b.symbol || ""), "fa")); const groups = new Map(); ranked.forEach((row, index) => { if (row.score_rank == null) row.score_rank = index + 1; if (row.score_rank_total == null) row.score_rank_total = ranked.length; const industry = String(row.industry || ""); if (industry) { if (!groups.has(industry)) groups.set(industry, []); groups.get(industry).push(row); } }); groups.forEach((members) => members.forEach((row, index) => { if (row.industry_score_rank == null) row.industry_score_rank = index + 1; if (row.industry_score_rank_total == null) row.industry_score_rank_total = members.length; })); defaultOrder = rows.slice(); rows.forEach((row, index) => { row._defaultIndex = index; }); render(); if(detail.observationPayload) window.ObservationSafety.accept(detail.observationPayload); });
+  window.addEventListener("market:snapshot", (event) => { const detail = event && event.detail ? event.detail : {}; rows = mergeSnapshotRows(detail); const ranked = rows.filter((row) => num(row.score) != null).sort((a, b) => num(b.score) - num(a.score) || String(a.symbol || "").localeCompare(String(b.symbol || ""), "fa")); const groups = new Map(); ranked.forEach((row, index) => { if (row.score_rank == null) row.score_rank = index + 1; if (row.score_rank_total == null) row.score_rank_total = ranked.length; const industry = String(row.industry || ""); if (industry) { if (!groups.has(industry)) groups.set(industry, []); groups.get(industry).push(row); } }); groups.forEach((members) => members.forEach((row, index) => { if (row.industry_score_rank == null) row.industry_score_rank = index + 1; if (row.industry_score_rank_total == null) row.industry_score_rank_total = members.length; })); defaultOrder = rows.slice(); rows.forEach((row, index) => { row._defaultIndex = index; }); render(); });
 })();
