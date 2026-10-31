@@ -173,12 +173,14 @@ def export(db_path: str | os.PathLike[str], output_path: str | os.PathLike[str])
     target = Path(output_path)
     content = _serialized(payload)
     if target.exists() and target.read_text(encoding="utf-8") == content:
+        target.chmod(0o644)
         return payload
     target.parent.mkdir(parents=True, exist_ok=True)
     fd, name = tempfile.mkstemp(prefix=target.name + ".", dir=target.parent)
     try:
         with os.fdopen(fd, "w", encoding="utf-8", newline="\n") as handle:
             handle.write(content)
+        os.chmod(name, 0o644)
         os.replace(name, target)
     finally:
         if os.path.exists(name):
