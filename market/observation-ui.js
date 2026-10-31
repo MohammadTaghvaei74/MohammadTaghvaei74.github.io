@@ -97,7 +97,7 @@
    // A preset already selected before expiry must not leave a recommendation visible.
    ['#industriesGrid','#comprehensiveRows'].forEach(sel=>{
      const body=document.querySelector(sel);if(!body)return;
-     const section=body.closest('section'), unavailable=section?.querySelector('[data-industry-preset]:disabled,[data-comprehensive-preset]:disabled');
+     const section=body.closest('section'), unavailable=section?.querySelector('[data-industry-preset]:disabled[aria-pressed="true"],[data-comprehensive-preset]:disabled[aria-pressed="true"]');
      body.dataset.observationStatus=unavailable?'stale':'fresh';
      body.classList.toggle('observation-blocked',!!unavailable);
      const download=section?.querySelector('#downloadComprehensiveXlsx');if(download){download.disabled=!!unavailable;download.title=unavailable?'دریافت تحلیل قدیمی یا نامعلوم مسدود است':'';}
