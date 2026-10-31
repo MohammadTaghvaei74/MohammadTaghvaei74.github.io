@@ -29,13 +29,16 @@ with sync_playwright() as p:
  from datetime import datetime, timezone, timedelta
  def fixture(age):
   ts=(datetime.now(timezone.utc)-timedelta(seconds=age)).isoformat()
-  return {'schema_version':1,'source':'fixture','generated_at':ts,'market':{'timestamp':ts},'stocks':[{'symbol':'fixture','timestamp':ts,'score':1,'industry':'fixture'}],'industry_table':[], 'intraday':[], 'queue_intraday':[], 'queue_count_intraday':[], 'groups':[], 'leveraged':[], 'top_stocks':[], 'industries':[], 'daily':[]}
+  return {'schema_version':1,'source':'fixture','generated_at':ts,'market':{'timestamp':ts},'stocks':[{'symbol':'fixture','timestamp':ts,'score':1,'industry':'fixture'}],'industry_table':[{'industry':'fixture','rank_position_pct':1,'median_score':1,'stock_count':1,'trade_value_toman':999999999999,'avg_last_close_diff_pct':1}], 'intraday':[], 'queue_intraday':[], 'queue_count_intraday':[], 'groups':[], 'leveraged':[], 'top_stocks':[], 'industries':[], 'daily':[]}
  page.route('**/data/market.json*',lambda r:r.fulfill(json=fixture(600)))
  page.goto(base,wait_until='domcontentloaded');page.wait_for_timeout(1500)
  assert page.locator('[data-industry-preset]').is_disabled()
  page.unroute('**/data/market.json*');page.route('**/data/market.json*',lambda r:r.fulfill(json=fixture(5)))
  page.goto(base,wait_until='domcontentloaded');page.wait_for_timeout(1500)
  assert page.locator('[data-industry-preset]').is_enabled()
+ page.locator('[data-industry-preset]').click()
+ assert page.locator('#industriesGrid a').is_visible()
+ assert page.locator('#industriesGrid a').inner_text()=='fixture'
  page.evaluate('Date.now = (()=>{const now=Date.now();return ()=>now+180000;})()')
  page.wait_for_timeout(15500)
  assert page.locator('[data-industry-preset]').is_disabled()
