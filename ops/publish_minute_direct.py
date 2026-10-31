@@ -110,10 +110,16 @@ def merge_client_metrics(stocks: list[dict], fallback_rows: object) -> dict[str,
                     break
         if not source:
             continue
+        # Do not mix fields from different client-type observations. Only
+        # recover a missing bundle, carrying its true source provenance.
+        if any(stock.get(field) is not None for field in CLIENT_METRIC_FIELDS):
+            continue
         for field in CLIENT_METRIC_FIELDS:
-            if stock.get(field) is None and _number(source.get(field)):
+            if _number(source.get(field)):
                 stock[field] = source[field]
                 recovered[field] += 1
+        for field in ("client_type_date", "client_type_status", "client_type_fetched_at"):
+            stock[field] = source.get(field)
     return recovered
 
 

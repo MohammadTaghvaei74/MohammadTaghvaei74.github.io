@@ -25,4 +25,11 @@ class PublisherTests(unittest.TestCase):
    finally:
     if prior:sys.modules['comprehensive_table']=prior
     else:sys.modules.pop('comprehensive_table',None)
+ def test_metric_recovery_preserves_original_source_provenance(self):
+  ns=functions(); rows=[{'symbol':'ABC'}]
+  source={'symbol':'ABC','buyer_power':1.5,'client_type_date':'2026-10-28','client_type_status':'ok_stale','client_type_fetched_at':'2026-10-31T07:00:00+00:00'}
+  ns['merge_client_metrics'](rows,[source])
+  self.assertEqual(rows[0].get('client_type_date'),'2026-10-28')
+  self.assertEqual(rows[0].get('client_type_status'),'ok_stale')
+  self.assertEqual(rows[0].get('client_type_fetched_at'),source['client_type_fetched_at'])
 if __name__=='__main__':unittest.main()
