@@ -40,6 +40,7 @@ if __package__:
     from .industry_table import build_industry_table
     from .symbol_history import write_symbol_history
     from .portfolio_special import build_portfolio_special
+    from .export_market_score_history import export_market_score_history, write as write_market_score_history
 else:
     from export_signals import export as export_signals
     from leveraged_snapshots import read_latest as read_leveraged
@@ -51,6 +52,7 @@ else:
     from industry_table import build_industry_table
     from symbol_history import write_symbol_history
     from portfolio_special import build_portfolio_special
+    from export_market_score_history import export_market_score_history, write as write_market_score_history
 
 PUBLISHED_FILES = (
     "market/tsetmc_enrichment.py",
@@ -63,6 +65,7 @@ PUBLISHED_FILES = (
     "market/history/data/history.json",
     "market/history/data/score-candles.json",
     "market/history/data/market-score-history.xlsx",
+    "market/data/market-score-history.json",
     "market/symbols/data/intraday.json",
     "market/symbols/data/intraday.json",
     "market/symbols/data/history-manifest.json",
@@ -74,6 +77,7 @@ SITE = Path(os.environ.get("SITE_REPO", "/root/bourse-site"))
 MARKET_OUT = SITE / "market/data/market.json"
 HISTORY_OUT = SITE / "market/history/data/history.json"
 XLSX_OUT = SITE / "market/history/data/market-score-history.xlsx"
+MARKET_SCORE_HISTORY_OUT = SITE / "market/data/market-score-history.json"
 INTRADAY_SYMBOLS_OUT = SITE / "market/symbols/data/intraday.json"
 SYMBOL_HISTORY_DIR = SITE / "market/symbols/data"
 COMPREHENSIVE_OUT = SITE / "market/data/comprehensive.json"
@@ -517,6 +521,7 @@ def main() -> None:
     PORTFOLIO_SPECIAL_OUT = SITE / "market/data/portfolio-special.json"
     with connect() as conn:
         market = build_market(conn)
+        market_score_history = export_market_score_history(conn)
         portfolio_special = build_portfolio_special(conn, market["generated_at"])
         fund_report = load_fund_report()
         market["fund_report"] = fund_report
@@ -540,6 +545,7 @@ def main() -> None:
     signal_payload = export_signals(event_db, SIGNALS_OUT)
     options_payload = export_from_scores_db(DB, OPTIONS_OUT)
     atomic_json(MARKET_OUT, market)
+    write_market_score_history(MARKET_SCORE_HISTORY_OUT, market_score_history)
     atomic_json(COMPREHENSIVE_OUT, comprehensive)
     if os.environ.get("SKIP_FUNDS_PUBLISH") != "1":
         atomic_json(FUND_OUT, fund_report)

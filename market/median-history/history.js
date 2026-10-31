@@ -11,8 +11,10 @@
     return Array.from({length: size}, (_, i) => start + i);
   }
   function rowsFor(points, day) {
-    return points.filter(p => Number.isFinite(p.market) && p.minute.slice(0, 10) === day && minuteOf(p.minute) >= SESSION_START && minuteOf(p.minute) <= SESSION_END)
-      .sort((a, b) => a.minute.localeCompare(b.minute));
+    const byMinute = new Map();
+    points.filter(p => Number.isFinite(p.market) && p.minute.slice(0, 10) === day && minuteOf(p.minute) >= SESSION_START && minuteOf(p.minute) <= SESSION_END)
+      .sort((a, b) => a.minute.localeCompare(b.minute)).forEach(p => byMinute.set(p.minute.slice(0, 16), p));
+    return [...byMinute.values()].sort((a, b) => a.minute.localeCompare(b.minute));
   }
   function candles(points, frame) {
     const days = [...new Set(points.map(p => p.minute.slice(0, 10)))].sort();
