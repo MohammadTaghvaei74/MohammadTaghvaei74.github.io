@@ -32,7 +32,7 @@ updated=updated[:tail]+'if __name__ == "__main__":\n'+''.join('    '+line if lin
 backup=live.with_name(live.name+'.before-median-history-20261031')
 assert not backup.exists(),'release already applied; inspect instead of overwriting'
 shutil.copy2(live,backup)
-(ops/'collector.patch').write_text(''.join(difflib.unified_diff(before.splitlines(True),updated.splitlines(True),fromfile='minute_chart_collector.py',tofile='minute_chart_collector.py')))
+(ops/'collector.patch').write_text(''.join(difflib.unified_diff(before.splitlines(True),updated.splitlines(True),fromfile='minute_chart_collector.py',tofile='minute_chart_collector.py',n=0)))
 shutil.copy2(ops/'median_history.py','/root/bourse-alert/median_history.py')
 live.write_text(updated)
 subprocess.run(['/root/bourse-alert/venv/bin/python','-m','py_compile',str(live),'/root/bourse-alert/median_history.py'],check=True)
