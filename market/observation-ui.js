@@ -133,12 +133,13 @@
    document.querySelectorAll('[data-industry-preset],[data-comprehensive-preset]').forEach(button=>{
      const comprehensive=button.hasAttribute('data-comprehensive-preset');
      const r=comprehensive?range((feed('/data/comprehensive.json')||{}).rows):mr;
-     const safe=F.rangeState(r)==='fresh';
-     // Presets are deterministic local filters; stale data must be disclosed, not used to block the control.
-     // Industry recommendations remain protected below; the comprehensive table stays interactive.
+     const safe=F.freshness(r).status==='fresh';
+     // money-where-session-gate-1: use the same session clock as the industry badge.
+     // Live: <=60s. Closed: last expected close (60s tolerance). Unknown/future/old stays blocked.
+     // Comprehensive presets remain local filters; their separate analysis gates are unchanged.
      const blocksPreset=!comprehensive && !safe;
      button.disabled=blocksPreset;button.setAttribute('aria-disabled',String(blocksPreset));
-     button.title=safe?'داده مشاهده‌شده در ۲ دقیقه اخیر':comprehensive?'داده قدیمی/نامعلوم؛ فیلتر روی داده موجود اعمال می‌شود':'ناموجود: داده قدیمی یا زمان منبع نامعلوم؛ این پریست برای امروز قابل استفاده نیست';
+     button.title=safe?'فیلتر روی داده معتبر آخرین جلسه؛ زمان منبع: '+format(r.first)+'؛ توصیه لحظه‌ای نیست':comprehensive?'داده قدیمی/نامعلوم؛ فیلتر روی داده موجود اعمال می‌شود':'ناموجود: داده قدیمی یا زمان منبع نامعلوم؛ این پریست برای امروز قابل استفاده نیست';
      if (blocksPreset) button.setAttribute('aria-pressed','false');
    });
    // A preset already selected before expiry must not leave a recommendation visible.
