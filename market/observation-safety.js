@@ -67,7 +67,7 @@
     if(options.archive)return {status:'archive',timestamp:r?.last||null,expected};
     const stamp=options.series?r?.last:r?.first, parsed=Date.parse(stamp||'');
     if(!r||r.unknown||!Number.isFinite(parsed)||!/T.*(Z|[+-]\d\d:\d\d)$/.test(String(stamp))||parsed>now+5000||Date.parse(r.last)>now+5000||!expected)return {status:'unknown',timestamp:stamp||null,expected};
-    return {status:(expected.live ? now-parsed<=60000 : parsed>=expected.expected)?'fresh':'stale',timestamp:stamp,expected};
+    return {status:(expected.live ? now-parsed<=60000 : parsed>=expected.expected-60000)?'fresh':'stale',timestamp:stamp,expected};
   }
   function dailyRange(rows) {
     const valid=(rows||[]).map(r=>{

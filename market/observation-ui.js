@@ -106,13 +106,13 @@
  function dateRange(values) { const v=[...new Set(values.filter(Boolean))].sort();return v.length?v[0]+(v.length>1?' تا '+v[v.length-1]:''):'نامعلوم'; }
  function format(v) { if (!v) return 'نامعلوم';const d=new Date(v);return d.toLocaleDateString('fa-IR',{timeZone:'Asia/Tehran',year:'numeric',month:'2-digit',day:'2-digit'})+(String(v).includes('T')?' '+d.toLocaleTimeString('fa-IR',{timeZone:'Asia/Tehran',hour:'2-digit',minute:'2-digit',second:'2-digit'}):' (بدون ساعت)'); }
  function status(d) { return F.freshness(d.r,d); }
+ function clock(v) { if (!v) return ''; return new Date(v).toLocaleTimeString('en-GB',{timeZone:'Asia/Tehran',hour:'2-digit',minute:'2-digit'}); }
  function message(d,result) {
    const s=result.status, stamp=result.timestamp;
-   const time=stamp?format(stamp):'';
+   const time=clock(stamp);
    if(s==='archive')return 'آرشیو تاریخی — '+d.name+(time?'؛ آخرین داده: '+time:'؛ ساعت مشاهده در منبع اعلام نشده')+' · تهران';
-   if(s==='unknown')return 'زمان داده این بخش قابل تأیید نیست — '+d.name+(time?'؛ آخرین زمان شناخته‌شده: '+time:'')+'؛ زمان انتشار فایل، زمان داده نیست.';
-   const prefix=s==='fresh'?(result.expected.live?'✓ داده این بخش به‌روز است (حداکثر ۶۰ ثانیه تأخیر)':'✓ داده این بخش تا آخرین نوبت مورد انتظار به‌روز است'):'⚠ داده این بخش به‌روز نیست';
-   return prefix+' — '+d.name+'؛ آخرین داده: '+time+' · تهران';
+   if(s==='unknown')return 'دیتای آخرین اپدیت نامشخص';
+   return s==='fresh'?'دیتا به روز '+time:'دیتای آخرین اپدیت '+time;
  }
  function paint() {
    scheduled=false;observer.disconnect();
