@@ -133,15 +133,38 @@
   function scoreHistoryCell(row) {
     const coverage = Array.isArray(row.score_10d_coverage) ? row.score_10d_coverage : [];
     const days = row.score_10d_days || 0, expected = row.score_10d_expected_count || 10;
-    const partial = coverage.filter((d) => d.partial).length;
-    const title = 'جمع میانه امتیاز دقیقه‌ای هر روز؛ بدون جایگزینی داده مفقود با صفر. ' + coverage.map((d) => `${d.day}: ${d.minute_count}/${d.expected_minutes} دقیقه؛ میانه ${d.median}`).join(' | ');
-    const note = `${digits(days)}/${digits(expected)} روز${partial ? ` · ${digits(partial)} روز کم‌داده` : ''}`;
+    const partialDays = coverage.filter((d) => d && d.partial).length;
+    const missingMinutes = coverage.reduce((sum, d) => sum + (num(d && d.missing_minutes) || 0), 0);
+    const title = 'جمع میانه امتیاز دقیقه‌ای هر روز؛ بدون جایگزینی داده مفقود با صفر. ' + coverage.map((d) => `${d.day}: ${d.minute_count}/${d.expected_minutes} دقیقه؛ میانه ${d.median}`).join(' | ') + (partialDays ? ` ثبت دقیقه‌ای در ${partialDays} روز ناقص است${missingMinutes ? `؛ ${missingMinutes} دقیقه کمبود` : ''}` : '');
+    const note = days >= expected ? `داده از هر ${digits(expected)} روز موجود است` : `داده برای ${digits(days)} روز از ${digits(expected)} روز`;
     return metricCell(row.score_10d_total, 'score', row.score_10d_total, title).replace('</td>', `<small class="score-history-coverage" style="display:block;font-size:10px;white-space:nowrap">${note}</small></td>`);
   }
+  function captureViewState() {
+    const scroll = table.closest(".table-scroll") || table.parentElement;
+    const active = document.activeElement;
+    const scrollRect = scroll && scroll.getBoundingClientRect();
+    const rowList = Array.from(body.querySelectorAll("tr"));
+    const visibleAnchors = rowList.filter((row) => { const rect = row.getBoundingClientRect(); return !scrollRect || (rect.bottom > scrollRect.top && rect.top < scrollRect.bottom); }).map((row) => ({symbol: row.querySelector("a")?.textContent.trim() || null, offset: row.getBoundingClientRect().top}));
+    const activeRow = active && active.closest("#comprehensiveRows tr");
+    if (activeRow) visibleAnchors.unshift({symbol: activeRow.querySelector("a")?.textContent.trim() || null, offset: activeRow.getBoundingClientRect().top});
+    return {scroll, top: scroll ? scroll.scrollTop : 0, left: scroll ? scroll.scrollLeft : 0, pageX: window.scrollX, pageY: window.scrollY, anchors: visibleAnchors, focus: active && active.matches("input,select,textarea,button") ? active : null, selectionStart: active && typeof active.selectionStart === "number" ? active.selectionStart : null, selectionEnd: active && typeof active.selectionEnd === "number" ? active.selectionEnd : null};
+  }
+  function restoreViewState(state) {
+    if (!state) return;
+    window.scrollTo(state.pageX, state.pageY);
+    if (state.scroll) { state.scroll.scrollTop = state.top; state.scroll.scrollLeft = state.left; }
+    const links = Array.from(body.querySelectorAll("a"));
+    const anchor = (state.anchors || []).map((item) => ({item, target: links.find((link) => link.textContent.trim() === item.symbol)})).find((entry) => entry.target);
+    if (anchor && state.scroll) state.scroll.scrollTop += anchor.target.closest("tr").getBoundingClientRect().top - anchor.item.offset;
+    window.scrollTo(state.pageX, state.pageY);
+    if (state.focus && state.focus.isConnected) { state.focus.focus({preventScroll: true}); if (state.selectionStart != null && typeof state.focus.setSelectionRange === "function") state.focus.setSelectionRange(state.selectionStart, state.selectionEnd); }
+  }
   function render() {
+    const viewState = captureViewState();
     const display = displayedRows();
     lastRendered = display;
     body.innerHTML = display.map((row) => `<tr><td class="comprehensive-symbol"><a href="symbols/?symbol=${encodeURIComponent(row.symbol || "")}">${esc(row.symbol)}</a></td>${metricCell(row.industry, "industry", row.industry)}${metricCell(row.score, "score", row.score)}${scoreHistoryCell(row)}${metricCell(positionPercent(row.score_rank, row.score_rank_total), "position", positionPercent(row.score_rank, row.score_rank_total))}${metricCell(positionPercent(row.industry_score_rank, row.industry_score_rank_total), "position", positionPercent(row.industry_score_rank, row.industry_score_rank_total))}${metricCell(row.avg_trade_value_toman, "billion", row.avg_trade_value_toman)}${metricCell(row.last_close_diff_pct, "pct1", row.last_close_diff_pct)}${metricCell(row.queue_value_toman, "billion", row.queue_value_toman)}${metricCell(row.buy_per_capita_toman, "million0", row.buy_per_capita_toman)}${metricCell(row.buyer_power, "power", row.buyer_power)}${metricCell(row.legal_buy_pct, "pct0", row.legal_buy_pct)}${metricCell(row.legal_sell_pct, "pct0", row.legal_sell_pct)}</tr>`).join("") || `<tr><td colspan="13" class="comprehensive-empty">با این فیلتر داده‌ای پیدا نشد.</td></tr>`;
+    restoreViewState(viewState);
     const count = document.querySelector("#comprehensiveCount"); if (count) count.textContent = `${digits(display.length.toLocaleString("fa-IR"))} نماد از ${digits(rows.length.toLocaleString("fa-IR"))}`;
     table.querySelectorAll("thead tr:first-child th").forEach((header) => { const active = header.dataset.sortKey === sortKey && sortDirection !== "none"; header.setAttribute("aria-sort", active ? (sortDirection === "asc" ? "ascending" : "descending") : "none"); header.dataset.sortState = active ? sortDirection : "none"; });
     document.querySelectorAll("[data-comprehensive-preset]").forEach((button) => { const selected = button.dataset.comprehensivePreset === activePreset; button.setAttribute("aria-pressed", selected ? "true" : "false"); });
@@ -227,5 +250,5 @@
   document.querySelectorAll("[data-comprehensive-preset]").forEach((button) => { button.addEventListener("click", () => applyPreset(button.dataset.comprehensivePreset)); });
   const downloadButton = document.querySelector("#downloadComprehensiveXlsx");
   if (downloadButton) downloadButton.addEventListener("click", downloadXlsx);
-  window.addEventListener("market:snapshot", (event) => { const detail = event && event.detail ? event.detail : {}; rows = mergeSnapshotRows(detail); const ranked = rows.filter((row) => num(row.score) != null).sort((a, b) => num(b.score) - num(a.score) || String(a.symbol || "").localeCompare(String(b.symbol || ""), "fa")); const groups = new Map(); ranked.forEach((row, index) => { if (row.score_rank == null) row.score_rank = index + 1; if (row.score_rank_total == null) row.score_rank_total = ranked.length; const industry = String(row.industry || ""); if (industry) { if (!groups.has(industry)) groups.set(industry, []); groups.get(industry).push(row); } }); groups.forEach((members) => members.forEach((row, index) => { if (row.industry_score_rank == null) row.industry_score_rank = index + 1; if (row.industry_score_rank_total == null) row.industry_score_rank_total = members.length; })); defaultOrder = rows.slice(); rows.forEach((row, index) => { row._defaultIndex = index; }); render(); });
+  window.addEventListener("market:snapshot", (event) => { const detail = event && event.detail ? event.detail : {}; if (!Array.isArray(detail.comprehensive_stocks)) return; rows = mergeSnapshotRows(detail); const ranked = rows.filter((row) => num(row.score) != null).sort((a, b) => num(b.score) - num(a.score) || String(a.symbol || "").localeCompare(String(b.symbol || ""), "fa")); const groups = new Map(); ranked.forEach((row, index) => { if (row.score_rank == null) row.score_rank = index + 1; if (row.score_rank_total == null) row.score_rank_total = ranked.length; const industry = String(row.industry || ""); if (industry) { if (!groups.has(industry)) groups.set(industry, []); groups.get(industry).push(row); } }); groups.forEach((members) => members.forEach((row, index) => { if (row.industry_score_rank == null) row.industry_score_rank = index + 1; if (row.industry_score_rank_total == null) row.industry_score_rank_total = members.length; })); defaultOrder = rows.slice(); rows.forEach((row, index) => { row._defaultIndex = index; }); render(); });
 })();
