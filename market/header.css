@@ -193,3 +193,10 @@
   .daily-overview-pair .section-heading h2 { font-size: 17px; }
   .daily-overview-pair .section-heading p { font-size: 9px; }
 }
+
+/* Mobile keeps all fixed tabs available through the explicit menu, not a wrapped header. */
+@media (max-width: 720px) {
+  .topbar:not(.menu-open) .main-nav { display: none !important; }
+  .topbar:not(.menu-open) { flex-wrap: nowrap; padding: 0 10px; }
+  .topbar.menu-open .main-nav { display: flex !important; }
+}
