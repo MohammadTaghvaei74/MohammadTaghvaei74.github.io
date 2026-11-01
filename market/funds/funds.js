@@ -75,7 +75,7 @@
       $('fundSelect').disabled=!funds.length;
       $('fundSelect').value=initialSymbol(funds,new URLSearchParams(root.location?.search || '').get('fund'),prior);
       const cell=(value,percent=false,digits=2)=>`<td><bdi>${percent?(number(value)===null?'—':pct(value)):fmt(value,digits)}</bdi></td>`;
-      $('fundReportRows').innerHTML=summary.map((f,i)=>`<tr data-fund="${escapeHtml(f.symbol)}"><td>${fmt(i+1,0)}</td><td><button type="button" class="fund-pick" data-symbol="${escapeHtml(f.symbol)}">${escapeHtml(f.symbol)}</button></td>${cell(f.liquidity ?? f.avg_daily_value_billion_toman,false,1)}${cell(f.bubble_pct,true)}${cell(f.portfolio_score)}${cell(f.board_score)}${cell(f.score_diff)}<td>${escapeHtml(faText(f.portfolio_last_update || f.report_date || '—'))}</td></tr>`).join('') || empty(8,results[0].status==='rejected'?'جدول خلاصه دریافت نشد.':'گزارش خلاصه صندوق‌ها هنوز آماده نیست.');
+      $('fundReportRows').innerHTML=summary.map((f,i)=>`<tr data-fund="${escapeHtml(f.symbol)}"><td>${fmt(i+1,0)}</td><td><button type="button" class="fund-pick" data-symbol="${escapeHtml(f.symbol)}">${escapeHtml(f.symbol)}</button></td>${cell(f.bubble_pct,true)}${cell(f.liquidity ?? f.avg_daily_value_billion_toman,false,1)}${cell(f.portfolio_score)}${cell(f.board_score)}${cell(f.score_diff)}<td>${escapeHtml(faText(f.portfolio_last_update || f.report_date || '—'))}</td></tr>`).join('') || empty(8,results[0].status==='rejected'?'جدول خلاصه دریافت نشد.':'گزارش خلاصه صندوق‌ها هنوز آماده نیست.');
       function select() {
         const fund=funds.find(f=>f.symbol===$('fundSelect').value) || {};
         const model=portfolioModel(fund);
