@@ -4,7 +4,7 @@
   const core = window.MarketCore;
   const $ = (selector) => document.querySelector(selector);
   const $$ = (selector) => [...document.querySelectorAll(selector)];
-  const REFRESH_MS = 60000;
+  const REFRESH_MS = 10000;
   const FETCH_TIMEOUT_MS = 10000;
   let currentData = null;
   let loading = false;
@@ -741,7 +741,8 @@
     renderOptions(options || data.options || emptyOptions());
   }
 
-const LIVE_DATA_ORIGIN = "https://94-101-184-98.sslip.io/market/";
+// Same-origin is canonical; observation-ui provides bounded live-first transport.
+const LIVE_DATA_ORIGIN = new URL('/market/', location.origin).href;
   function liveDataUrl(path, cacheMode = "no-store") {
     const url = new URL(path, LIVE_DATA_ORIGIN);
     if (cacheMode === "no-store") url.searchParams.set("ts", String(Date.now()));
@@ -844,7 +845,7 @@ const LIVE_DATA_ORIGIN = "https://94-101-184-98.sslip.io/market/";
   });
   window.addEventListener("pageshow", () => loadData(false));
   refreshTimer = window.setInterval(() => {
-    if (document.visibilityState === "visible") loadData(false);
+    if (document.visibilityState === "visible") loadData(false, true);
   }, REFRESH_MS);
   void refreshTimer;
   setupNavigation();

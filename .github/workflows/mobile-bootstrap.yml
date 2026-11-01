@@ -1,0 +1,35 @@
+name: Mobile dashboard resilience
+on:
+  push:
+    branches: [main]
+    paths: ['market/**', 'tests/mobile_bootstrap_gate.py', '.github/workflows/mobile-bootstrap.yml']
+  pull_request:
+    paths: ['market/**', 'tests/mobile_bootstrap_gate.py', '.github/workflows/mobile-bootstrap.yml']
+  schedule:
+    - cron: '17 */6 * * *'
+  workflow_dispatch:
+jobs:
+  mobile-gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install playwright && python -m playwright install --with-deps chromium
+      - name: Verify candidate under mobile network failures
+        if: github.event_name != 'schedule'
+        run: |
+          python -m http.server 8765 &
+          python tests/mobile_bootstrap_gate.py --url http://127.0.0.1:8765/market/ --out mobile-candidate.json --scenarios blocked,hung,cdn-hung,all-failed,storage-denied
+      - name: Verify public cold mobile client
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+        run: python tests/mobile_bootstrap_gate.py --out mobile-public.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: mobile-browser-evidence
+          path: |
+            mobile-*.json
+            mobile-*.png

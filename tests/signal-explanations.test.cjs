@@ -1,7 +1,7 @@
 const test=require('node:test');const assert=require('node:assert/strict');const fs=require('node:fs');const core=require('../market/signals/core.js');
 test('explicit explanation and honest legacy fallback',()=>{
  assert.equal(typeof core.explanation,'function');
- assert.equal(core.feedUrl('mohammadtaghvaei74.github.io'),'https://94-101-184-98.sslip.io/market/data/signals.json');
+ assert.equal(core.feedUrl('mohammadtaghvaei74.github.io'),'../data/signals.json');
  assert.equal(core.feedUrl('localhost'),'../data/signals.json');
  assert.equal(core.explanation({explanation:{text:'شاهد ثبت‌شده'}}),'شاهد ثبت‌شده');
  assert.match(core.explanation({category:'leader',text:'نسبت به میانگین: ۲'}),/علت صدور نیست/);

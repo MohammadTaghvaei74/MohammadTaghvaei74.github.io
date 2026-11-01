@@ -16,18 +16,55 @@
  }
  window.fetch=async function (...args) {
    const url=new URL(typeof args[0]==='string'||args[0] instanceof URL?String(args[0]):args[0].url,location.href);
-   // Only verified live endpoints; archives and unavailable signal endpoints stay on their own origin.
-   if (/^\/market\/data\/(market|comprehensive)\.json$/.test(url.pathname) && /^(mohammadtaghvaei74\.github\.io|94-101-184-98\.sslip\.io)$/.test(location.hostname)) {
-     url.protocol='https:';url.host='94-101-184-98.sslip.io';url.searchParams.set('observation',Date.now());
-     args[0]=url.href;args[1]={...(args[1]||{}),cache:'no-store'};
-   }
-   const response=await originalFetch.apply(this,args);
+   // mobile-bootstrap-v1: network policy is shared by every data consumer.
+   // Never recursively call the wrapped fetch: fallback must stay same-origin.
+   const liveFeed=/^\/market\/data\/(market|comprehensive|funds|options|signals|portfolio-special)\.json$/.test(url.pathname);
+   let response;
+   if (liveFeed) {
+     const local=new URL(url.pathname+url.search,location.origin);
+     const live=new URL(local.href);live.protocol='https:';live.host='94-101-184-98.sslip.io';
+     live.searchParams.set('observation',Date.now());
+     const request=async(target,ms)=>{
+       const controller=new AbortController();
+       const timer=setTimeout(()=>controller.abort(),ms);
+       const signal=args[1]?.signal;
+       const abort=()=>controller.abort();
+       if(signal){if(signal.aborted)abort();else signal.addEventListener('abort',abort,{once:true});}
+       try {
+         const res=await originalFetch.call(window,target.href,{...(args[1]||{}),cache:'no-store',signal:controller.signal});
+         if(!res.ok)throw new Error('HTTP '+res.status);
+         const data=await res.clone().json();
+         if(!data||typeof data!=='object')throw new Error('Invalid snapshot');
+         if(url.pathname.endsWith('/market.json')&&(!Array.isArray(data.stocks)||!data.stocks.length))throw new Error('Empty market');
+         if(url.pathname.endsWith('/comprehensive.json')&&(!Array.isArray(data.rows)||!data.rows.length))throw new Error('Empty comprehensive');
+         return {res,data};
+       } finally {clearTimeout(timer);if(signal)signal.removeEventListener('abort',abort);}
+     };
+     try {
+       let result, fallback=false;
+       try {result=await request(live,2000);} catch(error) {fallback=true;result=await request(local,7000);}
+       response=result.res;
+       if(url.pathname.endsWith('/market.json'))transportStatus(fallback?'fallback':'live',result.data);
+     } catch(error) {
+       if(url.pathname.endsWith('/market.json'))transportStatus('error');
+       throw error;
+     }
+   } else response=await originalFetch.apply(this,args);
    if (/\.json$/.test(url.pathname)) {
      const parse=response.json.bind(response);
      response.json=async function () { const data=await parse(); if(data&&typeof data==='object')pending.set(data,url.pathname); return data; };
    }
    return response;
  };
+ function transportStatus(state,data) {
+   let el=document.getElementById('dataTransportStatus');
+   if(!el){el=document.createElement('div');el.id='dataTransportStatus';el.setAttribute('role','status');el.style.cssText='padding:12px;margin:8px;border:1px solid #b98b36;border-radius:8px;line-height:1.8';(document.querySelector('main')||document.body).prepend(el);}
+   el.dataset.state=state;
+   const timestamp=data?.market?.timestamp||data?.timestamp||data?.generated_at;
+   const parsed=Date.parse(timestamp), age=Number.isFinite(parsed)?Math.max(0,Math.floor((Date.now()-parsed)/60000)):null;
+   const stamp=timestamp?String(timestamp):'نامعلوم';
+   el.textContent=state==='error'?'دریافت داده از هر دو منبع ناموفق بود؛ اتصال را بررسی کنید و دکمه به‌روزرسانی را بزنید.':(state==='fallback'?'اتصال زنده در دسترس نیست؛ نمایش نسخه ذخیره‌شده همین سایت — ':'اتصال به منبع زنده؛ بررسی هر ۱۰ ثانیه — ')+'زمان snapshot: '+stamp+' · سن snapshot: '+(age===null?'نامعلوم':age+' دقیقه')+' · اعتبار هر بخش بر اساس زمان مشاهده منبع نمایش داده می‌شود.';
+ }
  function feed(suffix) { const key=Object.keys(feeds).find(k=>k.endsWith(suffix)); return key?feeds[key]:null; }
  function selectedSymbol() { return new URLSearchParams(location.search).get('symbol') || document.querySelector('#selectedSymbol')?.textContent || document.querySelector('#dossier h2')?.textContent; }
  function description(element) {
