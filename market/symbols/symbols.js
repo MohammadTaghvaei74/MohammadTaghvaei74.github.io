@@ -57,13 +57,7 @@
 
     const W = 980, H = 360, left = 92, right = 950, top = 24, bottom = 68;
     const values = observed.flatMap((row) => mode === 'line' ? [row.close] : [row.open, row.high, row.low, row.close]).map(num).filter((value) => value !== null);
-    let lo = Math.min(...values), hi = Math.max(...values); if (lo === hi) { lo -= 1; hi += 1; }
-    const rawStep = (hi - lo) / 5, magnitude = Math.pow(10, Math.floor(Math.log10(rawStep || 1))), normalized = rawStep / magnitude;
-    const nice = normalized <= 1 ? 1 : normalized <= 2 ? 2 : normalized <= 5 ? 5 : 10;
-    const tickStep = nice * magnitude;
-    const ticks = [lo];
-    for (let tick = Math.ceil(lo / tickStep) * tickStep; tick < hi - tickStep * 0.0001; tick += tickStep) if (tick > lo + tickStep * 0.0001) ticks.push(tick);
-    if (Math.abs(ticks[ticks.length - 1] - hi) > tickStep * 0.0001) ticks.push(hi);
+    const ticks = M.integerNiceTicks(Math.min(...values), Math.max(...values), 5), lo = ticks[0], hi = ticks[ticks.length - 1];
     const x = (index) => left + index * (right - left) / Math.max(1, rows.length - 1);
     const xFor = (row, index) => {
       if (timeframe !== '1m' || mode !== 'line') return x(index);
