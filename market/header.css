@@ -161,3 +161,35 @@
   .sorena-logo-mark { width: 35px; height: 35px; flex-basis: 35px; border-radius: 10px; }
   .sorena-logo-mark svg { width: 26px; height: 26px; }
 }
+
+/* Compact overview header: keep navigation and freshness legible without a hero gap. */
+.topbar { height: 72px !important; min-height: 72px !important; gap: 18px; }
+.topbar .brand { flex-basis: 208px; min-width: 208px; gap: 9px; }
+.topbar .brand-copy b { font-size: 14px; }
+.topbar .brand-copy small { font-size: 7px; }
+.topbar .main-nav { gap: clamp(11px, 1.6vw, 22px); font-size: 12px; }
+.topbar .topbar-actions { gap: 9px; }
+.topbar .market-state { font-size: 11px; }
+.topbar .refresh-button { width: 36px; height: 36px; border-radius: 8px; font-size: 19px; }
+.data-freshness { justify-content: flex-start; margin: 10px 0 0; padding: 6px 10px; border: 0; border-bottom: 1px solid var(--line, #d6e1d9); border-radius: 0; background: transparent; font-size: 11px; }
+.data-freshness:before { width: 6px; height: 6px; }
+.data-freshness-label { font-weight: 500; }
+.data-freshness time { font-weight: 700; }
+.daily-overview-pair { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, .95fr); gap: 18px; align-items: start; margin-top: 20px; }
+.daily-overview-pair .content-section { min-width: 0; padding-top: 0; margin-top: 0; }
+.daily-overview-pair .section-heading { min-height: 64px; margin-bottom: 10px; align-items: start; }
+.daily-overview-pair .section-heading h2 { font-size: 20px; }
+.daily-overview-pair .section-heading p { font-size: 10px; line-height: 1.55; }
+.daily-overview-pair .panel { min-height: 0; }
+@media (min-width: 721px) { .topbar + .data-freshness { scroll-margin-top: 72px; } }
+@media (max-width: 1050px) and (min-width: 721px) { .topbar .brand { flex-basis: 180px; min-width: 180px; } .topbar .main-nav { gap: 10px; font-size: 11px; } }
+@media (max-width: 720px) {
+  .topbar { height: 58px !important; min-height: 58px !important; }
+  .data-freshness { margin-top: 7px; padding: 5px 2px; font-size: 10px; }
+  .daily-overview-pair { display: block; margin-top: 14px; }
+  .daily-overview-pair .content-section { padding-top: 0; }
+  .daily-overview-pair .content-section + .content-section { margin-top: 22px; }
+  .daily-overview-pair .section-heading { min-height: 0; margin-bottom: 8px; }
+  .daily-overview-pair .section-heading h2 { font-size: 17px; }
+  .daily-overview-pair .section-heading p { font-size: 9px; }
+}
