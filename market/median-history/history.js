@@ -47,8 +47,11 @@
   const time = t => String(t).slice(11, 16).replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]);
   const svgEl = (tag, attrs, text='') => { const n = document.createElementNS('http://www.w3.org/2000/svg', tag); Object.entries(attrs).forEach(([k,v]) => n.setAttribute(k,v)); n.textContent = text; return n; };
   function render(rows) {
-    const svg = $('#candles'); svg.replaceChildren();
-    if (!rows.length) { svg.append(svgEl('text', {x:500,y:180,'text-anchor':'middle',class:'axis'}, 'کندل کامل و معتبر موجود نیست')); $('#candle-tip').textContent = 'کندل‌های ناقص یا دارای فاصله نمایش داده نمی‌شوند.'; return; }
+    const svg = $('#candles'), tip = $('#candle-tip');
+    svg.onpointermove = null; svg.onclick = null; svg.onpointerleave = null;
+    svg.replaceChildren();
+    tip.textContent = 'برای مشاهده OHLC روی کندل حرکت کنید یا لمس کنید.';
+    if (!rows.length) { svg.append(svgEl('text', {x:500,y:180,'text-anchor':'middle',class:'axis'}, 'کندل کامل و معتبر موجود نیست')); tip.textContent = 'کندل‌های ناقص یا دارای فاصله نمایش داده نمی‌شوند.'; return; }
     const keys = rows.map(r => r.key), vals = rows.flatMap(r => [r.h,r.l]), tickValues = window.MarketCore.integerNiceTicks(Math.min(...vals), Math.max(...vals), 5), low=tickValues[0], high=tickValues[tickValues.length-1];
     const left=75,right=955,top=24,bottom=300, x=k=>left+(keys.indexOf(k)+.5)/keys.length*(right-left), y=v=>bottom-(v-low)/(high-low)*(bottom-top), w=Math.max(3,Math.min(22,(right-left)/keys.length*.55));
     tickValues.forEach(v => { svg.append(svgEl('line',{x1:left,x2:right,y1:y(v),y2:y(v),stroke:'#d8e0e9'}),svgEl('text',{x:65,y:y(v)+4,'text-anchor':'end',class:'axis'},fa.format(v))); });

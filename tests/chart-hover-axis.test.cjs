@@ -13,7 +13,7 @@ function median(rows) {
  const context=vm.createContext({document,window:{MarketCore:core},Intl,Date});
  const source=read('market/median-history/history.js');
  vm.runInContext(source.slice(source.indexOf('  const $ ='),source.indexOf('  let data;'))+'\nthis.render=render;',context);
- context.render(rows); return {svg,tip};
+ context.render(rows); return {svg,tip,render:context.render};
 }
 function ascii(s){return String(s).replace(/[۰-۹]/g,c=>'۰۱۲۳۴۵۶۷۸۹'.indexOf(c)).replace(/[٬\u200e\u200f]/g,'').replace(/−/g,'-');}
 function assertTicks(values){assert.ok(values.length>=2);assert.ok(values.every(Number.isInteger),JSON.stringify(values));assert.equal(new Set(values).size,values.length);const step=values[1]-values[0];assert.ok(step>0);for(let i=1;i<values.length;i++)assert.equal(values[i]-values[i-1],step);}
@@ -54,6 +54,11 @@ test('archive candle axis uses round integers, retains precise OHLC details',()=
  const labels=[...els['#scoreCandleChart'].innerHTML.matchAll(/<text[^>]*text-anchor="end">([^<]+)<\/text>/g)].map(m=>Number(ascii(m[1])));assertTicks(labels);assert.ok(els['#candleDetails'].innerHTML.includes('۱.۲۳'));
 });
 const row={key:'2026-10-28/540',date:'2026-10-28',first:'2026-10-28T09:00:00+03:30',last:'2026-10-28T09:04:00+03:30',o:1.23,h:2.69,l:-3.59,c:1.78,n:5,expected:5};
+test('median empty render clears prior hover handlers and stale tip',()=>{
+ const {svg,tip,render}=median([row]); svg.onpointermove({clientX:515}); assert.ok(tip.textContent.includes('باز:'));
+ render([]); assert.equal(svg.onpointermove,null); assert.equal(svg.onclick,null); assert.equal(svg.onpointerleave,null); assert.ok(!tip.textContent.includes('باز:'));
+ render([row]); assert.equal(typeof svg.onpointermove,'function'); assert.ok(!tip.textContent.includes('باز:'));
+});
 test('median candle pointer and touch/click show exact OHLC and observed times',()=>{
  const {svg,tip}=median([row]);
  assert.doesNotThrow(()=>svg.onpointermove({clientX:515}));
