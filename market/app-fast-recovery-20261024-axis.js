@@ -277,7 +277,8 @@
     }).join("");
     const labels = days.map((day, i) => `<text class="chart-label turnover-date" x="${x(i)}" y="${height-pad.bottom+20}" transform="rotate(-50 ${x(i)} ${height-pad.bottom+20})" text-anchor="end" direction="ltr">${escapeHtml(persianDate(day.trading_date))}</text>`).join("");
     const count5 = ma5.filter((v) => v !== null).length, count20 = ma20.filter((v) => v !== null).length;
-    svg.innerHTML = `<g data-ma5-count="${count5}" data-ma20-count="${count20}"><text class="chart-label" x="${pad.left}" y="16">همت</text>${ticks}${bars}${labels}<path class="ma5-path" fill="none" stroke="#ed8b23" stroke-width="2.5" d="${path(ma5)}"/><path class="ma20-path" fill="none" stroke="#b642c9" stroke-width="2.5" d="${path(ma20)}"/></g>`;
+    const ma20Point = count20 === 1 ? ma20.map((value, index) => value === null ? "" : `<circle class="ma20-point" data-date="${days[index].trading_date}" data-value-hmt="${value}" cx="${x(index).toFixed(2)}" cy="${y(value).toFixed(2)}" r="4" fill="#b642c9"/>`).join("") : "";
+    svg.innerHTML = `<g data-ma5-count="${count5}" data-ma20-count="${count20}"><text class="chart-label" x="${pad.left}" y="16">همت</text>${ticks}${bars}${labels}<path class="ma5-path" fill="none" stroke="#ed8b23" stroke-width="2.5" d="${path(ma5)}"/><path class="ma20-path" fill="none" stroke="#b642c9" stroke-width="2.5" d="${path(ma20)}"/>${ma20Point}</g>`;
     bindTurnoverTooltip(svg);
     text("#turnoverStatus", `${core.faDigits(validValues.length)} روز تأییدشده سهام و اهرمی؛ ${core.faDigits(days.length - validValues.length)} روز فاقد تفکیک معتبر${count20 ? "" : "؛ میانگین ۲۰ روزه: حداقل ۲۰ روز معتبر لازم است."}${count5 ? "" : "؛ میانگین ۵ روزه: حداقل ۵ روز معتبر لازم است."}`);
   }
