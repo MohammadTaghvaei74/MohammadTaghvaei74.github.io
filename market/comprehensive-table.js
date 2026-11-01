@@ -143,8 +143,9 @@
     const scroll = table.closest(".table-scroll") || table.parentElement;
     const active = document.activeElement;
     const scrollRect = scroll && scroll.getBoundingClientRect();
+    const visibleTop = Math.max(scrollRect?.top || 0, table.tHead?.getBoundingClientRect().bottom || 0);
     const rowList = Array.from(body.querySelectorAll("tr"));
-    const visibleAnchors = rowList.filter((row) => { const rect = row.getBoundingClientRect(); return !scrollRect || (rect.bottom > scrollRect.top && rect.top < scrollRect.bottom); }).map((row) => ({symbol: row.querySelector("a")?.textContent.trim() || null, offset: row.getBoundingClientRect().top}));
+    const visibleAnchors = rowList.filter((row) => { const rect = row.getBoundingClientRect(); return !scrollRect || (rect.bottom > visibleTop && rect.top < scrollRect.bottom); }).map((row) => ({symbol: row.querySelector("a")?.textContent.trim() || null, offset: row.getBoundingClientRect().top}));
     const activeRow = active && active.closest("#comprehensiveRows tr");
     if (activeRow) visibleAnchors.unshift({symbol: activeRow.querySelector("a")?.textContent.trim() || null, offset: activeRow.getBoundingClientRect().top});
     return {scroll, top: scroll ? scroll.scrollTop : 0, left: scroll ? scroll.scrollLeft : 0, pageX: window.scrollX, pageY: window.scrollY, anchors: visibleAnchors, focus: active && active.matches("input,select,textarea,button") ? active : null, selectionStart: active && typeof active.selectionStart === "number" ? active.selectionStart : null, selectionEnd: active && typeof active.selectionEnd === "number" ? active.selectionEnd : null};
