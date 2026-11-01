@@ -27,10 +27,13 @@ class DailyTurnoverTests(unittest.TestCase):
             ('2026-10-31', 9e12, prefix+'2026-10-31T12:30:00+03:30', 1),
         ])
         now=datetime(2026,10,31,11,tzinfo=timezone(timedelta(hours=3,minutes=30)))
-        daily=mod.load_completed_daily(conn, now)
-        self.assertEqual([r['trading_date'] for r in daily], ['2026-10-28','2026-10-27'])
-        self.assertEqual([r['final_turnover_toman'] for r in daily], [3e12,2e12])
-        self.assertTrue(all(r['complete'] is True and r['source'].startswith(prefix) for r in daily))
+        import tempfile
+        with tempfile.TemporaryDirectory() as raw:
+            mod.RAW_DIR=Path(raw)
+            daily=mod.load_completed_daily(conn, now)
+        self.assertEqual([r['trading_date'] for r in daily], ['2026-10-28','2026-10-27','2026-10-24','2026-10-21'])
+        self.assertEqual([r['final_turnover_toman'] for r in daily], [None,None,None,None])
+        self.assertTrue(all(r['complete'] is False and r['source'].startswith(prefix) for r in daily))
         old={'generated_at':'old-source', 'published_at':'old-publication', 'stocks':[{'x':1}], 'daily':[]}
         updated=mod.attach_completed_daily(old,daily)
         self.assertEqual(updated['generated_at'],'old-source')

@@ -1,0 +1,15 @@
+const fs=require('fs'),vm=require('vm'),assert=require('assert');
+const src=fs.readFileSync(process.argv[2] || 'market/app-fast-recovery-20261024-axis.js','utf8');
+const fn=src.slice(src.indexOf('  function movingAverage('),src.indexOf('  function renderQueueCountChart('));
+const nodes={'#turnoverChart':{innerHTML:''}};const texts={};
+const context={numeric:v=>v===null||v===undefined||v===''?null:(Number.isFinite(Number(v))?Number(v):null),$:s=>nodes[s],text:(s,v)=>texts[s]=v,core:{faDigits:String},escapeHtml:String,Intl,console};
+vm.createContext(context);vm.runInContext(fn+'\nbindTurnoverTooltip=()=>{};',context);
+context.renderTurnoverChart({daily:[{trading_date:'2026-11-01',final_turnover_toman:999e12}]});
+assert(!nodes['#turnoverChart'].innerHTML.includes('class="turnover-bar"'),'reject legacy stocks-only totals');
+const daily=Array.from({length:21},(_,i)=>({trading_date:`2026-10-${String(i+1).padStart(2,'0')}`,turnover_scope:'common_stocks_plus_leveraged_funds',complete:true,final_turnover_toman:10e12,stocks_turnover_toman:8e12,leveraged_turnover_toman:2e12}));
+daily[10].final_turnover_toman=null;daily[10].complete=false;
+context.renderTurnoverChart({daily});
+assert(nodes['#turnoverChart'].innerHTML.includes('data-ma20-count="0"'),'no averaging across unavailable days');
+assert.equal((nodes['#turnoverChart'].innerHTML.match(/class="turnover-bar"/g)||[]).length,20);
+assert(nodes['#turnoverChart'].innerHTML.includes('صندوق‌های اهرمی'));
+console.log('turnover scope UI tests passed');

@@ -522,6 +522,15 @@ def main() -> None:
     with connect() as conn:
         market = build_market(conn)
         market_score_history = export_market_score_history(conn)
+        try:
+            from .daily_turnover import load_completed_daily, attach_completed_daily
+        except ImportError:
+            from daily_turnover import load_completed_daily, attach_completed_daily
+        completed = load_completed_daily(conn, datetime.now(TEHRAN))
+        if MARKET_OUT.exists():
+            previous_daily = json.loads(MARKET_OUT.read_text()).get("daily", [])
+            market["daily"] = previous_daily
+        market = attach_completed_daily(market, completed)
         portfolio_special = build_portfolio_special(conn, market["generated_at"])
         fund_report = load_fund_report()
         market["fund_report"] = fund_report
