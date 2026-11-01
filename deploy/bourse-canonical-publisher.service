@@ -1,0 +1,18 @@
+[Unit]
+Description=Publish validated canonical fallback JSON with an isolated Git index
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=root
+WorkingDirectory=/root/bourse-canonical-publisher
+Environment=PYTHONUNBUFFERED=1
+Environment=GIT_TERMINAL_PROMPT=0
+ExecStart=/usr/bin/flock -n /run/bourse-canonical-publisher.lock /usr/bin/python3 /root/bourse-canonical-publisher/deploy/canonical_data_publisher.py --repo /root/bourse-canonical-publisher --source /srv/sorena/market/data
+TimeoutStartSec=300
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ReadOnlyPaths=/srv/sorena/market/data
+UMask=0022
