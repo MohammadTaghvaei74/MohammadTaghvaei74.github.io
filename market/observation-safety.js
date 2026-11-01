@@ -70,11 +70,12 @@
     return {status:(expected.live ? now-parsed<=60000 : parsed>=expected.expected)?'fresh':'stale',timestamp:stamp,expected};
   }
   function dailyRange(rows) {
-    return range(rows,r=>{
+    const valid=(rows||[]).map(r=>{
       const match=String(r.source||'').match(/^(?:persisted 12:30 MarketWatch final snapshot; |post-close MarketWatch ordinary shares; overview date verified; )(\d{4}-\d{2}-\d{2}T[^; ]+)/);
       const stamp=match?.[1], time=Date.parse(stamp||'');
-      return r.complete===true && typeof r.final_turnover_toman==='number' && Number.isFinite(r.final_turnover_toman) && r.final_turnover_toman>=0 && Number.isFinite(time) && day(time)===r.trading_date && time>=Date.parse(r.trading_date+'T12:30:00+03:30')?stamp:null;
-    });
+      return r.complete===true && typeof r.final_turnover_toman==='number' && Number.isFinite(r.final_turnover_toman) && r.final_turnover_toman>=0 && Number.isFinite(time) && day(time)===r.trading_date && time>=Date.parse(r.trading_date+'T12:30:00+03:30')?{timestamp:stamp}:null;
+    }).filter(Boolean);
+    return range(valid);
   }
   const api = {observation, state, range, todayEvents, portfolioSafe, rangeState, comprehensiveSafe, tableVisible, freshness, session, sessionCalendar, dailyRange};
   if (typeof module === 'object' && module.exports) module.exports = api;
