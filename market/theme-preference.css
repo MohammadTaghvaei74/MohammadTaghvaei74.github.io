@@ -1,0 +1,156 @@
+/* Theme preference module. Load after shared tokens and before page-specific overrides. */
+:root {
+  --theme-bg: var(--ds-bg, var(--bg, #f4f6ef));
+  --theme-surface: var(--ds-surface, var(--surface, #ffffff));
+  --theme-surface-muted: var(--ds-surface-muted, var(--surface-2, #eef4ea));
+  --theme-ink: var(--ds-ink, var(--ink, #102b30));
+  --theme-muted: var(--ds-ink-muted, var(--muted, #5e7472));
+  --theme-line: var(--ds-line, var(--line, #d6e1d9));
+  --theme-positive: var(--ds-positive, var(--green, #33966b));
+  --theme-negative: var(--ds-negative, var(--red, #d85c68));
+  --theme-warning: var(--ds-warning, #b7791f);
+  --theme-focus: var(--ds-focus, 0 0 0 3px rgba(233, 120, 69, .28));
+  color-scheme: light;
+}
+
+/* Dark values are explicit so an existing light token declaration cannot win the cascade. */
+html[data-theme="dark"] {
+  --theme-bg: #08141b;
+  --theme-surface: #10262d;
+  --theme-surface-muted: #14323a;
+  --theme-ink: #f2f7ee;
+  --theme-muted: #b4c8c1;
+  --theme-line: #315158;
+  --theme-positive: #8ee3ad;
+  --theme-negative: #ff9aa2;
+  --theme-warning: #f3c66d;
+  --theme-focus: 0 0 0 3px rgba(255, 174, 115, .42);
+  --ds-bg: #08141b;
+  --ds-surface: #10262d;
+  --ds-surface-muted: #14323a;
+  --ds-ink: #f2f7ee;
+  --ds-ink-muted: #b4c8c1;
+  --ds-ink-subtle: #8da7a0;
+  --ds-line: #315158;
+  --ds-positive: #8ee3ad;
+  --ds-negative: #ff9aa2;
+  --ds-warning: #f3c66d;
+  --ds-focus: var(--theme-focus);
+  --bg: #08141b;
+  --surface: #10262d;
+  --surface-2: #14323a;
+  --surface-3: #1a4045;
+  --ink: #f2f7ee;
+  --muted: #b4c8c1;
+  --dim: #8da7a0;
+  --line: #315158;
+  --green: #8ee3ad;
+  --red: #ff9aa2;
+  color-scheme: dark;
+}
+
+html[data-theme="light"] { color-scheme: light; }
+
+html[data-theme="light"] body,
+html[data-theme="dark"] body {
+  background-color: var(--theme-bg, #f4f6ef);
+  color: var(--theme-ink, #102b30);
+}
+
+html[data-theme="light"] :where(.panel, .table-panel, .portfolio-panel, .fund-card, .selector-panel, .history-chart-panel, .rows-panel),
+html[data-theme="dark"] :where(.panel, .table-panel, .portfolio-panel, .fund-card, .selector-panel, .history-chart-panel, .rows-panel) {
+  background-color: var(--theme-surface, #fff);
+  border-color: var(--theme-line, #d6e1d9);
+  color: var(--theme-ink, #102b30);
+}
+
+html[data-theme="light"] :where(input, select, textarea),
+html[data-theme="dark"] :where(input, select, textarea) {
+  background-color: var(--theme-surface, #fff);
+  border-color: var(--theme-line, #d6e1d9);
+  color: var(--theme-ink, #102b30);
+}
+
+html[data-theme="light"] :where(.panel-note, .table-note, .section-heading p, .source-time, .panel-intro, .privacy-note, .portfolio-disclaimer),
+html[data-theme="dark"] :where(.panel-note, .table-note, .section-heading p, .source-time, .panel-intro, .privacy-note, .portfolio-disclaimer) {
+  color: var(--theme-muted, #5e7472);
+}
+
+/* Keep semantic states and chart series distinct in both themes. */
+html[data-theme="light"], html[data-theme="dark"] {
+  --chart-positive: var(--theme-positive, #33966b);
+  --chart-negative: var(--theme-negative, #d85c68);
+  --chart-warning: var(--theme-warning, #b7791f);
+}
+:where(.positive, [data-tone="positive"], .buy-line, .chart-limit-positive) { color: var(--chart-positive, #33966b); stroke: var(--chart-positive, #33966b); }
+:where(.negative, [data-tone="negative"], .sell-line, .chart-limit-negative) { color: var(--chart-negative, #d85c68); stroke: var(--chart-negative, #d85c68); }
+:where(.warning, [data-tone="warning"], [data-state="partial"], [data-status="unknown"]) { color: var(--chart-warning, #b7791f); }
+:where(.chart-tooltip, .chart-tooltip-html) { background: var(--theme-surface, #fff); color: var(--theme-ink, #102b30); border-color: var(--theme-line, #d6e1d9); }
+
+.theme-preference {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4px;
+  min-inline-size: 0;
+  margin: 0;
+  padding: 4px;
+  border: 1px solid var(--theme-line, #d6e1d9);
+  border-radius: var(--ds-radius-md, 14px);
+  background: var(--theme-surface-muted, #eef4ea);
+  color: var(--theme-ink, #102b30);
+}
+.theme-preference__legend {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+.theme-preference__option {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-block-size: 44px;
+  padding: 6px 10px;
+  border-radius: var(--ds-radius-sm, 8px);
+  cursor: pointer;
+  font: inherit;
+  line-height: 1.2;
+}
+.theme-preference__input {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  opacity: .001;
+}
+.theme-preference__label { pointer-events: none; }
+.theme-preference__option:has(.theme-preference__input:checked) {
+  background: var(--theme-surface, #fff);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, .12);
+  font-weight: 700;
+}
+.theme-preference__option:has(.theme-preference__input:focus-visible) {
+  outline: 3px solid var(--ds-accent, #e97845);
+  outline-offset: 2px;
+  box-shadow: var(--theme-focus, 0 0 0 3px rgba(233, 120, 69, .28));
+}
+@media (max-width: 480px) {
+  .theme-preference { grid-template-columns: 1fr; }
+  .theme-preference__option { justify-content: flex-start; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html[data-theme] *, html[data-theme] *::before, html[data-theme] *::after {
+    scroll-behavior: auto !important;
+    transition-duration: .01ms !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
+@media (prefers-color-scheme: dark) {
+  html:not([data-theme]) { color-scheme: dark; }
+}

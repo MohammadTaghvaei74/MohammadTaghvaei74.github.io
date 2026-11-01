@@ -1,0 +1,59 @@
+/* Optional extras: scoped to this component and explicit personalized sections. */
+[data-extras-section][data-sorena-extras-hidden] { display: none !important; }
+.sorena-extras-toolbar {
+  --extras-bg: var(--ds-surface, #fff);
+  --extras-ink: var(--ds-ink, #102b30);
+  --extras-muted: var(--ds-ink-muted, #5e7472);
+  --extras-line: var(--ds-line, #d6e1d9);
+  --extras-accent: var(--ds-accent, #e97845);
+  box-sizing: border-box; min-width: 0; max-width: 100%; display: grid;
+  grid-template-columns: minmax(0, 1fr); gap: var(--ds-space-3, 12px);
+  margin: 0 0 var(--ds-space-4, 16px); padding: var(--ds-space-4, 16px);
+  color: var(--extras-ink); background: var(--extras-bg);
+  border: 1px solid var(--extras-line); border-radius: var(--ds-radius-md, 14px);
+}
+.sorena-extras-toolbar * { box-sizing: border-box; }
+.sorena-extras-heading h2 { margin: 0; font-size: 18px; line-height: 1.5; }
+.sorena-extras-actions, .sorena-extras-controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: end; min-width: 0; }
+.sorena-extras-controls label { display: grid; gap: 6px; min-width: 0; flex: 1 1 260px; }
+.sorena-extras-toolbar :where(button, select, input) { font-family: inherit; font-size: 14px; }
+.sorena-extras-toolbar button, .sorena-extras-select {
+  min-height: 44px; padding: 8px 12px; border: 1px solid var(--extras-line);
+  border-radius: var(--ds-radius-sm, 8px); color: var(--extras-ink); background: var(--extras-bg);
+}
+.sorena-extras-toolbar button { cursor: pointer; }
+.sorena-extras-toolbar button:hover { border-color: var(--extras-accent); }
+.sorena-extras-toolbar button:disabled { cursor: not-allowed; opacity: .5; }
+.sorena-extras-toolbar :where(button, select, input, [tabindex]):focus-visible { outline: 3px solid var(--extras-accent); outline-offset: 2px; }
+.sorena-extras-panel { min-width: 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; padding-top: 12px; border-top: 1px solid var(--extras-line); }
+.sorena-extras-toolbar [hidden] { display: none !important; }
+.sorena-extras-select { width: 100%; max-width: 100%; }
+.sorena-extras-message, .sorena-extras-disclaimer, .sorena-extras-provenance-legend { margin: 0; color: var(--extras-muted); font-size: 13px; line-height: 1.8; }
+.sorena-extras-provenance-legend { padding: 8px 10px; border-inline-start: 3px solid var(--ds-archive, #64748b); background: var(--ds-surface-muted, #eef4ea); }
+.sorena-extras-selected { display: flex; flex-wrap: wrap; gap: 8px; }
+.sorena-extras-chip { max-width: 100%; display: flex; align-items: center; gap: 8px; padding: 4px 8px; border: 1px solid var(--extras-line); border-radius: 12px; background: var(--ds-surface-muted, #eef4ea); }
+.sorena-extras-chip bdi { overflow-wrap: anywhere; }
+.sorena-extras-comparison { min-width: 0; max-width: 100%; overflow-x: auto; overscroll-behavior-inline: contain; }
+.sorena-extras-table { width: 100%; min-width: 620px; border-collapse: collapse; table-layout: fixed; color: var(--extras-ink); font-size: 14px; }
+.sorena-extras-table caption { text-align: start; padding-block: 8px; color: var(--extras-muted); }
+.sorena-extras-table th, .sorena-extras-table td { min-width: 140px; padding: 12px; text-align: start; vertical-align: top; border-bottom: 1px solid var(--extras-line); overflow-wrap: anywhere; white-space: normal; }
+.sorena-extras-table thead th { background: var(--ds-surface-muted, #eef4ea); font-weight: 700; }
+.sorena-extras-value { font-variant-numeric: tabular-nums; }
+.sorena-extras-provenance { display: block; margin-top: 8px; color: var(--extras-muted); font-size: 12px; line-height: 1.8; }
+.sorena-extras-table td[data-extras-status="stale"] { border-inline-start: 3px solid var(--ds-warning, #b7791f); }
+.sorena-extras-table td[data-extras-status="archive"] { border-inline-start: 3px solid var(--ds-archive, #64748b); }
+.sorena-extras-table .is-unavailable { color: var(--ds-muted, #536b68); background: transparent; }
+.sorena-extras-section-list { display: grid; gap: 8px; }
+.sorena-extras-section-row { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; gap: 6px; }
+.sorena-extras-check-label { display: flex; align-items: center; gap: 8px; min-height: 44px; cursor: pointer; font-size: 14px; }
+.sorena-extras-check-label input { flex: 0 0 20px; width: 20px; height: 20px; accent-color: var(--extras-accent); }
+@media (min-width: 800px) {
+  .sorena-extras-toolbar { grid-template-columns: minmax(0, 1fr) auto; align-items: center; }
+  .sorena-extras-toolbar > .sorena-extras-panel { grid-column: 1 / -1; }
+}
+@media (max-width: 640px) {
+  .sorena-extras-toolbar { padding: 12px; }
+  .sorena-extras-actions > button { flex: 1 1 auto; }
+  .sorena-extras-section-row { grid-template-columns: minmax(0, 1fr) auto auto; }
+  .sorena-extras-order { padding-inline: 8px !important; }
+}

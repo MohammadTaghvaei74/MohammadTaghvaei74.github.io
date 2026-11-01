@@ -1,3 +1,4 @@
+(function historyArchiveRuntime() {
 "use strict";
 
 const $ = (selector) => document.querySelector(selector);
@@ -69,3 +70,4 @@ $("#symbolInput").addEventListener("change", (event) => renderSelected(event.tar
 $("#clearSymbol").addEventListener("click", () => { $("#symbolInput").value = ""; renderSelected(""); $("#symbolInput").focus(); });
 $("#downloadCsv").addEventListener("click", downloadCsv); $("#downloadXlsx").addEventListener("click", downloadXlsx); $("#copyJson").addEventListener("click", copyJson); $("#downloadAllXlsx").addEventListener("click", () => { window.location.href = "data/market-score-history.xlsx"; toast("فایل کامل آرشیو آماده دانلود شد"); });
 fetch(`data/history.json?ts=${Date.now()}`, { cache: "no-store" }).then((response) => { if (!response.ok) throw new Error(`HTTP ${response.status}`); return response.json(); }).then((data) => { archive = data; renderArchive(); window.ObservationSafety.accept(data); }).catch((error) => { console.error(error); $("#selectionStatus").textContent = "دریافت آرشیو انجام نشد."; toast("فایل آرشیو در دسترس نیست"); });
+})();

@@ -1,6 +1,7 @@
 <!doctype html>
 <html lang="fa" dir="rtl">
   <head>
+<script>!function(){var p='system',e=document.documentElement;try{var v=localStorage.getItem('sorena-theme');p=['light','dark','system'].indexOf(v)<0?'system':v}catch(_){}try{var d=typeof matchMedia==='function'&&matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light',t=p==='system'?d:p;e.dataset.theme=t;e.dataset.themePreference=p;e.style.colorScheme=t}catch(_){} }();</script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#07131a" />
@@ -18,6 +19,12 @@
 <script src="../observation-safety.js?v=session-freshness-tolerance-1"></script>
 <script src="../observation-ui.js?v=session-freshness-tolerance-1"></script>
 <link rel="stylesheet" href="../history-tab.css?v=1">
+    <link rel="stylesheet" href="../design-system.css?v=rollout-1">
+    <link rel="stylesheet" href="../page-journeys.css?v=1">
+    <script src="../design-system.js?v=rollout-1" defer></script>
+<link rel="stylesheet" href="../theme-preference.css?v=rollout-1">
+<script src="../theme-preference.js?v=rollout-1" defer></script>
+<script src="../theme-init.js?v=rollout-1" defer></script>
 </head>
   <body>
     <div class="shell history-shell">
@@ -34,8 +41,9 @@
         <section class="history-hero">
           <div>
             <div class="kicker"><span class="pulse-dot"></span> DATA ARCHIVE <span class="slash">/</span> روزهای کامل و تأییدشده</div>
-            <h1>تاریخچه‌ای که<br /><em>قابل دانلود</em> است.</h1>
-            <p>امتیاز روزانه نمادها را از دیتابیس واقعی ببین، با هم مقایسه کن و خروجی اکسل همان نماد را بردار. این صفحه آرشیو تحلیلی است، نه سیگنال خرید.</p>
+            <h1>تاریخچه بازار</h1>
+            <p>آرشیو امتیاز روزانه نمادها برای مقایسه و دانلود؛ نه سیگنال خرید.</p>
+            <ol class="pj-history-steps" aria-label="مراحل مرور آرشیو"><li>انتخاب نماد</li><li>بازه داده</li><li>نمودار</li><li>خروجی</li></ol>
           </div>
           <div class="archive-badge"><span class="archive-badge-number" id="validDayCount">—</span><span>روز کامل<br />و تأییدشده</span><small id="generatedAt">در حال دریافت…</small><button class="archive-download" id="downloadAllXlsx" type="button">دانلود کل آرشیو Excel ↓</button></div>
         </section>
@@ -49,9 +57,9 @@
 
         <section class="selected-layout" id="selectedData">
           <div class="selected-main">
-            <div class="selected-heading"><div><span class="category-tag lime">SELECTED SYMBOL</span><h2 id="selectedSymbol">—</h2><p id="selectedMeta">—</p></div><div class="download-actions"><button class="download-button primary" id="downloadXlsx" type="button"><span>↓</span> دانلود Excel</button><button class="download-button" id="downloadCsv" type="button"><span>↓</span> CSV</button></div></div>
+            <div class="selected-heading"><div><span class="category-tag lime">SELECTED SYMBOL</span><h2 id="selectedSymbol">—</h2><p id="selectedMeta">—</p></div><div class="download-actions"><button class="download-button primary" id="downloadXlsx" type="button"><span>↓</span> دانلود Excel</button><button class="download-button" id="downloadCsv" type="button"><span>↓</span> CSV</button><button id="copyJson" type="button" class="copy-button">کپی JSON</button></div></div>
             <div class="history-chart-panel"><div class="chart-title"><span>روند امتیاز روزانه</span><span class="chart-hint">میانگین / میانه / آخرین مقدار</span></div><div class="history-chart-wrap"><svg id="historyChart" viewBox="0 0 900 280" role="img" aria-label="روند امتیاز روزانه نماد"></svg></div><div class="chart-legend"><span><i class="legend-line mean-line"></i> میانگین</span><span><i class="legend-line median-line"></i> میانه</span><span><i class="legend-line last-line"></i> آخرین مقدار</span></div></div>
-            <div class="rows-panel"><div class="rows-heading"><div><h3>داده روزانه</h3><span id="rowQualityNote">—</span></div><button id="copyJson" type="button" class="copy-button">کپی JSON</button></div><div class="table-scroll"><table><thead><tr><th>تاریخ</th><th>تعداد نمونه</th><th>میانگین</th><th>میانه</th><th>کمینه</th><th>بیشینه</th><th>آخرین</th><th>کیفیت</th></tr></thead><tbody id="historyRows"></tbody></table></div></div>
+            <div class="rows-panel"><div class="rows-heading"><div><h3>داده روزانه</h3><span id="rowQualityNote">—</span></div></div><div class="table-scroll"><table><thead><tr><th>تاریخ</th><th>تعداد نمونه</th><th>میانگین</th><th>میانه</th><th>کمینه</th><th>بیشینه</th><th>آخرین</th><th>کیفیت</th></tr></thead><tbody id="historyRows"></tbody></table></div></div>
           </div>
           <aside class="history-aside candle-panel"><h3>کندل روزانه امتیاز</h3><p>فقط نمونه‌های معتبر از ۰۹:۱۵ تا ۱۲:۳۰ تهران؛ اولین نمونه، بیشینه، کمینه و آخرین نمونه بدون درون‌یابی.</p><div class="candle-scroll"><svg id="scoreCandleChart" viewBox="0 0 620 340" role="img" aria-label="کندل روزانه امتیاز نماد"></svg></div><p id="candleStatus" role="status">در حال دریافت کندل‌ها…</p><div id="candleDetails"></div><small>سبز: آخرین ≥ اولین · قرمز: آخرین &lt; اولین. پوشش ناقص پنجره به معنی روز معاملاتی کامل نیست. داده برای پژوهش است، نه توصیه سرمایه‌گذاری.</small></aside>
         </section>
@@ -61,6 +69,7 @@
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
     <script async src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
     <script src="../core.js?v=integer-axis-20261101" defer></script>
+    <script src="../observation-safety.js?v=session-freshness-20261101" defer></script>
     <script src="candles.js?v=integer-axis-20261101" defer></script>
     <script src="history.js?v=observation-safety-1" defer></script>
     <script src="../sortable-tables.js?v=three-state-2" defer></script>

@@ -21,6 +21,23 @@
 
   const escapeHtml = (value) => String(value === null || value === undefined ? "—" : value).replace(/[&<>"']/g, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[character]));
   const text = (selector, value) => { const element = $(selector); if (element) element.textContent = value; };
+  function setChartState(svg, state, message) {
+    if (!svg) return;
+    const wrap = svg.parentElement;
+    const note = wrap && wrap.querySelector('.chart-state');
+    if (!note) return;
+    wrap.setAttribute('data-chart-state', state);
+    note.textContent = message || (state === 'loading'
+      ? 'در حال دریافت داده نمودار؛ هنوز مقدار معتبری دریافت نشده است.'
+      : state === 'unavailable'
+        ? 'داده نمودار دریافت نشد؛ برای تلاش دوباره از دکمه به‌روزرسانی استفاده کنید.'
+        : 'برای این بخش مقدار معتبر در snapshot موجود نیست.');
+    note.hidden = state === 'ready';
+  }
+  function setAllChartState(state, message) {
+    document.querySelectorAll('#overview .chart-wrap > svg').forEach(svg => setChartState(svg, state, message));
+  }
+  setAllChartState('loading');
   const numeric = (value) => core.number(value);
   const formatHmt = (value) => core.formatNumber(value, 1);
   const formatValueBillion = (value) => { const parsed = numeric(value); return parsed === null ? "—" : core.faDigits(Math.round(parsed / 1e9).toLocaleString("fa-IR")); };
@@ -254,6 +271,7 @@
     const width = 1200, height = 440, pad = {top: 25, right: 25, bottom: 100, left: 75};
     if (!validValues.length) {
       svg.innerHTML = `<text class="chart-empty" x="600" y="200" text-anchor="middle">تاریخچه ارزش معاملات معتبر موجود نیست.</text>`;
+      setChartState(svg, "empty", "تاریخچه ارزش معاملات معتبر برای نمایش موجود نیست؛ هیچ مقداری جایگزین نشده است.");
       text("#turnoverStatus", "داده معتبر کافی نیست؛ میانگین ۲۰ روزه در دسترس نیست.");
       return;
     }
@@ -280,7 +298,12 @@
     const ma20Point = count20 === 1 ? ma20.map((value, index) => value === null ? "" : `<circle class="ma20-point" data-date="${days[index].trading_date}" data-value-hmt="${value}" cx="${x(index).toFixed(2)}" cy="${y(value).toFixed(2)}" r="4" fill="#b642c9"/>`).join("") : "";
     svg.innerHTML = `<g data-ma5-count="${count5}" data-ma20-count="${count20}"><text class="chart-label" x="${pad.left}" y="16">همت</text>${ticks}${bars}${labels}<path class="ma5-path" fill="none" stroke="#ed8b23" stroke-width="2.5" d="${path(ma5)}"/><path class="ma20-path" fill="none" stroke="#b642c9" stroke-width="2.5" d="${path(ma20)}"/>${ma20Point}</g>`;
     bindTurnoverTooltip(svg);
-    text("#turnoverStatus", `${core.faDigits(validValues.length)} روز تأییدشده سهام و اهرمی؛ ${core.faDigits(days.length - validValues.length)} روز فاقد تفکیک معتبر${count20 ? "" : "؛ میانگین ۲۰ روزه: حداقل ۲۰ روز معتبر لازم است."}${count5 ? "" : "؛ میانگین ۵ روزه: حداقل ۵ روز معتبر لازم است."}`);
+    setChartState(svg, "ready");
+    const quality = [];
+    if (days.length !== validValues.length) quality.push(`${core.faDigits(days.length - validValues.length)} روز فاقد تفکیک معتبر`);
+    if (!count20) quality.push("میانگین ۲۰ روزه: حداقل ۲۰ روز معتبر لازم است");
+    if (!count5) quality.push("میانگین ۵ روزه: حداقل ۵ روز معتبر لازم است");
+    text("#turnoverStatus", quality.join("؛ "));
   }
 
   function renderQueueCountChart(data) {
@@ -348,6 +371,7 @@
     const total = bins.reduce((sum, bin) => sum + bin.count, 0);
     if (!total) {
       svg.innerHTML = `<text class="chart-empty" x="600" y="210" text-anchor="middle">داده تغییر قیمت برای نمایش موجود نیست.</text>`;
+      setChartState(svg, "empty", "داده تغییر قیمت برای نمایش موجود نیست؛ هیچ مقداری جایگزین نشده است.");
       return;
     }
     const width = 1200, height = 460, pad = {top: 18, right: 30, bottom: 66, left: 82};
@@ -368,6 +392,7 @@
       return `<g class="price-distribution-bar"><rect x="${x}" y="${barY}" width="${barWidth}" height="${barHeight}" rx="5" fill="${color}"/><text class="price-distribution-count" x="${x + barWidth / 2}" y="${countY}" text-anchor="middle">${core.formatInteger(bin.count)}</text><text class="chart-label price-distribution-label" x="${x + barWidth / 2}" y="${height - 20}" text-anchor="middle"><tspan x="${x + barWidth / 2 - 34}" direction="ltr" unicode-bidi="bidi-override">${core.faDigits(bin.start === 0 ? "0" : (bin.start < 0 ? "−" : "+") + Math.abs(bin.start))}</tspan><tspan x="${x + barWidth / 2}" direction="rtl">تا</tspan><tspan x="${x + barWidth / 2 + 34}" direction="ltr" unicode-bidi="bidi-override">${core.faDigits(bin.end === 0 ? "0" : (bin.end < 0 ? "−" : "+") + Math.abs(bin.end))}</tspan></text></g>`;
     }).join("");
     svg.innerHTML = `${grid}${bars}`;
+    setChartState(svg, "ready");
   }
 
   function renderQueueChart(data) {
@@ -375,7 +400,7 @@
     if (!svg) return;
     const rows = Array.isArray(data.queue_intraday) ? data.queue_intraday : [];
     const values = rows.flatMap((row) => [numeric(row.buy_value_hmt), numeric(row.sell_value_hmt)]).filter((value) => value !== null);
-    if (!values.length) { svg.innerHTML = `<text class="chart-empty" x="600" y="145" text-anchor="middle">داده ارزش صف‌ها برای امروز موجود نیست.</text>`; return; }
+    if (!values.length) { svg.innerHTML = `<text class="chart-empty" x="600" y="145" text-anchor="middle">داده ارزش صف‌ها برای امروز موجود نیست.</text>`; setChartState(svg, "empty", "داده ارزش صف‌ها برای امروز موجود نیست؛ هیچ مقداری جایگزین نشده است."); return; }
     const width = 1200, height = 460, pad = {top:18,right:24,bottom:46,left:92};
     const tickValues = core.integerNiceTicks(Math.min(...values), Math.max(...values), 5);
     const min = tickValues[0];
@@ -387,6 +412,8 @@
     const ticks = tickValues.map((tick, index) => `<line class="${index === 0 ? "chart-zero" : "chart-grid-line"}" x1="${pad.left}" x2="${width-pad.right}" y1="${y(tick)}" y2="${y(tick)}"/><text class="chart-label" x="${pad.left-12}" y="${y(tick)+6}" text-anchor="end">${core.formatInteger(tick)} همت</text>`).join("");
     const labels = rows.map((row, index) => index === 0 || index === rows.length - 1 || /:(00|30)$/.test(row.time || "") ? `<text class="chart-label" x="${x(index)}" y="${height-8}" text-anchor="middle">${escapeHtml(core.faDigits(row.time || "—"))}</text>` : "").join("");
     svg.innerHTML = `${ticks}${labels}<path class="chart-path chart-buy" d="${path("buy_value_hmt")}"/><path class="chart-path chart-sell" d="${path("sell_value_hmt")}"/>`;
+    setChartState(svg, "ready");
+    setChartState(svg, "ready");
   }
 
   function renderChart(data) {
@@ -405,6 +432,7 @@
     const width = 1200, height = 560, pad = { top: 8, right: 24, bottom: 30, left: 62 };
     if (!actualValues.length) {
       svg.innerHTML = `<text class="chart-empty" x="600" y="180" text-anchor="middle">دادهٔ امروز از ۰۹:۰۵ هنوز موجود نیست.</text>`;
+      setChartState(svg, "empty", "دادهٔ امروز از ۰۹:۰۵ هنوز موجود نیست؛ هیچ مقداری جایگزین نشده است.");
       return;
     }
     // Keep the semantic market frame stable: -3 (sell queue) to +3 (buy
@@ -432,6 +460,7 @@
     const hitArea = `<rect class="chart-hit-area" x="${pad.left}" y="${pad.top}" width="${plotWidth}" height="${height - pad.top - pad.bottom}" tabindex="0" aria-label="نقاط نمودار امتیاز"/>`;
     const bands = `<defs><linearGradient id="positiveBand" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#9bd5a3" stop-opacity=".035"/><stop offset="1" stop-color="#35a853" stop-opacity=".24"/></linearGradient><linearGradient id="negativeBand" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f1b0b0" stop-opacity=".035"/><stop offset="1" stop-color="#d64545" stop-opacity=".24"/></linearGradient></defs><rect x="${pad.left}" y="${y(3)}" width="${plotWidth}" height="${y(0) - y(3)}" fill="url(#positiveBand)"/><rect x="${pad.left}" y="${y(0)}" width="${plotWidth}" height="${y(-3) - y(0)}" fill="url(#negativeBand)"/>`;
     svg.innerHTML = `${bands}${grid}${labels}${areaPath ? `<path class="chart-area" d="${areaPath}"/>` : ""}${leadersMarkup}<path class="chart-path chart-market" d="${marketPath}"/><line class="chart-crosshair" x1="${x(0)}" x2="${x(0)}" y1="${pad.top}" y2="${height - pad.bottom}" opacity="0"/>${hitArea}`;
+    setChartState(svg, "ready");
     const chartWrap = svg.parentElement;
     let tooltip = chartWrap && chartWrap.querySelector(".chart-tooltip-html");
     if (!tooltip && chartWrap) {
@@ -833,6 +862,7 @@ const LIVE_DATA_ORIGIN = new URL('/market/', location.origin).href;
     } catch (error) {
       const message = error instanceof Error ? error.message : "خطای ناشناخته در دریافت داده.";
       setStatus(currentData ? "داده قدیمی" : "دریافت ناموفق", "stale");
+      if (!currentData) setAllChartState("unavailable");
       text("#sourceStatus", currentData ? `خطا در به‌روزرسانی: ${message} · نمایش آخرین snapshot` : `خطا در دریافت snapshot: ${message}`);
       if (showToast) toast("دریافت داده انجام نشد");
       console.error(error);

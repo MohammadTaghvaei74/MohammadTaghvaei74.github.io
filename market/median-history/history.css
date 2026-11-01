@@ -10,7 +10,7 @@
 #median-history select{padding:12px;color:inherit;background:var(--card,#fff);border:1px solid #9aadc4;border-radius:9px;font:inherit}
 #median-history select:focus-visible{outline:3px solid #2379db}
 #median-history .chart-shell{overflow-x:auto;direction:ltr}
-#median-history svg{display:block;width:100%;min-width:680px;touch-action:auto}
+#median-history #candles{display:block;width:100%;min-width:680px;touch-action:auto}
 #median-history .axis{font-family:inherit;font-size:15px;fill:#40546b;direction:ltr}
 #median-history .history-tip{display:block;min-height:56px;padding:12px;background:#edf3fb;border-radius:8px;line-height:1.8;font-size:14px}
 #median-history #status{background:#e2edfb;padding:14px;border-radius:10px}

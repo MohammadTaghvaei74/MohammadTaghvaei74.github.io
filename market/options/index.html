@@ -1,6 +1,7 @@
 <!doctype html>
 <html lang="fa" dir="rtl">
   <head>
+<script>!function(){var p='system',e=document.documentElement;try{var v=localStorage.getItem('sorena-theme');p=['light','dark','system'].indexOf(v)<0?'system':v}catch(_){}try{var d=typeof matchMedia==='function'&&matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light',t=p==='system'?d:p;e.dataset.theme=t;e.dataset.themePreference=p;e.style.colorScheme=t}catch(_){} }();</script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#f4f6ef" />
@@ -20,6 +21,11 @@
 <script src="../observation-safety.js?v=session-freshness-tolerance-1"></script>
 <script src="../observation-ui.js?v=session-freshness-tolerance-1"></script>
 <link rel="stylesheet" href="../history-tab.css?v=1">
+<link rel="stylesheet" href="../design-system.css?v=rollout-1">
+<script src="../design-system.js?v=rollout-1" defer></script>
+<link rel="stylesheet" href="../theme-preference.css?v=rollout-1">
+<script src="../theme-preference.js?v=rollout-1" defer></script>
+<script src="../theme-init.js?v=rollout-1" defer></script>
 </head>
   <body>
     <div class="shell">
@@ -40,7 +46,11 @@
 
             <span class="category-tag blue">OPTIONS DESK</span>
             <h1 id="options-title">آپشن</h1>
-            <p>این بخش آماده است. محتوای اتاق آپشن بعداً اضافه می‌شود.</p>
+            <div class="options-preparation" data-state="empty">
+              <p>داده معتبر آپشن در snapshot فعلی منتشر نشده است؛ بنابراین هیچ قیمت، سیگنال یا نمودار ساختگی نمایش داده نمی‌شود.</p>
+              <p class="panel-note">به‌محض آماده‌شدن منبع تأییدشده، این اتاق با همان قرارداد تازگی و provenance سایر بخش‌ها تکمیل می‌شود.</p>
+              <a class="options-cta" href="../#overview">بازگشت به نمای کلی بازار</a>
+            </div>
           </div>
         </section>
       </main>

@@ -1,0 +1,226 @@
+/* Sorena Watch design-system v1. Load LAST after legacy/page styles.
+   Ownership: tokens, shell, type, cards, controls, trust presentation, responsive
+   layout. Charts keep their axis/financial-color contracts. No data logic here.
+   Approved weights: 400 body, 500 labels, 600 controls, 700 headings.
+   !important is confined to legacy important shell/type overrides. */
+:root {
+  --ds-bg:#f4f6ef; --ds-surface:#fff; --ds-surface-muted:#eef4ea;
+  --ds-ink:#102b30; --ds-muted:#536b68; --ds-line:#d6e1d9;
+  --ds-brand:#173b3f; --ds-accent:#e97845; --ds-accent-soft:#fff0e7;
+  --ds-positive:#28754e; --ds-negative:#a92c3b; --ds-warning:#85601d;
+  --ds-info:#286d81; --ds-archive:#536170;
+  --ds-space-1:4px; --ds-space-2:8px; --ds-space-3:12px;
+  --ds-space-4:16px; --ds-space-5:24px; --ds-space-6:32px; --ds-space-7:48px;
+  --ds-radius-sm:8px; --ds-radius-md:14px; --ds-radius-lg:18px;
+  --ds-shadow-sm:0 4px 14px rgb(38 73 60 / 6%);
+  --ds-shadow-md:0 12px 30px rgb(16 43 48 / 14%);
+  --ds-focus:#c35d2c;
+  --ds-font-body:16px; --ds-font-helper:12px; --ds-font-card:18px;
+  --ds-font-section:24px; --ds-font-title:clamp(28px,4vw,40px);
+  --ds-weight-regular:400; --ds-weight-medium:500;
+  --ds-weight-semibold:600; --ds-weight-bold:700;
+}
+body { font-size:var(--ds-font-body)!important; line-height:1.8; }
+body,button,input,select,textarea { font-family:var(--fa,"Vazirmatn",sans-serif); }
+a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,
+textarea:focus-visible,[tabindex]:focus-visible { outline:3px solid var(--ds-focus); outline-offset:3px; }
+main h1,.history-shell .history-hero h1,.portfolio-hero h1 {
+  font-size:var(--ds-font-title)!important; font-weight:700; line-height:1.4;
+  letter-spacing:-.5px; margin-block:8px 16px;
+}
+main h2,.section-heading h2,.panel h2,.daily-overview-pair .section-heading h2 {
+  font-size:var(--ds-font-section); font-weight:700; line-height:1.5;
+}
+main h3,.table-title h3,.panel h3 { font-size:var(--ds-font-card); font-weight:700; line-height:1.5; }
+.panel-note,.table-note,.section-heading p,.source-time,.panel-intro,.privacy-note,
+.portfolio-disclaimer,.notice,.options-copy p,.chart-legend,.tiny-label,.chart-extrema,
+.field-unit,.site-footer,.archive-badge small,.archive-download,.archive-stats span,
+.data-freshness,.category-tag,.history-aside small,.portfolio-meta,.chart-hint,
+.chart-caption,.result-status,.fund-method,.portfolio-hero p,.signals-hero p {
+  font-size:max(12px, .75rem)!important; line-height:1.8;
+}
+.daily-overview-pair .section-heading p { font-size:12px!important; }
+
+/* Route-owned helper/source/CTA text: lift legacy 9–11px labels without
+   changing financial values, decorative chrome, or data/freshness semantics. */
+.archive-strip button,
+.archive-strip > span,
+.dossier .meta { font-size:max(12px, .75rem)!important; }
+.archive-strip > span,
+.dossier .meta { color:var(--ds-muted)!important; }
+.archive-strip button { color:#dff0b7; }
+#industryCaption,
+.history-shell .selector-copy p,
+.history-shell #selectedMeta,
+.history-shell #selectionStatus,
+.history-shell #rowQualityNote {
+  font-size:max(12px, .75rem)!important;
+  color:var(--ds-muted)!important;
+  line-height:1.8;
+}
+
+/* Non-decorative helper/control text must not inherit legacy 8–11px rules. */
+main :is(small,label,button,summary,td,th), .count-label,.preset-label,
+.data-freshness-label,.data-freshness time,.mobile-nav a b {
+  font-size:max(12px, .75rem)!important;
+}
+main :is(.count-label,.preset-label,.score-history-coverage,.field-unit),
+.panel-note,.table-note,.tiny-label,.chart-extrema,.chart-caption,.chart-hint {
+  color:var(--ds-muted);
+}
+.chart-state { margin:0; padding:32px 16px; text-align:center; font-size:14px; line-height:1.9; color:var(--ds-muted); }
+.chart-state[hidden] { display:none!important; }
+#overview .chart-wrap:has(> .chart-state:not([hidden])) { height:auto; min-height:160px; overflow:visible; }
+#overview .chart-wrap:has(> .chart-state:not([hidden])) > svg { display:none; }
+/* The same brand/header geometry on all full pages. No viewport overflow mask. */
+html body .shell { width:min(1500px,calc(100% - 40px)); max-width:100%; }
+html body .wrap:has(.topbar) { width:min(1500px,calc(100% - 40px)); max-width:100%; padding-inline:0; }
+html body header.topbar:has(.main-nav) {
+  display:flex; height:84px!important; min-height:84px!important; width:100%;
+  margin:0!important; padding:0!important; gap:18px; flex-wrap:nowrap;
+  align-items:center; justify-content:space-between; position:sticky; top:0; z-index:40;
+  color:var(--ds-ink); background:var(--ds-bg); border-bottom:1px solid var(--ds-line);
+  box-shadow:none;
+}
+html body .topbar .brand { flex:0 0 190px; min-width:0; gap:8px; }
+html body .topbar .brand-copy b { font-size:14px; font-weight:700; }
+html body .topbar .brand-copy small { font-size:10px; letter-spacing:0; }
+html body .topbar .sorena-logo-mark { width:40px; height:40px; flex:0 0 40px; border-radius:12px; }
+html body .topbar .sorena-logo-mark svg { width:30px; height:30px; }
+html body .topbar .main-nav {
+  display:flex; min-width:0; flex:1 1 auto; align-items:center; justify-content:center;
+  gap:clamp(8px,1vw,16px); height:100%; font-size:13px;
+}
+html body .topbar .main-nav a {
+  min-height:44px; flex:0 0 auto; display:flex; align-items:center;
+  color:var(--ds-muted); padding-inline:2px; text-decoration:none;
+}
+html body .topbar .main-nav a[aria-current="page"] { color:var(--ds-ink); font-weight:700; }
+html body .topbar .main-nav a[aria-current="page"]:after { width:100%; }
+html body .topbar .topbar-actions { flex:0 1 230px; min-width:0; gap:8px; justify-content:flex-end; }
+html body .topbar .market-state { min-width:0; max-width:220px; white-space:normal; font-size:12px; line-height:1.6; }
+html body .topbar .market-state i { box-shadow:none; background:var(--ds-archive); }
+html body .topbar .market-state[data-observation-health="fresh"] i { background:var(--ds-positive); }
+html body .topbar .refresh-button { flex:0 0 44px; width:44px; height:44px; min-height:44px; border-radius:var(--ds-radius-sm); }
+.topbar .mobile-menu-toggle { display:none!important; }
+html { scroll-padding-top:100px; }
+
+/* Reusable status vocabulary. Existing status attributes remain authoritative. */
+.observation-clock { min-height:28px; border-radius:var(--ds-radius-sm); font-size:12px!important; }
+.observation-clock[data-status="fresh"],.ds-status[data-state="fresh"] { color:var(--ds-positive); background:#edf8ef; border-color:#42805b; }
+.observation-clock[data-status="stale"],.observation-clock[data-status="error"],.ds-status[data-state="stale"],.ds-status[data-state="error"] { color:var(--ds-negative); background:#fff0f1; border-color:#c43e4c; }
+.observation-clock[data-status="unknown"],.ds-status[data-state="unknown"],.ds-status[data-state="partial"] { color:var(--ds-warning); background:#fff8df; border-color:#be8c22; }
+.observation-clock[data-status="archive"],.ds-status[data-state="archive"] { color:var(--ds-archive); background:#f1f4f7; border-color:#8b99a8; }
+.ds-status[data-state="empty"],.ds-status[data-state="not-calculated"],.ds-status[data-state="loading"] { color:var(--ds-muted); background:var(--ds-surface-muted); border-color:var(--ds-line); }
+.ds-status { display:block; padding:8px 12px; border-inline-start:3px solid; border-radius:var(--ds-radius-sm); font-size:12px; }
+#dataTransportStatus { font-size:12px!important; padding:8px 12px!important; }
+#dataTransportStatus[data-state="live"] { color:var(--ds-muted)!important; background:transparent!important; }
+#dataTransportStatus[data-state="fallback"],#dataTransportStatus[data-state="stale"] { border-inline-start-color:var(--ds-warning)!important; color:var(--ds-warning)!important; background:#fff8df!important; }
+#dataTransportStatus[data-state="error"] { border-inline-start-color:var(--ds-negative)!important; color:var(--ds-negative)!important; background:#fff0f1!important; }
+
+/* Shared primitives. Table numerical/financial colors are deliberately untouched. */
+.panel,.table-panel,.portfolio-panel,.fund-card,.selector-panel,.history-chart-panel,.rows-panel {
+  border-radius:var(--ds-radius-md); box-shadow:var(--ds-shadow-sm); min-width:0;
+}
+.panel:hover,.table-panel:hover,.metric-card:hover { transform:none; }
+button,.download-button,.ghost-button,.add-button,.calculate-button { min-height:44px; border-radius:var(--ds-radius-sm); }
+button:disabled { cursor:not-allowed; }
+input,select,textarea { min-height:44px; border-radius:var(--ds-radius-sm); }
+.table-scroll,.table-wrap,.industry-table-scroll,.fund-report-scroll,.comprehensive-scroll {
+  min-width:0; max-width:100%; overflow-x:auto; overscroll-behavior-inline:contain;
+}
+.empty-state,.empty-row { font-size:14px; line-height:1.9; }
+.ds-link-button { display:inline-flex; align-items:center; justify-content:center; min-height:44px; padding:8px 16px; border:1px solid var(--ds-line); border-radius:var(--ds-radius-sm); background:var(--ds-surface); color:var(--ds-brand); font-weight:600; }
+.ds-appearance { position:relative; min-width:44px; }
+.ds-appearance > summary { display:flex; align-items:center; justify-content:center; min-height:44px; padding:0 9px; border:1px solid var(--ds-line); border-radius:var(--ds-radius-sm); background:var(--ds-surface); color:var(--ds-ink); cursor:pointer; list-style:none; font-size:12px; }
+.ds-appearance > summary::-webkit-details-marker { display:none; }
+.ds-appearance-menu { position:absolute; z-index:60; inset-inline-end:0; top:calc(100% + 6px); width:min(270px,calc(100vw - 32px)); padding:10px; border:1px solid var(--ds-line); border-radius:var(--ds-radius-md); background:var(--ds-surface); box-shadow:var(--ds-shadow-md); }
+.ds-appearance-menu .theme-preference { min-width:0; }
+
+/* Page-level P0/P1 layout fixes. Components own scrolling; the document does not. */
+.history-shell .history-hero,.portfolio-hero {
+  margin-inline:0; padding:28px 24px!important; border-radius:var(--ds-radius-lg);
+  margin-top:16px; gap:24px; min-width:0;
+}
+.history-shell .history-hero h1 em { font-style:normal; }
+.portfolio-hero p { max-width:850px; }
+.portfolio-meta { flex-wrap:wrap; gap:8px 20px; }
+.portfolio-layout,.selected-layout { min-width:0; max-width:100%; }
+.portfolio-layout > *,.selected-layout > *,.history-hero > *,.history-chart-panel,.rows-panel { min-width:0; }
+.download-actions,.comprehensive-actions { flex-wrap:wrap; gap:8px; }
+.archive-badge { max-width:100%; }
+.archive-stats { grid-template-columns:repeat(4,minmax(0,1fr)); }
+.archive-stats > * { min-width:0; }
+.history-chart-wrap,.candle-scroll { max-width:100%; }
+.history-shell .site-footer { flex-wrap:wrap; gap:16px; }
+.options-preparation { display:grid; gap:16px; max-width:620px; }
+.options-preparation p { margin:0; color:inherit; }
+.options-preparation .options-cta { display:inline-flex; align-items:center; width:fit-content; min-height:44px; padding:8px 18px; border-radius:var(--ds-radius-sm); background:var(--ds-accent); color:#102b30; font-weight:700; }
+.options-section { min-height:0; }
+.ds-page-heading { margin:24px 0 16px; }
+.ds-page-heading p { font-size:14px; color:var(--ds-muted); margin:0; }
+#median-history > .ds-history-heading { margin-block:24px; }
+html[data-embedded="true"] #median-history > .topbar { display:none!important; }
+html[data-embedded="true"] body { padding-bottom:0; }
+#median-history-frame,#history-tab-panel { max-width:100%; min-width:0; }
+
+
+/* Tablet/phone: all eight destinations remain in the fixed top shell.
+   Horizontal scrolling belongs ONLY to this nav and to table wrappers. */
+@media(max-width:1100px) {
+  html body header.topbar:has(.main-nav),html body .topbar:not(.menu-open) {
+    height:auto!important; min-height:108px!important; flex-wrap:wrap; gap:0 12px;
+    align-content:center; padding-block:8px 0!important;
+  }
+  html body .topbar .brand { flex:1 1 auto; }
+  html body .topbar .brand-copy small { display:none; }
+  html body .topbar .topbar-actions { flex:0 1 190px; }
+  html body .topbar .market-state { max-width:145px; font-size:12px; }
+  html body .topbar .main-nav,html body .topbar:not(.menu-open) .main-nav {
+    display:flex!important; position:static!important; order:10; flex:0 0 100%;
+    width:100%; height:48px; min-height:48px; padding:0; margin:8px 0 0;
+    overflow-x:auto; overflow-y:hidden; justify-content:flex-start; gap:18px;
+    border:0; border-top:1px solid var(--ds-line); border-radius:0; background:transparent;
+    box-shadow:none; scrollbar-width:thin;
+  }
+  html body .topbar .main-nav a { height:44px; min-height:44px; min-width:44px; padding:0 3px; font-size:13px; justify-content:center; }
+  .ds-appearance-menu { top:calc(100% + 56px); }
+  html { scroll-padding-top:124px; }
+  .daily-overview-pair,.selected-layout { grid-template-columns:minmax(0,1fr); }
+}
+@media(max-width:720px) {
+  html body .shell,html body .wrap:has(.topbar) { width:calc(100% - 24px); }
+  html body .topbar .brand { flex:1 1 140px; }
+  html body .topbar .brand-copy b { font-size:12px; }
+  html body .topbar .sorena-logo-mark { width:32px; height:32px; flex-basis:32px; }
+  html body .topbar .sorena-logo-mark svg { width:26px; height:26px; }
+  html body .topbar .topbar-actions { flex:0 1 160px; }
+  html body .topbar .market-state { max-width:110px; font-size:12px; }
+  .ds-appearance > summary { font-size:12px; padding-inline:7px; }
+  body:has(> .mobile-nav):not(.history-tab-active) { padding-bottom:calc(96px + env(safe-area-inset-bottom)); }
+  html { scroll-padding-bottom:calc(96px + env(safe-area-inset-bottom)); }
+  main { scroll-margin-bottom:calc(96px + env(safe-area-inset-bottom)); }
+  .mobile-nav { grid-template-columns:repeat(5,minmax(0,1fr)); background:var(--ds-surface); }
+  .mobile-nav a { font-size:12px; color:var(--ds-muted); }
+  .mobile-nav a,.phone-nav a { min-height:52px; }
+  .history-shell .history-hero,.portfolio-hero { margin-inline:0; padding:24px 16px!important; }
+  .history-shell .history-hero { flex-direction:column; }
+  .archive-stats { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .selected-heading,.selector-panel { flex-wrap:wrap; }
+  .portfolio-layout { grid-template-columns:minmax(0,1fr); }
+  .options-section { padding:32px 20px!important; }
+  .daily-overview-pair .section-heading { min-height:0; }
+}
+/* Readability floor for legacy route-local helper copy. Keep provenance visible, never shrink it to fit. */
+.archive-strip button,
+.archive-strip span,
+.archive-trend-head span,
+.selector-copy,
+.selector-copy p,
+#industryCaption,
+.industry-caption,
+.dossier-head .meta { font-size:12px!important; line-height:1.5; }
+
+@media(prefers-reduced-motion:reduce) {
+  *,*::before,*::after { scroll-behavior:auto!important; transition:none!important; animation:none!important; }
+}

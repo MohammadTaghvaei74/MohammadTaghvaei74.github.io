@@ -1,0 +1,30 @@
+/* History journey: compact archive context and RTL-safe export controls. */
+.history-shell .history-hero h1 {
+  font-size: clamp(28px, 4vw, 44px);
+  line-height: 1.5;
+  letter-spacing: 0;
+}
+.history-shell .pj-history-steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 24px;
+  margin: 16px 0 0;
+  padding-inline-start: 24px;
+  color: inherit;
+  font-size: 12px;
+  line-height: 1.8;
+}
+.history-shell .pj-history-steps li {
+  padding-inline-end: 8px;
+}
+.history-shell .download-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  max-width: 100%;
+}
+.history-shell .download-actions .copy-button {
+  min-height: 44px;
+  padding: 10px 14px;
+}

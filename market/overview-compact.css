@@ -1,0 +1,155 @@
+/* Overview-only pre-chart density. Load after design-system.css and optional
+   modules, on /market/ only. No DOM moves, timestamp edits, chart sizing, or
+   document overflow masks. Status text/roles remain owned by observation-ui.js. */
+
+/* Join the source timestamp and transport explanation into one quiet status
+   band. The source row wraps naturally; the transport row is subordinate, not
+   a second alert box. Per-chart clocks remain the source of section freshness. */
+.shell:has(> #overview) > .data-freshness {
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:flex-start;
+  align-items:baseline;
+  gap:var(--ds-space-1,4px) var(--ds-space-2,8px);
+  margin-block:var(--ds-space-2,8px) 0;
+  padding:var(--ds-space-1,4px) var(--ds-space-3,12px);
+  min-width:0;
+  border:1px solid var(--ds-line,#d6e1d9);
+  border-radius:var(--ds-radius-sm,8px);
+  background:var(--ds-surface-muted,#eef4ea);
+  color:var(--ds-muted,#536b68);
+  line-height:1.6;
+}
+.shell:has(> #overview > #dataTransportStatus) > .data-freshness {
+  border-bottom:0;
+  border-end-start-radius:0;
+  border-end-end-radius:0;
+}
+.shell:has(> #overview) > .data-freshness::before {
+  /* A permanently green dot does not describe data freshness. */
+  content:none;
+}
+.shell:has(> #overview) > .data-freshness :is(.data-freshness-label,time) {
+  min-width:0;
+  max-width:100%;
+  color:inherit;
+  white-space:normal;
+  overflow-wrap:anywhere;
+}
+.shell:has(> #overview) > .data-freshness time {
+  color:var(--ds-ink,#102b30);
+  font-variant-numeric:tabular-nums;
+}
+#overview > #dataTransportStatus {
+  /* Inline legacy styles require these narrow overrides. */
+  margin:0!important;
+  padding:0 var(--ds-space-3,12px) var(--ds-space-1,4px)!important;
+  border:1px solid var(--ds-line,#d6e1d9)!important;
+  border-top:0!important;
+  border-radius:0 0 var(--ds-radius-sm,8px) var(--ds-radius-sm,8px)!important;
+  line-height:1.6!important;
+  min-width:0;
+  overflow-wrap:anywhere;
+}
+#overview > #dataTransportStatus[data-state="live"] {
+  background:var(--ds-surface-muted,#eef4ea)!important;
+  color:var(--ds-muted,#536b68)!important;
+}
+/* A fallback/error is not healthy. Keep its text and warning/error treatment. */
+#overview > #dataTransportStatus:is([data-state="fallback"],[data-state="stale"],[data-state="error"]) {
+  padding-block:var(--ds-space-1,4px)!important;
+  border-inline-start:3px solid currentColor!important;
+}
+
+#overview > .daily-overview-pair {
+  margin-block-start:var(--ds-space-3,12px);
+  row-gap:var(--ds-space-4,16px);
+}
+#overview > .daily-overview-pair > :is(#turnover-section,#price-distribution) {
+  min-width:0;
+  padding-block-start:0;
+  margin-block-start:0;
+}
+#overview > .daily-overview-pair > section > .section-heading {
+  display:flex;
+  flex-direction:column;
+  align-items:stretch;
+  justify-content:flex-start;
+  gap:var(--ds-space-1,4px);
+  min-height:0;
+  margin:0 0 var(--ds-space-2,8px);
+  padding:0;
+  direction:rtl;
+  text-align:start;
+}
+#overview > .daily-overview-pair > section > .section-heading > div {
+  min-width:0;
+}
+#overview > .daily-overview-pair > section > .section-heading h2 {
+  margin:0;
+  max-inline-size:38ch;
+  font-size:clamp(18px,1.5vw,22px);
+  line-height:1.45;
+  text-wrap:balance;
+}
+#overview > .daily-overview-pair > section > .section-heading p {
+  margin:0;
+  max-inline-size:76ch;
+  line-height:1.6;
+  white-space:normal;
+  overflow-wrap:anywhere;
+  /* No line-clamp: source qualifications must remain readable in full. */
+}
+#overview > .daily-overview-pair > section > .section-heading > div > p {
+  margin-block-start:var(--ds-space-1,4px);
+}
+#overview > .daily-overview-pair #turnoverStatus {
+  color:var(--ds-muted,#536b68);
+}
+/* Preserve the existing chart wrappers, SVG geometry and status colors. Only
+   tighten the small strip above each of the two first plots. */
+#overview > .daily-overview-pair > section > .panel > .chart-wrap > .observation-clock {
+  min-height:0;
+  margin-block:0 var(--ds-space-1,4px);
+  padding-block:var(--ds-space-1,4px);
+  line-height:1.6;
+}
+/* Healthy is useful as text, not as a second green alert card. Keep stale,
+   unknown, and error states visually explicit through the existing vocabulary. */
+#overview > .daily-overview-pair > section > .panel > .chart-wrap > .observation-clock[data-status="fresh"] {
+  padding-inline:0;
+  border-color:transparent;
+  background:transparent;
+  color:var(--ds-muted,#536b68);
+}
+#overview > .daily-overview-pair > section > .panel > .chart-wrap > .observation-clock[data-status="fresh"]::before {
+  content:"";
+  display:inline-block;
+  inline-size:6px;
+  block-size:6px;
+  margin-inline-end:5px;
+  border-radius:50%;
+  background:var(--ds-positive,#28754e);
+  vertical-align:middle;
+}
+@media(max-width:760px) {
+  #overview > .daily-overview-pair > section > .section-heading h2 {
+    max-inline-size:none;
+  }
+}
+/* DS collapses the pair at 1100px; legacy subgrid still spans two rows from
+   761px. Explicit independent rows avoid a tablet-only empty heading track. */
+@media(min-width:761px) and (max-width:1100px) {
+  #overview > .daily-overview-pair {
+    grid-template-rows:none;
+  }
+  #overview > .daily-overview-pair > section {
+    grid-row:auto;
+    grid-template-rows:auto auto;
+  }
+}
+/* Do not repeat a healthy global label above the actual section clocks.
+   Unknown/stale labels and all source timestamps remain visible. */
+.shell:has(> #overview) .market-state[data-observation-health="fresh"] { display:none; }
+/* Above 1100px the original shared heading row/subgrid keeps chart tops aligned. */
+

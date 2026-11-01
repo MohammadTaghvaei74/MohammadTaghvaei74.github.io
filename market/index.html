@@ -1,6 +1,7 @@
 <!doctype html>
 <html lang="fa" dir="rtl">
   <head>
+<script>!function(){var p='system',e=document.documentElement;try{var v=localStorage.getItem('sorena-theme');p=['light','dark','system'].indexOf(v)<0?'system':v}catch(_){}try{var d=typeof matchMedia==='function'&&matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light',t=p==='system'?d:p;e.dataset.theme=t;e.dataset.themePreference=p;e.style.colorScheme=t}catch(_){} }();</script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#f4f6ef" />
@@ -33,6 +34,17 @@
       })();
     </script>
   <link rel="stylesheet" href="history-tab.css?v=compact-overview-20261101-1">
+  <link rel="stylesheet" href="design-system.css?v=rollout-1">
+  <script src="design-system.js?v=rollout-1" defer></script>
+<link rel="stylesheet" href="design-extras.css?v=rollout-1">
+<link rel="stylesheet" href="data-interactions.css?v=rollout-1">
+<link rel="stylesheet" href="market-summary.css?v=summary-1">
+<script src="market-summary.js?v=summary-1" defer></script>
+<link rel="stylesheet" href="theme-preference.css?v=rollout-1">
+<script src="theme-preference.js?v=rollout-1" defer></script>
+<script src="theme-init.js?v=rollout-1" defer></script>
+<script src="design-extras.js?v=rollout-1" defer></script>
+<script src="data-interactions.js?v=rollout-1" defer></script>
 </head>
   <body>
     <div class="shell">
@@ -43,7 +55,7 @@
         </a>
         <nav class="main-nav" id="mobileMainNav" aria-label="ناوبری اصلی"><a class="active" aria-current="page" href="#overview">نمای کلی</a><a href="signals/">سیگنال‌ها</a><a href="symbols/">سهام</a><a href="industries/">صنایع</a><a href="options/">آپشن</a><a href="/market/funds/">صندوق‌ها</a><a href="portfolio/">امتیاز پرتفو</a><a data-history-tab="true" href="#history">تاریخچه</a></nav><button class="mobile-menu-toggle" id="mobileMenuToggle" type="button" aria-expanded="false" aria-controls="mobileMainNav">☰ منو</button>
                     <div class="topbar-actions">
-          <span class="market-state"><i></i><span id="marketState">داده زنده</span></span>
+          <span class="market-state"><i></i><span id="marketState">در حال دریافت داده</span></span>
           <button class="refresh-button" id="refreshButton" type="button" aria-label="به‌روزرسانی داده">↻</button>
         </div>
       </header>
@@ -58,14 +70,14 @@
         <section id="turnover-section" class="content-section" aria-labelledby="turnoverTitle">
           <div class="section-heading"><div><h2 id="turnoverTitle">ارزش معاملات سهام و صندوق‌های اهرمی</h2><p>فقط سهام عادی + همه صندوق‌های اهرمی · همت (هزار میلیارد تومان) · فقط روزهای نهایی‌شده</p></div><p id="turnoverStatus" role="status">در حال دریافت تاریخچه…</p></div>
           <article class="panel turnover-panel">
-            <div class="chart-wrap"><svg id="turnoverChart" viewBox="0 0 1200 440" role="img" aria-label="ارزش معاملات روزانه به همت با میانگین ۵ و ۲۰ روز معاملاتی"></svg></div>
+            <div class="chart-wrap"><svg id="turnoverChart" viewBox="0 0 1200 440" role="img" aria-label="ارزش معاملات روزانه به همت با میانگین ۵ و ۲۰ روز معاملاتی"></svg><p class="chart-state" role="status">در حال دریافت داده نمودار؛ هنوز مقدار معتبری دریافت نشده است.</p></div>
             <div class="chart-legend"><span><i style="background:#2686c5;width:12px;height:12px;display:inline-block"></i> ارزش معاملات روزانه</span><span><i class="legend-line" style="background:#ed8b23"></i> میانگین ۵ روزه</span><span><i class="legend-line" style="background:#b642c9"></i> میانگین ۲۰ روزه</span></div>
           </article>
         </section>
         <section id="price-distribution" class="content-section price-distribution-section" aria-labelledby="priceDistributionTitle">
           <div class="section-heading"><div><h2 id="priceDistributionTitle">توزیع سهام بر اساس تغییر آخرین معامله</h2></div></div>
           <article class="panel price-distribution-panel">
-            <div class="chart-wrap"><svg id="priceDistributionChart" viewBox="0 0 1200 460" role="img" aria-label="تعداد سهام در بازه‌های یک درصدی تغییر آخرین معامله"></svg></div>
+            <div class="chart-wrap"><svg id="priceDistributionChart" viewBox="0 0 1200 460" role="img" aria-label="تعداد سهام در بازه‌های یک درصدی تغییر آخرین معامله"></svg><p class="chart-state" role="status">در حال دریافت داده نمودار؛ هنوز مقدار معتبری دریافت نشده است.</p></div>
           </article>
         </section>
         </div>
@@ -73,12 +85,12 @@
         <section class="dashboard-grid top-charts" aria-label="روندهای درون‌روزی بازار">
           <article class="panel queue-chart-panel">
             <div class="panel-heading"><div><h2>ارزش صف‌ها</h2></div></div>
-            <div class="chart-wrap"><svg id="queueChart" viewBox="0 0 1200 460" role="img" aria-label="روند ارزش صف خرید و صف فروش"></svg></div>
+            <div class="chart-wrap"><svg id="queueChart" viewBox="0 0 1200 460" role="img" aria-label="روند ارزش صف خرید و صف فروش"></svg><p class="chart-state" role="status">در حال دریافت داده نمودار؛ هنوز مقدار معتبری دریافت نشده است.</p></div>
             <div class="chart-legend"><span><i class="legend-line buy-line"></i> مجموع ارزش صف خرید</span><span><i class="legend-line sell-line"></i> مجموع ارزش صف فروش</span></div>
           </article>
           <article class="panel pulse-panel">
             <div class="panel-heading"><div><h2>امتیاز کل بازار</h2></div></div>
-            <div class="chart-wrap"><svg id="marketChart" viewBox="0 0 1200 560" role="img" aria-label="روند درون‌روزی امتیاز لیدرها و کل بازار"></svg></div>
+            <div class="chart-wrap"><svg id="marketChart" viewBox="0 0 1200 560" role="img" aria-label="روند درون‌روزی امتیاز لیدرها و کل بازار"></svg><p class="chart-state" role="status">در حال دریافت داده نمودار؛ هنوز مقدار معتبری دریافت نشده است.</p></div>
             <div class="chart-legend"><span><i class="legend-line leaders-line"></i> امتیاز لیدرها</span><span><i class="legend-line market-line"></i> امتیاز کل بازار</span></div>
           </article>
         </section>
@@ -86,7 +98,7 @@
         <section class="content-section queue-count-section" aria-labelledby="queueCountTitle">
           <div class="section-heading"><div><h2 id="queueCountTitle">تعداد صف‌های بازار</h2></div><p>هر نقطه، تعداد نمادهای دارای صف خرید یا صف فروش در همان دقیقه است.</p></div>
           <article class="panel queue-count-panel">
-            <div class="chart-wrap"><svg id="queueCountChart" viewBox="0 0 1200 460" role="img" aria-label="روند دقیقه‌ای تعداد صف خرید و صف فروش"></svg></div>
+            <div class="chart-wrap"><svg id="queueCountChart" viewBox="0 0 1200 460" role="img" aria-label="روند دقیقه‌ای تعداد صف خرید و صف فروش"></svg><p class="chart-state" role="status">در حال دریافت داده نمودار؛ هنوز مقدار معتبری دریافت نشده است.</p></div>
             <div class="chart-legend"><span><i class="legend-line buy-line"></i> تعداد صف خرید</span><span><i class="legend-line sell-line"></i> تعداد صف فروش</span></div>
           </article>
         </section>
@@ -159,7 +171,7 @@
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
     <script async src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
     <script src="core.js?v=integer-axis-20261101" defer></script>
-    <script src="app-fast-recovery-20261024-axis.js?v=money-where-expiry-reset-1" defer></script>
+    <script src="app-fast-recovery-20261024-axis.js?v=rollout-2-summary-1" defer></script>
     <script src="ranking.js?v=queue-no-unit-3a82a231" defer></script>
     <script src="sortable-tables.js?v=three-state-2" defer></script>
     <script src="comprehensive-table.js?v=preset-controls-20261031-2" defer></script>
