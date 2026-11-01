@@ -71,8 +71,11 @@ def main():
                 try:
                     if args.mode == 'live':
                         # Live freshness is authoritative; record current gate state and exercise controls only when enabled.
-                        record['expected_enabled']=button.is_enabled()
+                        record['expected_enabled']=state['status']=='fresh'
+                        assert button.is_enabled()==record['expected_enabled'], record
                         if button.is_enabled(): record.update(controls(page))
+                        else: record['blocked_by_freshness']=True
+                        if button.is_enabled(): assert record['total'] > 0, record
                         else: expect(button).to_have_attribute('aria-pressed','false')
                     else:
                         assert button.is_enabled()==enabled, record
