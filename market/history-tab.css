@@ -29,3 +29,14 @@ body.history-tab-active .main-nav a[data-history-tab]::after { width: 100%; }
   }
   .topbar .mobile-menu-toggle { display: none !important; }
 }
+
+/* Compact mobile navigation: one touch-scroll row preserves every fixed tab. */
+@media (max-width: 720px) {
+  .topbar:has(.main-nav), .market-header:has(.main-nav) { height: auto !important; min-height: 58px !important; flex-wrap: wrap; gap: 0; padding-top: 0; padding-bottom: 0; }
+  .topbar .main-nav, .market-header .main-nav, .topbar.menu-open .main-nav { display: flex !important; position: static !important; order: 10; flex: 0 0 100%; width: 100%; height: 34px; min-height: 34px; padding: 0; margin: 0; gap: 18px; background: transparent; border: 0; box-shadow: none; overflow-x: auto; overflow-y: hidden; justify-content: flex-start; }
+  .topbar .main-nav a, .market-header .main-nav a, .topbar.menu-open .main-nav a { flex: 0 0 auto; height: 34px; min-width: max-content; padding: 0 2px; justify-content: center; font-size: 11px; border: 0; }
+  .topbar .mobile-menu-toggle { display: none !important; }
+}
+/* Live transport is useful context, not a full-width alert; stale/error states retain emphasis. */
+#dataTransportStatus { padding: 4px 8px !important; margin: 4px 0 !important; border: 0 !important; border-inline-start: 3px solid #a9c0b4 !important; border-radius: 0 !important; background: transparent !important; color: #58706a !important; font-size: 10px !important; line-height: 1.5 !important; }
+#dataTransportStatus[data-state=stale], #dataTransportStatus[data-state=error] { border-inline-start-color: #c8873f !important; color: #895b24 !important; }
