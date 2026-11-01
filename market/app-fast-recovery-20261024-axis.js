@@ -659,6 +659,13 @@
     if (presetButton) presetButton.setAttribute("aria-pressed", activeIndustryPreset === "money-where" ? "true" : "false");
   }
   const industryPresetButton = document.querySelector('[data-industry-preset="money-where"]');
+  if (industryPresetButton) industryPresetButton.addEventListener("observation:preset-unavailable", () => {
+    activeIndustryPreset = null;
+    industryColumnFilters.rank[0] = {op: "<", value: ""};
+    industryColumnFilters.turnover[0] = {op: "<", value: ""};
+    bindIndustryColumnFilters();
+    if (currentData) renderIndustries(currentData);
+  });
   if (industryPresetButton) industryPresetButton.addEventListener("click", () => {
     activeIndustryPreset = activeIndustryPreset === "money-where" ? null : "money-where";
     const rankFilter = industryColumnFilters.rank[0];

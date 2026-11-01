@@ -140,13 +140,21 @@
      const blocksPreset=!comprehensive && !safe;
      button.disabled=blocksPreset;button.setAttribute('aria-disabled',String(blocksPreset));
      button.title=safe?'فیلتر روی داده معتبر آخرین جلسه؛ زمان منبع: '+format(r.first)+'؛ توصیه لحظه‌ای نیست':comprehensive?'داده قدیمی/نامعلوم؛ فیلتر روی داده موجود اعمال می‌شود':'ناموجود: داده قدیمی یا زمان منبع نامعلوم؛ این پریست برای امروز قابل استفاده نیست';
-     if (blocksPreset) button.setAttribute('aria-pressed','false');
+     // money-where-expiry-reset-1: the renderer owns selection AND filter state.
+     const wasSelected=button.getAttribute('aria-pressed')==='true';
+     if (blocksPreset && wasSelected) button.dispatchEvent(new CustomEvent('observation:preset-unavailable'));
    });
    // A preset already selected before expiry must not leave a recommendation visible.
    ['#industriesGrid','#comprehensiveRows'].forEach(sel=>{
      const body=document.querySelector(sel);if(!body)return;
      const section=body.closest('section'), unavailable=section?.querySelector('[data-industry-preset]:disabled[aria-pressed="true"],[data-comprehensive-preset]:disabled[aria-pressed="true"]');
-     body.dataset.observationStatus=unavailable?'stale':'fresh';
+     body.dataset.observationStatus=sel==='#industriesGrid'?F.freshness(mr).status:unavailable?'stale':'fresh';
+     if(sel==='#industriesGrid') {
+       let notice=section.querySelector('[data-industry-preset-status]');
+       if(!notice){notice=document.createElement('p');notice.dataset.industryPresetStatus='';notice.setAttribute('role','status');body.closest('table').before(notice);}
+       notice.hidden=F.freshness(mr).status==='fresh';
+       notice.textContent='پریست ناموجود: داده قدیمی یا زمان منبع نامعلوم است؛ نتایج پریست لغو شده و جدول صرفاً داده موجود را نشان می‌دهد.';
+     }
      body.classList.remove('observation-blocked'); // stale recommendations are blocked at the preset control, never the current data table
      const download=section?.querySelector('#downloadComprehensiveXlsx');if(download){download.disabled=!!unavailable;download.title=unavailable?'دریافت تحلیل قدیمی یا نامعلوم مسدود است':'';}
    });
