@@ -194,7 +194,7 @@
     return {cash: cashInput ? cashInput.value : "", holdings: rows};
   }
 
-  function saveDraft() { try { localStorage.setItem(storageKey, JSON.stringify(readDraft())); } catch (_) {} }
+  function saveDraft() { calculateRevision += 1; try { localStorage.setItem(storageKey, JSON.stringify(readDraft())); } catch (_) {} }
 
   function loadDraft() {
     let draft = null;

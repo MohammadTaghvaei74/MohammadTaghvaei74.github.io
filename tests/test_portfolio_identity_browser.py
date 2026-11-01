@@ -86,7 +86,8 @@ class PortfolioBrowser(unittest.TestCase):
         self.page.click('#calculatePortfolio')
         self.page.locator('.holding-symbol').fill('اروند')
         self.page.click('#calculatePortfolio')
-        self.page.wait_for_timeout(600)
+        self.page.wait_for_function("document.querySelector('.table-symbol-edit')?.value === 'اروند'")
+        self.page.wait_for_timeout(450)
         self.assertEqual(self.page.locator('.table-symbol-edit').first.input_value(), 'اروند')
 
 if __name__ == '__main__': unittest.main(verbosity=2)
