@@ -60,6 +60,7 @@
         if(!response.ok) throw new Error('HTTP');
         const data=await response.json();
         if(!Array.isArray(data[key])) throw new Error('schema');
+        root.ObservationSafety?.accept(data);
         return data;
       };
       const results=await Promise.allSettled([get('../data/funds.json','rows'),get('../data/fund-portfolios.json','funds')]);

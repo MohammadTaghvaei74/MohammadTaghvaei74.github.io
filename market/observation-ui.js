@@ -60,10 +60,7 @@
    let el=document.getElementById('dataTransportStatus');
    if(!el){el=document.createElement('div');el.id='dataTransportStatus';el.setAttribute('role','status');el.style.cssText='padding:12px;margin:8px;border:1px solid #b98b36;border-radius:8px;line-height:1.8';(document.querySelector('main')||document.body).prepend(el);}
    el.dataset.state=state;
-   const timestamp=data?.market?.timestamp||data?.timestamp||data?.generated_at;
-   const parsed=Date.parse(timestamp), age=Number.isFinite(parsed)?Math.max(0,Math.floor((Date.now()-parsed)/60000)):null;
-   const stamp=timestamp?String(timestamp):'نامعلوم';
-   el.textContent=state==='error'?'دریافت داده از هر دو منبع ناموفق بود؛ اتصال را بررسی کنید و دکمه به‌روزرسانی را بزنید.':(state==='fallback'?'اتصال زنده در دسترس نیست؛ نمایش نسخه ذخیره‌شده همین سایت — ':'اتصال به منبع زنده؛ بررسی هر ۱۰ ثانیه — ')+'زمان snapshot: '+stamp+' · سن snapshot: '+(age===null?'نامعلوم':age+' دقیقه')+' · اعتبار هر بخش بر اساس زمان مشاهده منبع نمایش داده می‌شود.';
+   el.textContent=state==='error'?'دریافت داده ناموفق بود؛ اتصال را بررسی کنید و دوباره به‌روزرسانی کنید.':state==='fallback'?'نمایش نسخه ذخیره‌شده سایت؛ تازگی داده در هر بخش مشخص است.':'اتصال زنده برقرار است؛ تازگی داده در هر بخش مشخص است.';
  }
  function feed(suffix) { const key=Object.keys(feeds).find(k=>k.endsWith(suffix)); return key?feeds[key]:null; }
  function selectedSymbol() { return new URLSearchParams(location.search).get('symbol') || document.querySelector('#selectedSymbol')?.textContent || document.querySelector('#dossier h2')?.textContent; }
@@ -71,11 +68,16 @@
    const m=feed('/data/market.json')||{}, symbol=selectedSymbol(), current=rows(m.stocks).find(r=>r.symbol===symbol);
    const base={r:unknown(),name:'منبع این بخش',archive:false,note:''};
    const within=s=>element.matches(s)||!!element.closest(s);
+   if (within('#turnoverChart')) return {...base,r:F.dailyRange(rows(m.daily)),series:true,daily:true,name:'ارزش معاملات و میانگین‌های ۵ و ۲۰ روزه',note:'نوبت روزانه پس از پایان بازار؛ زمان از منبع تأییدشده ثبت نهایی است. میانگین‌ها تاریخی و منتهی به آخرین روز نمایش‌داده‌شده‌اند.'};
    if (within('#queueChart')) return {...base,r:range(m.queue_intraday),series:true,name:'نمونه‌های صف'};
    if (within('#marketChart')) return {...base,r:range(m.intraday),series:true,name:'نمونه‌های امتیاز'};
    if (within('#queueCountChart')) return {...base,r:range(m.queue_count_intraday),series:true,name:'نمونه‌های تعداد صف'};
    if (within('#priceDistributionChart')) return {...base,r:range(m.stocks),name:'معاملات سهام'};
-   if (within('#funds')) return {...base,r:range((feed('/data/funds.json')||m.fund_report||{}).rows),name:'تابلو / NAV / امتیاز صندوق',note:'زمان مشاهده هر ورودی باید مستقل تأیید شود؛ تاریخ پرتفو، تاریخ گزارش ماهانه است نه قیمت امروز.'};
+   if(location.pathname.includes('/funds/')) {
+        const reportDate=document.querySelector('#reportDate')?.textContent||'تاریخ اعلام نشده';
+        return {...base,r:unknown(),archive:true,name:'گزارش ماهانه پرتفو ('+reportDate+')',note:'ترکیب دارایی و NAV این بخش گزارش ماهانه است، نه قیمت یا تحلیل لحظه‌ای؛ ساعت مشاهدهٔ ردیف‌ها در منبع اعلام نشده.'};
+      }
+   if (within('#funds')) return {...base,r:unknown(),archive:true,name:'گزارش ماهانه پرتفو',note:'ترکیب دارایی و NAV این بخش گزارش ماهانه است، نه قیمت یا تحلیل لحظه‌ای؛ ساعت مشاهدهٔ ردیف‌ها در منبع اعلام نشده.'};
    if (element.querySelector('#leveragedStocks')) return {...base,r:range(m.leveraged),name:'تابلو اهرمی‌ها'};
    if (element.querySelector('#leaderStocks')) return {...base,r:range(rows(m.stocks).filter(r=>Array.from(document.querySelectorAll('#leaderStocks a')).some(a=>a.textContent.trim()===r.symbol))),name:'لیدرها'};
    if (within('#comprehensive-table')) return {...base,r:range((feed('/data/comprehensive.json')||{}).rows),name:'تابلو جدول جامع',note:'حقیقی/حقوقی: '+dateRange(rows((feed('/data/comprehensive.json')||{}).rows).map(r=>r.client_type_date))+'؛ میانگین‌ها تاریخی‌اند؛ زمان مستقل میانگین در منبع اعلام نشده.'};
@@ -96,28 +98,36 @@
      return {...base,r:range(selected.length?selected:rows(h.rows),true),archive:true,name:'آرشیو ردیف‌های روزانه',note:'تاریخ روز داده؛ ساعت مشاهده در این خروجی موجود نیست. آرشیو، داده امروز نیست.'};
    }
    if (location.pathname.includes('/signals/')) return {...base,r:range((feed('/data/signals.json')||{}).items),archive:true,name:'منبع رویدادها (نمایش فقط امروز)',note:'زمان رویداد، نه سلامت لحظه‌ای بازار؛ موارد قدیمی سیگنال امروز نیستند.'};
-   if (location.pathname.includes('/options/')) return {...base,r:range([feed('/data/options.json')||{}]),name:'سرخط آپشن'};
+   if (location.pathname.includes('/options/')) { const options=feed('/data/options.json')||{}; return {...base,r:range([{timestamp:options.source_at||options.timestamp||null}]),name:'سرخط آپشن',note:'تازگی بر اساس زمان منبع TSETMC سنجیده می‌شود؛ زمان تولید فایل معیار نیست.'}; }
    if (location.pathname.includes('/portfolio/')) return {...base,r:element.querySelector('#marketMedian')?range([m.market||{}]):range(F.portfolioRows),name:'ورودی‌های واقعی نتیجه پرتفو',note:'چندمنبعی: صندوق / دارایی ویژه / تاریخچه ممکن است زمان دیگری داشته باشند؛ زمان همه ورودی‌های نتیجه تأیید نشده.'};
    if (location.pathname.includes('/symbols/')) return {...base,r:range(m.stocks),name:'فهرست سهام',note:'آرشیو و تابلو منابع جدا دارند.'};
    return base;
  }
  function dateRange(values) { const v=[...new Set(values.filter(Boolean))].sort();return v.length?v[0]+(v.length>1?' تا '+v[v.length-1]:''):'نامعلوم'; }
  function format(v) { if (!v) return 'نامعلوم';const d=new Date(v);return d.toLocaleDateString('fa-IR',{timeZone:'Asia/Tehran',year:'numeric',month:'2-digit',day:'2-digit'})+(String(v).includes('T')?' '+d.toLocaleTimeString('fa-IR',{timeZone:'Asia/Tehran',hour:'2-digit',minute:'2-digit',second:'2-digit'}):' (بدون ساعت)'); }
- function status(d) { return d.r.unknown?'unknown':d.archive||d.series?F.state(d.r.last):F.rangeState(d.r); }
+ function status(d) { return F.freshness(d.r,d); }
+ function message(d,result) {
+   const s=result.status, stamp=result.timestamp;
+   const time=stamp?format(stamp):'';
+   if(s==='archive')return 'آرشیو تاریخی — '+d.name+(time?'؛ آخرین داده: '+time:'؛ ساعت مشاهده در منبع اعلام نشده')+' · تهران';
+   if(s==='unknown')return 'زمان داده این بخش قابل تأیید نیست — '+d.name+(time?'؛ آخرین زمان شناخته‌شده: '+time:'')+'؛ زمان انتشار فایل، زمان داده نیست.';
+   const prefix=s==='fresh'?(result.expected.live?'✓ داده این بخش به‌روز است (حداکثر ۶۰ ثانیه تأخیر)':'✓ داده این بخش تا آخرین نوبت مورد انتظار به‌روز است'):'⚠ داده این بخش به‌روز نیست';
+   return prefix+' — '+d.name+'؛ آخرین داده: '+time+' · تهران';
+ }
  function paint() {
    scheduled=false;observer.disconnect();
    document.querySelectorAll('main table,main svg[role="img"],.metric-group,.score-card,.archive-stats,#list,#options,.archive-strip,#scoreChart').forEach(el=>{
      let host=el;
      if (el.tagName==='TABLE') host=el.closest('.table-scroll')||el.parentElement;
      if (el.tagName.toLowerCase()==='svg') host=el.parentElement;
-     const d=description(el), s=status(d);
+     const d=description(el), result=status(d), s=result.status;
      host.dataset.observationStatus=s;
      let badge=Array.from(host.children).find(x=>x.classList.contains('observation-clock'));
      if (!badge) { badge=document.createElement('small');badge.className='observation-clock';host.prepend(badge); }
      badge.dataset.status=s;
-     const label=d.archive?'آرشیو — ':s==='fresh'?'مشاهده منبع — ':s==='stale'?'⚠ داده قدیمی؛ تحلیل امروز ناموجود — ':'⚠ زمان منبع نامعلوم؛ تحلیل امروز ناموجود — ';
-     badge.textContent=label+d.name+': '+format(d.r.first)+(d.r.last&&d.r.last!==d.r.first?' تا '+format(d.r.last):'')+(d.r.unknown&&d.r.first?'؛ بخشی نامعلوم':'')+' · تهران';
-     badge.title=(d.note?d.note+' · ':'')+'زمان مشاهده داده، نه انتشار فایل یا بارگذاری صفحه. اعتبار تحلیل لحظه‌ای حداکثر ۲ دقیقه و فقط روز جاری تهران است.';
+     badge.dataset.sourceAt=result.timestamp||'';
+     badge.textContent=message(d,result);
+     badge.title=(d.note?d.note+' · ':'')+'زمان واقعی منبع؛ بازار باز: حداکثر ۶۰ ثانیه؛ بسته: پایان آخرین جلسه معاملاتی. تازگی داده به معنی اعتبار توصیه لحظه‌ای نیست.';
    });
    const m=feed('/data/market.json')||{}, mr=range(m.stocks), marketSafe=F.rangeState(mr)==='fresh';
    document.querySelectorAll('[data-industry-preset],[data-comprehensive-preset]').forEach(button=>{
@@ -139,10 +149,11 @@
      body.classList.remove('observation-blocked'); // stale recommendations are blocked at the preset control, never the current data table
      const download=section?.querySelector('#downloadComprehensiveXlsx');if(download){download.disabled=!!unavailable;download.title=unavailable?'دریافت تحلیل قدیمی یا نامعلوم مسدود است':'';}
    });
-   document.querySelectorAll('.market-state').forEach(el=>{el.dataset.observationHealth=marketSafe?'fresh':'stale';});
-   const state=document.querySelector('#marketState');if(state&&!marketSafe) state.textContent='داده قدیمی یا نامعلوم — تحلیل لحظه‌ای ناموجود';
+   const summary={r:mr,name:'تابلو سهام'}, health=status(summary);
+   document.querySelectorAll('.market-state').forEach(el=>{el.dataset.observationHealth=health.status;});
+   const state=document.querySelector('#marketState');if(state) state.textContent=message(summary,health);
    if(location.pathname.includes('/portfolio/') && window.enforcePortfolioObservation) window.enforcePortfolioObservation();
-   document.querySelectorAll('#sourceStatus,#availability').forEach(el=>{if(!marketSafe)el.textContent='داده قدیمی یا نامعلوم · '+format(F.observation(m.market));});
+   document.querySelectorAll('#sourceStatus,#availability').forEach(el=>{el.textContent=message(summary,health);el.dataset.observationStatus=health.status;});
    observer.observe(document.body,{childList:true,subtree:true});
  }
  function schedule() {if(!scheduled){scheduled=true;setTimeout(paint,0);}}

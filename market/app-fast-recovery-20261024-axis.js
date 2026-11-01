@@ -790,6 +790,7 @@ const LIVE_DATA_ORIGIN = new URL('/market/', location.origin).href;
     try {
       const comprehensive = await fetchJson("data/comprehensive.json?cb=" + String(Date.now()), "no-store");
       if (currentData && typeof window.dispatchEvent === "function") {
+        window.ObservationSafety.accept(comprehensive);
         const detail = {...currentData, observationPayload: comprehensive, comprehensive_stocks: Array.isArray(comprehensive.rows) ? comprehensive.rows : [], comprehensive_meta: comprehensive.meta || {}};
         const event = typeof window.CustomEvent === "function" ? new window.CustomEvent("market:snapshot", {detail}) : null;
         if (event) window.dispatchEvent(event);
