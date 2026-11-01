@@ -64,6 +64,9 @@ def main():
                 page.goto(URL,wait_until='domcontentloaded',timeout=60000)
                 page.wait_for_selector('#industriesGrid',state='attached',timeout=30000)
                 page.wait_for_function('document.querySelector("#industries .observation-clock")?.dataset.sourceAt !== undefined')
+                if args.mode == 'live' or stamp:
+                    page.wait_for_selector('#industriesGrid a', timeout=20000)
+                    page.wait_for_function('Boolean(document.querySelector("#industries .observation-clock")?.dataset.sourceAt)')
                 page.wait_for_timeout(500)
                 button=page.locator(PRESET)
                 state=page.locator('#industries .observation-clock').evaluate('(e)=>({status:e.dataset.status,source:e.dataset.sourceAt,text:e.innerText})')
