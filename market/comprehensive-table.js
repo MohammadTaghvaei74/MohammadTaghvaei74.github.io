@@ -103,9 +103,9 @@
     if (sortDirection !== "none") result.sort(compare);
     return result;
   }
-  function metricCell(value, type, sortValue) {
+  function metricCell(value, type, sortValue, title) {
     const label = type === "billion" ? formatBillion(value) : type === "million0" ? (num(value) == null ? "—" : digits(Math.round(num(value) / 1e6).toLocaleString("fa-IR"))) : type === "pct1" ? signedPctMarkup(value, 1) : type === "pct0" ? signedPctMarkup(value, 0) : type === "position" ? (num(value) == null ? "—" : `<strong>${digits(num(value))}</strong> <span class="percent-unit">٪</span>`) : type === "industry" ? (value || "—") : type === "score" ? signedScore(value) : format(value, type === "power" ? 1 : 1);
-    return `<td data-sort-value="${sortValue == null ? "" : esc(sortValue)}"><bdi>${label.indexOf("<") >= 0 ? label : esc(label)}</bdi></td>`;
+    return `<td data-sort-value="${sortValue == null ? "" : esc(sortValue)}"${title ? ` title="${esc(title)}"` : ""}><bdi>${label.indexOf("<") >= 0 ? label : esc(label)}</bdi></td>`;
   }
   function mergeSnapshotRows(detail) {
     const sourceRows = Array.isArray(detail.comprehensive_stocks) ? detail.comprehensive_stocks : [];
@@ -130,10 +130,18 @@
     });
   }
 
+  function scoreHistoryCell(row) {
+    const coverage = Array.isArray(row.score_10d_coverage) ? row.score_10d_coverage : [];
+    const days = row.score_10d_days || 0, expected = row.score_10d_expected_count || 10;
+    const partial = coverage.filter((d) => d.partial).length;
+    const title = 'جمع میانه امتیاز دقیقه‌ای هر روز؛ بدون جایگزینی داده مفقود با صفر. ' + coverage.map((d) => `${d.day}: ${d.minute_count}/${d.expected_minutes} دقیقه؛ میانه ${d.median}`).join(' | ');
+    const note = `${digits(days)}/${digits(expected)} روز${partial ? ` · ${digits(partial)} روز کم‌داده` : ''}`;
+    return metricCell(row.score_10d_total, 'score', row.score_10d_total, title).replace('</td>', `<small class="score-history-coverage" style="display:block;font-size:10px;white-space:nowrap">${note}</small></td>`);
+  }
   function render() {
     const display = displayedRows();
     lastRendered = display;
-    body.innerHTML = display.map((row) => `<tr><td class="comprehensive-symbol"><a href="symbols/?symbol=${encodeURIComponent(row.symbol || "")}">${esc(row.symbol)}</a></td>${metricCell(row.industry, "industry", row.industry)}${metricCell(row.score, "score", row.score)}${metricCell(row.score_10d_total, "score", row.score_10d_total)}${metricCell(positionPercent(row.score_rank, row.score_rank_total), "position", positionPercent(row.score_rank, row.score_rank_total))}${metricCell(positionPercent(row.industry_score_rank, row.industry_score_rank_total), "position", positionPercent(row.industry_score_rank, row.industry_score_rank_total))}${metricCell(row.avg_trade_value_toman, "billion", row.avg_trade_value_toman)}${metricCell(row.last_close_diff_pct, "pct1", row.last_close_diff_pct)}${metricCell(row.queue_value_toman, "billion", row.queue_value_toman)}${metricCell(row.buy_per_capita_toman, "million0", row.buy_per_capita_toman)}${metricCell(row.buyer_power, "power", row.buyer_power)}${metricCell(row.legal_buy_pct, "pct0", row.legal_buy_pct)}${metricCell(row.legal_sell_pct, "pct0", row.legal_sell_pct)}</tr>`).join("") || `<tr><td colspan="13" class="comprehensive-empty">با این فیلتر داده‌ای پیدا نشد.</td></tr>`;
+    body.innerHTML = display.map((row) => `<tr><td class="comprehensive-symbol"><a href="symbols/?symbol=${encodeURIComponent(row.symbol || "")}">${esc(row.symbol)}</a></td>${metricCell(row.industry, "industry", row.industry)}${metricCell(row.score, "score", row.score)}${scoreHistoryCell(row)}${metricCell(positionPercent(row.score_rank, row.score_rank_total), "position", positionPercent(row.score_rank, row.score_rank_total))}${metricCell(positionPercent(row.industry_score_rank, row.industry_score_rank_total), "position", positionPercent(row.industry_score_rank, row.industry_score_rank_total))}${metricCell(row.avg_trade_value_toman, "billion", row.avg_trade_value_toman)}${metricCell(row.last_close_diff_pct, "pct1", row.last_close_diff_pct)}${metricCell(row.queue_value_toman, "billion", row.queue_value_toman)}${metricCell(row.buy_per_capita_toman, "million0", row.buy_per_capita_toman)}${metricCell(row.buyer_power, "power", row.buyer_power)}${metricCell(row.legal_buy_pct, "pct0", row.legal_buy_pct)}${metricCell(row.legal_sell_pct, "pct0", row.legal_sell_pct)}</tr>`).join("") || `<tr><td colspan="13" class="comprehensive-empty">با این فیلتر داده‌ای پیدا نشد.</td></tr>`;
     const count = document.querySelector("#comprehensiveCount"); if (count) count.textContent = `${digits(display.length.toLocaleString("fa-IR"))} نماد از ${digits(rows.length.toLocaleString("fa-IR"))}`;
     table.querySelectorAll("thead tr:first-child th").forEach((header) => { const active = header.dataset.sortKey === sortKey && sortDirection !== "none"; header.setAttribute("aria-sort", active ? (sortDirection === "asc" ? "ascending" : "descending") : "none"); header.dataset.sortState = active ? sortDirection : "none"; });
     document.querySelectorAll("[data-comprehensive-preset]").forEach((button) => { const selected = button.dataset.comprehensivePreset === activePreset; button.setAttribute("aria-pressed", selected ? "true" : "false"); });

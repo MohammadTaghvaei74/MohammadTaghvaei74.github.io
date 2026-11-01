@@ -17,98 +17,35 @@ try:
 except ImportError:
     from queue_data import average_turnovers
 
-TARGET_TIMES = ("10:00", "11:00", "12:00")
+try:
+    from .score_daily import finite as _finite
+except ImportError:
+    from score_daily import finite as _finite
+
+TARGET_TIMES = ()
 HISTORY_DAYS = 10
-
-
-def _finite(value: Any) -> float | None:
-    if value is None or isinstance(value, bool):
-        return None
-    try:
-        result = float(value)
-    except (TypeError, ValueError, OverflowError):
-        return None
-    return result if math.isfinite(result) else None
-
+CONTRACT_VERSION = "score_10d_daily_median_v1"
 
 def _complete_days(conn, latest_day: str, limit: int = HISTORY_DAYS) -> list[str]:
-    rows = conn.execute(
-        "SELECT day FROM v2_days WHERE complete=1 AND day<=? ORDER BY day DESC LIMIT ?",
-        (latest_day, limit),
-    ).fetchall()
+    rows = conn.execute("SELECT day FROM v2_days WHERE complete=1 AND day<=? ORDER BY day DESC LIMIT ?", (latest_day, limit)).fetchall()
     return [str(row[0]) for row in rows]
 
-
-def load_score_samples(conn, latest_day: str, limit: int = HISTORY_DAYS) -> tuple[list[str], dict[str, list[dict[str, Any]]]]:
-    """Return deduplicated 10/11/12 score samples grouped by symbol.
-
-    Query only the three bounded time windows for each complete day.  The old
-    window-function query sorted hundreds of thousands of rows and exceeded
-    the one-minute publisher budget; selecting the bounded rows and choosing
-    the nearest observation in Python preserves the same contract efficiently.
-    """
+def load_score_samples(conn, latest_day: str, limit: int = HISTORY_DAYS):
+    """Return one daily median per completed day; partial minutes are explicit."""
     days = _complete_days(conn, latest_day, limit)
-    if not days:
-        return [], {}
-    windows = (("09:55:00", "10:05:59.999999"),
-               ("10:55:00", "11:05:59.999999"),
-               ("11:55:00", "12:05:59.999999"))
-    ranges: list[str] = []
-    args: list[str] = []
-    for day in days:
-        for start_time, end_time in windows:
-            ranges.append("(timestamp>=? AND timestamp<=?)")
-            args.extend((f"{day}T{start_time}", f"{day}T{end_time}"))
-    query = f"""
-        SELECT rowid, symbol, trading_date, score, timestamp
-        FROM stock_snapshots
-        WHERE valid=1 AND score IS NOT NULL
-          AND ({" OR ".join(ranges)})
-    """
-    rows = conn.execute(query, args).fetchall()
-    best: dict[tuple[str, str, str], dict[str, Any]] = {}
-    for row in rows:
-        score = _finite(row[3])
-        if score is None:
-            continue
-        sample_day = str(row[2])
-        try:
-            observed = datetime.fromisoformat(str(row[4])).replace(tzinfo=None)
-        except ValueError:
-            continue
-        for target_time in TARGET_TIMES:
-            target = datetime.fromisoformat(f"{sample_day}T{target_time}:00")
-            distance = abs((observed - target).total_seconds())
-            if distance > 5 * 60:
-                continue
-            key = (str(row[1]), sample_day, target_time)
-            candidate = {
-                "day": sample_day,
-                "time": target_time,
-                "score": score,
-                "timestamp": str(row[4]),
-                "rowid": int(row[0]),
-                "distance": distance,
-            }
-            previous = best.get(key)
-            if previous is None or distance < previous["distance"] or (distance == previous["distance"] and candidate["rowid"] > previous["rowid"]):
-                best[key] = candidate
-    output: dict[str, list[dict[str, Any]]] = defaultdict(list)
-    for (symbol, _day, _target), chosen in best.items():
-        item = dict(chosen)
-        item.pop("distance", None)
-        item.pop("rowid", None)
-        output[symbol].append(item)
-    for values in output.values():
-        values.sort(key=lambda item: (item["day"], item["time"]))
-    return days, dict(output)
+    if not days: return [], {}
+    try:
+        from .score_daily import load_daily
+    except ImportError:
+        from score_daily import load_daily
+    return days, load_daily(conn, days)
 
 def build_comprehensive_rows(stocks: list[dict[str, Any]], latest: str, conn) -> tuple[list[dict[str, Any]], dict[str, Any]]:
     """Attach current metrics and the 10-day score total to every stock."""
     latest_day = latest[:10]
     days, samples_by_symbol = load_score_samples(conn, latest_day)
     averages = average_turnovers(conn, date.fromisoformat(latest_day))
-    expected_samples = len(days) * len(TARGET_TIMES)
+    expected_samples = len(days)  # one median per completed day; missing days remain absent
     rows: list[dict[str, Any]] = []
 
     for source in stocks:
@@ -139,11 +76,13 @@ def build_comprehensive_rows(stocks: list[dict[str, Any]], latest: str, conn) ->
             "queue_value_toman": queue_value,
             "last_close_diff_pct": close_diff,
             # Never publish a partial total as if it were a complete 10-day metric.
-            "score_10d_total": sum(scores) if expected_samples and len(scores) == expected_samples else None,
+            "score_10d_total": sum(scores) if scores else None,
             "score_10d_sample_count": len(scores),
             "score_10d_expected_count": expected_samples,
             "score_10d_days": len({sample["day"] for sample in samples}),
+            "score_10d_missing_days": max(0, expected_samples - len(scores)),
             "score_10d_complete": bool(expected_samples and len(scores) == expected_samples),
+            "score_10d_coverage": [{"day": sample["day"], "median": sample["score"], "minute_count": sample.get("minute_count"), "expected_minutes": sample.get("expected_minutes"), "missing_minutes": sample.get("missing_minutes"), "partial": sample.get("partial", True)} for sample in samples],
         })
         rows.append(row)
 
@@ -174,11 +113,17 @@ def build_comprehensive_rows(stocks: list[dict[str, Any]], latest: str, conn) ->
 
     meta = {
         "days": days,
-        "target_times": list(TARGET_TIMES),
+        "contract_version": CONTRACT_VERSION,
+        "aggregation": "daily_median_of_deduped_minute_scores",
+        "session_timezone": "Asia/Tehran",
+        "session_window": "09:00-12:30",
+        "completed_day_fence": "v2_days.complete=1",
+        "imputation": "none",
+        "target_times": [],
         "expected_samples": expected_samples,
         "symbols_with_samples": sum(1 for values in samples_by_symbol.values() if values),
         "complete_symbol_count": sum(1 for values in samples_by_symbol.values() if len(values) == expected_samples),
-        "source": "stock_snapshots / v2_days.complete",
+        "source": "stock_snapshots / score_daily_medians / v2_days.complete",
     }
     return rows, meta
 
