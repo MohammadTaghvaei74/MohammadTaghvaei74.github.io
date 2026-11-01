@@ -15,6 +15,7 @@
   let specialScores = new Map();
   let rowId = 0;
   let calculateTimer = 0;
+  let calculateRevision = 0;
   let lastResult = null;
   window.enforcePortfolioObservation = function () {
     if (!lastResult) return;
@@ -167,9 +168,9 @@
     return fallbacks;
   }
 
-  function makeRow(symbol = "", value = "", existingId = "") {
-    rowId += 1;
-    const id = existingId || String(rowId);
+  function makeRow(symbol = "", value = "") {
+    // IDs belong to this page session, not persisted data (which may contain duplicates).
+    const id = String(++rowId);
     const row = document.createElement("div");
     row.className = "holding-row";
     row.dataset.rowId = id;
@@ -211,7 +212,7 @@
       try { localStorage.setItem(storageKey, JSON.stringify(draft)); } catch (_) {}
     }
     const holdings = draft && Array.isArray(draft.holdings) && draft.holdings.length ? draft.holdings : [{symbol: "", value: ""}];
-    holdings.forEach((holding) => makeRow(holding.symbol, holding.value, holding.rowId));
+    holdings.forEach((holding) => makeRow(holding.symbol, holding.value));
     if ($("#cashValue")) $("#cashValue").value = draft && draft.cash ? draft.cash : "";
   }
 
@@ -273,8 +274,12 @@
 
   async function calculate() {
     if (!snapshot) { toast("snapshot بازار هنوز آماده نیست"); return; }
+    const revision = ++calculateRevision;
+
     const draft = readDraft();
     const fallbackRows = await loadFallbackScores(draft.holdings);
+    if (revision !== calculateRevision) return;
+
     const marketRows = (Array.isArray(snapshot.stocks) ? snapshot.stocks : []).concat(Array.isArray(snapshot.leveraged) ? snapshot.leveraged : []);
     const result = portfolio.calculatePortfolio({holdings: draft.holdings, cash: draft.cash || 0, marketMedian: snapshot.market && snapshot.market.median, stocks: marketRows, catalog, fallbackRows});
     lastResult=result; window.ObservationSafety.portfolioRows=result.holdings.filter(h=>h.value>0).map(h=>({timestamp:window.ObservationSafety.observation(h.row)||h.row?.historyTimestamp})); renderResult(result); renderRows(result); window.enforcePortfolioObservation(); saveDraft();
