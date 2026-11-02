@@ -100,8 +100,7 @@
         var target = targetFor(key); var source = target && target.querySelectorAll('.filter-pair')[index]; var sourceSelect = source && source.querySelector('select.filter-operator');
         if (key !== 'symbol' && key !== 'industry') {
           var select = doc.createElement('select'); select.setAttribute('aria-label', 'عملگر ' + (LABELS[key] || key));
-          var options = sourceSelect ? Array.prototype.slice.call(sourceSelect.options).map(function (o) { return {value:o.value,text:o.textContent}; }) : [{value:'',text:'شرط'},{value:'>',text:'>'},{value:'>=',text:'≥'},{value:'<',text:'<'},{value:'<=',text:'≤'},{value:'=',text:'='}];
-          if (sourceSelect) [{value:'>=',text:'≥'},{value:'<=',text:'≤'}].forEach(function (extra) { if (!options.some(function (o) { return o.value === extra.value; })) { options.push(extra); var nativeOption=doc.createElement('option'); nativeOption.value=extra.value; nativeOption.textContent=extra.text; sourceSelect.appendChild(nativeOption); } });
+          var options = sourceSelect ? Array.prototype.slice.call(sourceSelect.options).map(function (o) { return {value:o.value,text:o.textContent}; }) : [{value:'',text:'شرط'},{value:'>',text:'>'},{value:'<',text:'<'},{value:'=',text:'='}];
           options.forEach(function (o) { var option=doc.createElement('option'); option.value=o.value; option.textContent=o.text; select.appendChild(option); });
           select.value = condition.operator || select.value; line.appendChild(select);
         }
