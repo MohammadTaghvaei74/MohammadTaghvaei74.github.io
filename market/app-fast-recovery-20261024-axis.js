@@ -314,6 +314,7 @@
     const chartWrap = svg.parentElement;
     if (!values.length) {
       svg.innerHTML = `<text class="chart-empty" x="600" y="145" text-anchor="middle">داده تعداد صف‌ها برای امروز موجود نیست.</text>`;
+      setChartState(svg, "empty", "داده تعداد صف‌ها برای امروز موجود نیست؛ هیچ مقداری جایگزین نشده است.");
       if (chartWrap) { const oldTooltip = chartWrap.querySelector(".queue-count-tooltip"); if (oldTooltip) oldTooltip.remove(); }
       return;
     }
@@ -354,6 +355,7 @@
     const moveTooltip = (event) => { const box = svg.getBoundingClientRect(); const svgX = (event.clientX - box.left) * width / box.width; showTooltip(Math.max(0, Math.min(rows.length - 1, Math.round((svgX - pad.left) / step)))); };
     const hitArea = svg.querySelector(".queue-count-hit-area");
     if (hitArea) { hitArea.addEventListener("pointerenter", moveTooltip); hitArea.addEventListener("pointermove", moveTooltip); hitArea.addEventListener("focus", () => showTooltip(0)); hitArea.addEventListener("pointerleave", hideTooltip); hitArea.addEventListener("blur", hideTooltip); }
+    setChartState(svg, "ready");
   }
 
 
