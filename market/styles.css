@@ -196,3 +196,13 @@ th[role="button"][aria-sort="descending"]:after{content:"↓";color:var(--blue);
 .table-scroll td bdi,.fund-report-table td bdi{font-size:1.04em;font-weight:400}
 .chart-label,.history-chart-wrap .chart-label,.candle-panel svg text,.archive-trend-chart text{font-weight:500}
 @media(max-width:720px){.metric-value{font-size:31px!important}.queue-metric .metric-value{font-size:26px!important}}
+
+/* Numeric/text readability experiment v2 — headings remain unchanged. */
+body :where(p,span,small,b,strong,td,th,button,a,li,label,time,figcaption,caption,.category-tag,.metric-value,.metric-label,.metric-foot,.queue-label,.queue-number,.score,.pct,.queue-buy,.queue-sell,.signal-list b,.data-freshness,.data-freshness-label,.data-freshness time){font-weight:400!important}
+.metric-value{font-size:48px!important}
+.queue-metric .metric-value{font-size:42px!important}
+.table-scroll td bdi,.fund-report-table td bdi{font-size:1.10em;font-weight:400!important}
+.score{font-size:16px!important;font-weight:400!important}
+.industry-score{font-size:29px!important;font-weight:400!important}
+.signal-list b{font-size:22px!important;font-weight:400!important}
+@media(max-width:720px){.metric-value{font-size:35px!important}.queue-metric .metric-value{font-size:30px!important}.score{font-size:15px!important}.industry-score{font-size:26px!important}.signal-list b{font-size:19px!important}}
