@@ -1,5 +1,5 @@
 .comprehensive-panel{overflow:hidden}
-.comprehensive-panel th{color:#000!important}
+.comprehensive-panel th{color:var(--ink,#102b30)}
 .filter-pair{display:inline-flex;align-items:center;gap:5px;direction:ltr;flex-wrap:nowrap;vertical-align:middle;width:100%;white-space:nowrap}
 .extra-filter-pair{margin-top:4px}
 .add-filter,.remove-filter{border:1px solid #9fb5a7;border-radius:6px;background:#f7fbf4;color:#173b3f;padding:4px 6px;font:inherit;font-size:10px;cursor:pointer;white-space:nowrap}
@@ -7,14 +7,14 @@
 .add-filter:hover,.remove-filter:hover{border-color:#e97845;color:#c45127}
 .remove-filter{padding:2px 6px;color:#a54c4c}
 .comprehensive-filter-row th{vertical-align:top;min-width:112px}
-.filter-operator{width:48px;min-width:48px;flex:0 0 48px;border:1px solid #9fb5a7;border-radius:7px;background:#fff;color:#000;padding:7px 3px;font:inherit;font-size:12px;direction:ltr;text-align:center}
+.filter-operator{width:48px;min-width:48px;flex:0 0 48px;border:1px solid #9fb5a7;border-radius:7px;background:var(--surface,#fff);color:var(--ink,#102b30);padding:7px 3px;font:inherit;font-size:12px;direction:ltr;text-align:center}
 .filter-pair .column-filter{width:64px;min-width:0;flex:1 1 64px}
 .filter-operator:focus,.column-filter:focus{border-color:#173b3f;outline:2px solid rgba(23,59,63,.18);outline-offset:1px}
-.comprehensive-header-row th{color:#000!important;background:#e8f1eb!important}
-.comprehensive-header-row th:after{color:#000!important}
-.comprehensive-filter-row th{color:#000!important}
-.comprehensive-table .column-filter{color:#000!important;background:#fff}
-.comprehensive-table .column-filter::placeholder{color:#65756f;opacity:1}
+.comprehensive-header-row th{color:var(--ink,#102b30);background:var(--surface-2,#e8f1eb)}
+.comprehensive-header-row th:after{color:var(--ink,#102b30)}
+.comprehensive-filter-row th{color:var(--ink,#102b30)}
+.comprehensive-table .column-filter{color:var(--ink,#102b30);background:var(--surface,#fff)}
+.comprehensive-table .column-filter::placeholder{color:var(--muted,#65756f);opacity:1}
 .comprehensive-title{align-items:center;gap:20px}
 .comprehensive-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .comprehensive-presets{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
