@@ -136,11 +136,17 @@
 .chart-path { stroke: #f5faef; fill: none; stroke-width: 3; }
 .chart-market { stroke: #f5faef; stroke-width: 3; }
 .chart-leaders { stroke: #7fd8ef; stroke-width: 3; stroke-dasharray: none; }
+.chart-buy { stroke: #96dfaa !important; stroke-width: 3; }
+.chart-sell { stroke: #ff8791 !important; stroke-width: 3; }
 .chart-rest { stroke: var(--blue); stroke-dasharray: none; }
 .leaders-line { background: #7fd8ef; }
+.buy-line { background: #96dfaa !important; }
+.sell-line { background: #ff8791 !important; }
 .rest-line { background: var(--blue); }
 .market-line { background: #f5faef; }
 .legend-leaders { color: #7fd8ef; }
+.legend-buy { color: #96dfaa; }
+.legend-sell { color: #ff8791; }
 .legend-rest { color: var(--blue); }
 .legend-market { color: #f5faef; }
 .mobile-title { display: none; }
