@@ -60,7 +60,9 @@
    let el=document.getElementById('dataTransportStatus');
    if(!el){el=document.createElement('div');el.id='dataTransportStatus';el.setAttribute('role','status');el.style.cssText='padding:12px;margin:8px;border:1px solid #b98b36;border-radius:8px;line-height:1.8';(document.querySelector('main')||document.body).prepend(el);}
    el.dataset.state=state;
-   el.textContent=state==='error'?'دریافت داده ناموفق بود؛ اتصال را بررسی کنید و دوباره به‌روزرسانی کنید.':state==='fallback'?'نمایش نسخه ذخیره‌شده سایت؛ تازگی داده در هر بخش مشخص است.':'اتصال زنده برقرار است؛ تازگی داده در هر بخش مشخص است.';
+   const snapshotAt=data?.market?.timestamp||data?.timestamp||data?.generated_at||'';
+   const age=snapshotAt?`؛ سن snapshot: ${format(snapshotAt)}`:'';
+   el.textContent=state==='error'?'دریافت داده ناموفق بود؛ اتصال را بررسی کنید و دوباره به‌روزرسانی کنید.':state==='fallback'?`نمایش نسخه ذخیره‌شده سایت${age}؛ تازگی داده در هر بخش مشخص است.`:'اتصال زنده برقرار است؛ تازگی داده در هر بخش مشخص است.';
  }
  function feed(suffix) { const key=Object.keys(feeds).find(k=>k.endsWith(suffix)); return key?feeds[key]:null; }
  function selectedSymbol() { return new URLSearchParams(location.search).get('symbol') || document.querySelector('#selectedSymbol')?.textContent || document.querySelector('#dossier h2')?.textContent; }
