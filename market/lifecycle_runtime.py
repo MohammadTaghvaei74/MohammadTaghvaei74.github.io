@@ -214,7 +214,7 @@ def public_payload(db: str | Path) -> dict[str, Any]:
         mothers = _rows(con, "SELECT id,symbol,issued_at,zero_price,strategy,rule_version,status FROM lifecycle_mothers ORDER BY issued_at DESC LIMIT 500")
         open_positions = _rows(con, "SELECT id,mother_id,id AS order_id,symbol,entry_price,entry_at,status FROM lifecycle_orders WHERE status='entered' ORDER BY entry_at DESC LIMIT 500")
         closed = _rows(con, "SELECT id,mother_id,id AS order_id,symbol,entry_price,entry_at,exit_at,exit_price,net_pnl_pct,CAST((julianday(exit_at)-julianday(entry_at)) AS INTEGER) AS holding_days,status FROM lifecycle_orders WHERE status='closed' AND net_pnl_pct IS NOT NULL ORDER BY exit_at DESC LIMIT 500")
-    status = "ok" if mothers else "unavailable"
+    status = "ok"
     return {
         "schema_version": SCHEMA_VERSION,
         "status": status,

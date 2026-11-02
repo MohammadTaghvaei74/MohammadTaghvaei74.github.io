@@ -20,10 +20,14 @@ def stock(symbol="TEST", score=1.0, price=1000.0, zero=1000.0):
 def test_migration_creates_ledger_and_two_orders(tmp_path):
     db = tmp_path / "event.db"
     ensure_runtime(db)
+    assert public_payload(db)["status"] == "ok"
+    assert public_payload(db)["message"] == "no lifecycle signal has been recorded"
     signal = {"key": "sig-1", "symbol": "TEST", "strategy": "step3", "source_observed_at": "2026-11-02T09:30:00+03:30"}
     create_from_signal(db, signal, stock(price=1025), datetime.fromisoformat("2026-11-02T09:30:00+03:30"))
     with sqlite3.connect(db) as con:
         assert con.execute("select count(*) from lifecycle_orders").fetchone()[0] == 2
+    assert public_payload(db)["status"] == "ok"
+    assert public_payload(db)["message"] is None
 
 
 def test_lower_immediate_entry_and_base_exit_close_position(tmp_path):

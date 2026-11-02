@@ -1,9 +1,1 @@
-{
-  "schema_version": 1,
-  "status": "unavailable",
-  "generated_at": null,
-  "message": "signal lifecycle source is not connected",
-  "mother_signals": [],
-  "open_positions": [],
-  "closed_trades": []
-}
+{"schema_version":1,"status":"ok","generated_at":"2026-11-02T21:10:39.726113+03:30","source_observed_at":"2026-11-02T21:10:39.726185+03:30","message":"no lifecycle signal has been recorded","mother_signals":[],"open_positions":[],"closed_trades":[]}
