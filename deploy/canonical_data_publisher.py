@@ -21,21 +21,31 @@ CONTRACTS = {
     'portfolio-special.json': ('reference_timestamp', 'symbols'),
 }
 CORE = ('market.json', 'comprehensive.json')
+MEDIAN_MAX_AGE = timedelta(minutes=15)
 
 
-def convert_median_history(raw):
+def convert_median_history(raw, previous=None, now=None):
     doc = json.loads(raw, object_pairs_hook=unique_object, parse_constant=invalid_constant)
     if not isinstance(doc, dict) or type(doc.get('schema_version')) is not int:
         raise ValueError('median-history: missing schema version or object')
     generated = timestamp(doc.get('generated_at'))
+    now = now or datetime.now(timezone.utc)
+    if generated < now - MEDIAN_MAX_AGE:
+        raise ValueError('median-history: source is stale')
+    if previous is not None:
+        previous_doc = json.loads(previous, object_pairs_hook=unique_object, parse_constant=invalid_constant)
+        if generated < timestamp(previous_doc.get('generated_at')):
+            raise ValueError('median-history: source timestamp regression')
     points, coverage = doc.get('points'), doc.get('coverage')
-    if not isinstance(points, list) or not points or not isinstance(coverage, list):
+    if not isinstance(points, list) or not points or not isinstance(coverage, list) or not coverage:
         raise ValueError('median-history: missing points or coverage')
     converted = []
     for point in points:
         if not isinstance(point, dict) or not isinstance(point.get('minute'), str):
             raise ValueError('median-history: invalid point')
         if point.get('market') is not None:
+            if not isinstance(point['market'], (int, float)) or isinstance(point['market'], bool):
+                raise ValueError('median-history: invalid market value')
             converted.append({'minute': point['minute'], 'market': float(point['market']),
                               'market_count': int(point.get('market_count', 0)),
                               'source': 'bourse-median-history',
@@ -144,8 +154,14 @@ def select_snapshots(repo, source, parent, env):
         raise ValueError('core source timestamps differ')
     if {r['symbol'] for r in a['stocks']} != {r['symbol'] for r in b['rows']}:
         raise ValueError('core symbol universes differ')
-    median_doc = convert_median_history((source / 'median-history.json').read_bytes())
-    selected['market-score-history.json'] = (json.dumps(median_doc, ensure_ascii=False, allow_nan=False, separators=(',', ':')) + '\n').encode()
+    median_path = source / 'median-history.json'
+    if median_path.exists():
+        previous_median = run(repo, 'show', f'{parent}:market/data/market-score-history.json', env=env, check=False)
+        median_doc = convert_median_history(median_path.read_bytes(),
+                                            previous_median.stdout if previous_median.returncode == 0 else None)
+        selected['market-score-history.json'] = (json.dumps(median_doc, ensure_ascii=False, allow_nan=False, separators=(',', ':')) + '\n').encode()
+    else:
+        print('ALERT_MEDIAN_HISTORY_SOURCE_MISSING', flush=True)
     return selected
 
 
@@ -184,6 +200,7 @@ def publish(repo, source, attempts=3):
                          'chore(data): publish validated canonical snapshots', env=env).stdout.decode().strip()
             result = run(repo, 'push', '--porcelain', 'origin', f'{commit}:refs/heads/main', env=env, check=False)
             if result.returncode == 0:
+                run(repo, 'update-ref', 'refs/canonical-publisher/main', commit, env=env)
                 print('PUBLISHED', commit, flush=True)
                 return commit
             output = (result.stdout + result.stderr).decode()
