@@ -1,9 +1,9 @@
 /* Reference visual system: dark technical market dashboard */
 :root {
-  --bg: #0d1117; --surface: #141c2b; --surface-2: #1b2638; --surface-3: #202f45; --surface-hover: #24344c;
-  --ink: #f1f5f9; --muted: #aab4c3; --dim: #748196; --line: #263647; --line-strong: #344960;
-  --accent: #60a5fa; --positive: #34d399; --negative: #fb7185; --warning: #fbbf24; --info: #67e8f9;
-  --max: 1440px; --fa: "Vazirmatn", "IRANSansX", Tahoma, sans-serif; --display: "Vazirmatn", "IRANSansX", Tahoma, sans-serif;
+  --bg: #0d1117 !important; --surface: #141c2b !important; --surface-2: #1b2638 !important; --surface-3: #202f45 !important; --surface-hover: #24344c !important;
+  --ink: #f1f5f9 !important; --muted: #aab4c3 !important; --dim: #748196 !important; --line: #263647 !important; --line-strong: #344960 !important;
+  --accent: #60a5fa !important; --positive: #34d399 !important; --negative: #fb7185 !important; --warning: #fbbf24 !important; --info: #67e8f9 !important;
+  --max: 1440px !important; --fa: "Vazirmatn", "IRANSansX", Tahoma, sans-serif !important; --display: "Vazirmatn", "IRANSansX", Tahoma, sans-serif !important;
 }
 html,body,button,input,select,textarea,table,th,td{font-family:var(--fa)!important}
 html{background:var(--bg)!important}
