@@ -200,6 +200,7 @@ def publish(repo, source, attempts=3):
                          'chore(data): publish validated canonical snapshots', env=env).stdout.decode().strip()
             result = run(repo, 'push', '--porcelain', 'origin', f'{commit}:refs/heads/main', env=env, check=False)
             if result.returncode == 0:
+                run(repo, 'update-ref', 'refs/canonical-publisher/main', commit, env=env)
                 print('PUBLISHED', commit, flush=True)
                 return commit
             output = (result.stdout + result.stderr).decode()
