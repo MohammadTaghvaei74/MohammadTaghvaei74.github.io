@@ -90,10 +90,47 @@
 .top .nav a.active::after { width: 100%; }
 .market-header .topbar-actions,
 .topbar .topbar-actions,
-.market-header .header-actions { display: flex; align-items: center; gap: 12px; flex: 0 0 auto; }
+.market-header .header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 0 0 auto;
+  min-width: 0;
+  position: relative;
+  z-index: 1;
+}
 .market-header .market-state,
 .topbar .market-state,
-.top .state { color: var(--muted, #5e7472); font-size: 12px; white-space: nowrap; }
+.top .state {
+  color: var(--muted, #5e7472);
+  font-size: 12px;
+  white-space: nowrap;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* Keep the status label and refresh control in separate, non-overlapping flex items. */
+.market-header .refresh-button,
+.topbar .refresh-button,
+.top .header-refresh { flex: 0 0 42px; position: relative; z-index: 2; }
+@media (max-width: 1120px) and (min-width: 721px) {
+  .market-header, .topbar, .top { gap: 14px; }
+  .market-header .brand, .topbar .brand, .top .brand {
+    flex-basis: 190px;
+    min-width: 190px;
+  }
+  .market-header .main-nav, .topbar .main-nav, .top .nav {
+    min-width: 0;
+    gap: clamp(7px, 1.25vw, 14px);
+    font-size: 11px;
+    overflow: hidden;
+  }
+  .market-header .topbar-actions, .topbar .topbar-actions { gap: 7px; }
+  .market-header .market-state, .topbar .market-state, .top .state {
+    max-width: 92px;
+    font-size: 10px;
+  }
+}
 .market-header .market-state i,
 .topbar .market-state i { display: inline-block; width: 8px; height: 8px; margin-left: 7px; border-radius: 50%; background: var(--green, #33966b); box-shadow: 0 0 0 5px rgba(51,150,107,.12); }
 .market-header .refresh-button,
