@@ -5,7 +5,7 @@
   <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
   <title>تاریخچه امتیاز کل بازار | سورنا</title>
   <link rel="stylesheet" href="../styles.css?v=hover-20261102-1">
-  <link rel="stylesheet" href="history.css?v=hover-20261102-1">
+  <link rel="stylesheet" href="history.css?v=hover-20261102-2">
   <link rel="stylesheet" href="../header.css?v=shared-header-1">
   <link rel="stylesheet" href="../design-system.css?v=rollout-1">
   <script src="../design-system.js?v=rollout-1" defer></script>
@@ -42,6 +42,7 @@
   </section>
 </main>
 <script src="../core.js?v=integer-axis-20261101"></script>
-<script src="history.js?v=market-score-spec-3"></script>
+<script>document.body.classList.toggle("history-embedded-route", new URLSearchParams(location.search).get("embedded") === "1");</script>
+<script src="history.js?v=market-score-spec-4"></script>
 </body>
 </html>
