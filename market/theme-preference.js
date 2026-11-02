@@ -25,11 +25,12 @@
 
   function getStoredTheme(storage) {
     const safeStorage = getStorage(storage);
-    if (!safeStorage) return 'system';
+    if (!safeStorage) return 'dark';
     try {
-      return normalizeTheme(safeStorage.getItem(THEME_PREFERENCE_KEY));
+      const value = safeStorage.getItem(THEME_PREFERENCE_KEY);
+      return THEMES.includes(value) ? value : 'dark';
     } catch (_) {
-      return 'system';
+      return 'dark';
     }
   }
 
@@ -63,7 +64,7 @@
   }
 
   function createBootstrapScript() {
-    return "!function(){var p='system',e=document.documentElement;try{var v=localStorage.getItem('" + THEME_PREFERENCE_KEY + "');p=['light','dark','system'].indexOf(v)<0?'system':v}catch(_){}try{var d=typeof matchMedia==='function'&&matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light',t=p==='system'?d:p;e.dataset.theme=t;e.dataset.themePreference=p;e.style.colorScheme=t}catch(_){} }();";
+    return "!function(){var p='dark',e=document.documentElement;try{var v=localStorage.getItem('" + THEME_PREFERENCE_KEY + "');p=['light','dark','system'].indexOf(v)<0?'dark':v}catch(_){}try{var d=typeof matchMedia==='function'&&matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light',t=p==='system'?d:p;e.dataset.theme=t;e.dataset.themePreference=p;e.style.colorScheme=t}catch(_){} }();";
   }
 
   function setStoredTheme(storage, preference) {

@@ -26,6 +26,10 @@ with sync_playwright() as pw:
   assert page.locator('[data-sorena-extras="toolbar"]').count()==1
   assert page.locator('.theme-preference').count()==1
   page.locator('.ds-appearance summary').click()
+  page.locator('.theme-preference__option').filter(has=page.locator('input[value="light"]')).click()
+  expect(page.locator('html')).to_have_attribute('data-theme','light')
+  assert page.evaluate("localStorage.getItem('sorena-theme')")=='light'
+  page.locator('.ds-appearance summary').click()
   page.locator('.theme-preference__option').filter(has=page.locator('input[value="dark"]')).click()
   expect(page.locator('html')).to_have_attribute('data-theme','dark')
   assert page.evaluate("localStorage.getItem('sorena-theme')")=='dark'
