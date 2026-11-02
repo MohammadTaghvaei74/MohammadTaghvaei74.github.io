@@ -255,3 +255,34 @@ html[data-theme="dark"] #dataTransportStatus[data-state="error"] { color:#ff7676
 html[data-theme="dark"] .options-cta,
 html[data-theme="dark"] .calculate-button { background:#fff!important; color:#000!important; border-color:#fff!important; }
 html[data-theme="dark"] .ds-appearance > summary { background:#0b0b0b!important; color:#fff!important; border-color:#444!important; }
+
+/* Unified readability contract: legacy route CSS must not erase table text.
+   Keep semantic colors, but make the neutral text/surface pair theme-owned. */
+html[data-theme="dark"] :where(.table-scroll table,.table-wrap table,.industry-table,.fund-report-table,.comprehensive-table) {
+  background:#0b0b0b!important; color:#fff!important;
+}
+html[data-theme="dark"] :where(.table-scroll table td,.table-wrap table td,.industry-table tbody td,.fund-report-table td,.comprehensive-table td),
+html[data-theme="dark"] :where(.table-scroll table td *,.table-wrap table td *,.industry-table tbody td *,.fund-report-table td *,.comprehensive-table td *) {
+  color:#f5f7f2!important;
+}
+html[data-theme="dark"] :where(.table-scroll table thead th,.table-wrap table thead th,.industry-table thead th,.fund-report-table th,.comprehensive-table thead th) {
+  background:#173b3f!important; color:#f5faef!important; border-color:#396067!important;
+}
+html[data-theme="dark"] :where(.table-scroll table tbody td,.table-wrap table tbody td,.industry-table tbody td,.fund-report-table tbody td,.comprehensive-table tbody td) {
+  background:#0b0b0b!important; border-color:#303030!important;
+}
+html[data-theme="dark"] :where(.table-scroll table tbody tr:nth-child(even) td,.table-wrap table tbody tr:nth-child(even) td,.industry-table tbody tr:nth-child(even) td,.fund-report-table tbody tr:nth-child(even) td,.comprehensive-table tbody tr:nth-child(even) td) { background:#101010!important; }
+html[data-theme="dark"] :where(.table-scroll table input,.table-scroll table select,.table-wrap table input,.table-wrap table select,.comprehensive-table input,.comprehensive-table select) {
+  background:#151515!important; color:#fff!important; border-color:#536a6d!important;
+}
+html[data-theme="dark"] :where(.table-scroll table a,.table-wrap table a,.industry-table a,.fund-report-table a,.comprehensive-table a) { color:#d8f58c!important; }
+
+html[data-theme="light"] :where(.table-scroll table td,.table-wrap table td,.industry-table tbody td,.fund-report-table td,.comprehensive-table td),
+html[data-theme="light"] :where(.table-scroll table td *,.table-wrap table td *,.industry-table tbody td *,.fund-report-table td *,.comprehensive-table td *) { color:#102b30!important; }
+html[data-theme="light"] :where(.table-scroll table thead th,.table-wrap table thead th,.industry-table thead th,.fund-report-table th,.comprehensive-table thead th) { color:#f5faef!important; }
+
+/* Persian UI copy: readable floor on desktop and phone, without changing data. */
+html[data-theme] main :where(small,label,button,summary,th,td,.panel-note,.table-note,.source-time,.data-freshness) { font-size:max(12px,.75rem)!important; }
+@media (max-width:720px) {
+  html[data-theme] main :where(small,label,button,summary,th,td,.panel-note,.table-note,.source-time,.data-freshness) { font-size:max(12px,.75rem)!important; }
+}
