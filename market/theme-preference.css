@@ -277,6 +277,19 @@ html[data-theme="dark"] :where(.table-scroll table input,.table-scroll table sel
 }
 html[data-theme="dark"] :where(.table-scroll table a,.table-wrap table a,.industry-table a,.fund-report-table a,.comprehensive-table a) { color:#d8f58c!important; }
 
+/* Final dark-mode table pass: data itself is white; color is not a hidden
+   signal. Status/positive/negative semantics are communicated elsewhere. */
+html[data-theme="dark"] main table td,
+html[data-theme="dark"] main table td *,
+html[data-theme="dark"] main table td bdi,
+html[data-theme="dark"] main table td a,
+html[data-theme="dark"] main table td strong,
+html[data-theme="dark"] main table td span { color:#fff!important; }
+html[data-theme="dark"] main table th,
+html[data-theme="dark"] main table th *,
+html[data-theme="dark"] main table th bdi,
+html[data-theme="dark"] main table th span { color:#fff!important; }
+
 html[data-theme="light"] :where(.table-scroll table td,.table-wrap table td,.industry-table tbody td,.fund-report-table td,.comprehensive-table td),
 html[data-theme="light"] :where(.table-scroll table td *,.table-wrap table td *,.industry-table tbody td *,.fund-report-table td *,.comprehensive-table td *) { color:#102b30!important; }
 html[data-theme="light"] :where(.table-scroll table thead th,.table-wrap table thead th,.industry-table thead th,.fund-report-table th,.comprehensive-table thead th) { color:#f5faef!important; }
