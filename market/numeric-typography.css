@@ -39,3 +39,42 @@
   :where(.industry-score){font-size:28px!important}
   :where(.chart-label,.history-chart-wrap .chart-label,.candle-panel svg text,.archive-trend-chart text){font-size:17px!important}
 }
+/* Direct-cell override: fixes values that are text nodes directly in td, not only bdi. */
+table tbody > tr > td,
+table tbody > tr > td *,
+table tbody > tr > th,
+table tbody > tr > th *,
+.table-scroll table tbody > tr > td,
+.table-scroll table tbody > tr > td *,
+.table-scroll table tbody > tr > th,
+.table-scroll table tbody > tr > th *,
+#industrySummaryTable tbody td,
+#industrySummaryTable tbody td *,
+#industrySummaryTable tbody th,
+#industrySummaryTable tbody th *,
+#comprehensiveTable tbody td,
+#comprehensiveTable tbody td *{
+  font-family:"Vazirmatn",sans-serif!important;
+  font-size:18px!important;
+  font-weight:400!important;
+  font-style:normal!important;
+  line-height:1.55!important;
+  letter-spacing:0!important;
+  font-variant-numeric:tabular-nums lining-nums!important;
+}
+@media(max-width:720px){
+  table tbody > tr > td,
+  table tbody > tr > td *,
+  table tbody > tr > th,
+  table tbody > tr > th *,
+  .table-scroll table tbody > tr > td,
+  .table-scroll table tbody > tr > td *,
+  .table-scroll table tbody > tr > th,
+  .table-scroll table tbody > tr > th *,
+  #industrySummaryTable tbody td,
+  #industrySummaryTable tbody td *,
+  #industrySummaryTable tbody th,
+  #industrySummaryTable tbody th *,
+  #comprehensiveTable tbody td,
+  #comprehensiveTable tbody td *{font-size:17px!important}
+}
