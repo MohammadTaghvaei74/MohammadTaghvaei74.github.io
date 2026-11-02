@@ -47,7 +47,7 @@
   const time = t => String(t).slice(11, 16).replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]);
   const svgEl = (tag, attrs, text='') => { const n = document.createElementNS('http://www.w3.org/2000/svg', tag); Object.entries(attrs).forEach(([k,v]) => n.setAttribute(k,v)); n.textContent = text; return n; };
   function render(rows) {
-    const svg = $('#candles'), tip = $('#candle-tip'), shell = svg.closest('.chart-shell'), floatTip = $('#candle-float-tip');
+    const svg = $('#candles'), tip = $('#candle-tip'), shell = svg.closest ? svg.closest('.chart-shell') : null, floatTip = $('#candle-float-tip');
     svg.onpointermove = null; svg.onclick = null; svg.onpointerleave = null;
     if (floatTip) { floatTip.classList.remove('is-visible'); floatTip.setAttribute('aria-hidden','true'); floatTip.textContent = ''; }
     svg.replaceChildren();
