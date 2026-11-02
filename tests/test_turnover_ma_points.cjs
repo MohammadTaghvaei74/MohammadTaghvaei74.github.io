@@ -2,7 +2,7 @@ const fs=require('fs'),vm=require('vm'),assert=require('assert');
 for(const file of ['app.js']) {
  const src=fs.readFileSync(`market/${file}`,'utf8');
  const svg={innerHTML:''};
- const ctx={Intl,Map,Date,Number,Math,numeric:v=>v==null||v===''||!Number.isFinite(Number(v))?null:Number(v),escapeHtml:String,core:{faDigits:String},$:()=>svg,text:()=>{}};
+ const ctx={Intl,Map,Date,Number,Math,setChartState:()=>{},numeric:v=>v==null||v===''||!Number.isFinite(Number(v))?null:Number(v),escapeHtml:String,core:{faDigits:String},$:()=>svg,text:()=>{}};
  vm.createContext(ctx);
  vm.runInContext(src.slice(src.indexOf('  function movingAverage('),src.indexOf('  function renderQueueCountChart(')),ctx);
  ctx.bindTurnoverTooltip=()=>{};

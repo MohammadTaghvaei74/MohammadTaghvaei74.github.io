@@ -2,7 +2,7 @@ const fs=require('fs'),vm=require('vm'),assert=require('assert');
 const src=fs.readFileSync(process.argv[2] || 'market/app.js','utf8');
 const fn=src.slice(src.indexOf('  function movingAverage('),src.indexOf('  function renderQueueCountChart('));
 const nodes={'#turnoverChart':{innerHTML:''}};const texts={};
-const context={numeric:v=>v===null||v===undefined||v===''?null:(Number.isFinite(Number(v))?Number(v):null),$:s=>nodes[s],text:(s,v)=>texts[s]=v,core:{faDigits:String},escapeHtml:String,Intl,console};
+const context={numeric:v=>v===null||v===undefined||v===''?null:(Number.isFinite(Number(v))?Number(v):null),setChartState:()=>{},$:s=>nodes[s],text:(s,v)=>texts[s]=v,core:{faDigits:String},escapeHtml:String,Intl,console};
 vm.createContext(context);vm.runInContext(fn+'\nbindTurnoverTooltip=()=>{};',context);
 context.renderTurnoverChart({daily:[{trading_date:'2026-11-01',final_turnover_toman:999e12}]});
 assert(!nodes['#turnoverChart'].innerHTML.includes('class="turnover-bar"'),'reject legacy stocks-only totals');

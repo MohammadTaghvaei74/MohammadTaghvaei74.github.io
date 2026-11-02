@@ -35,7 +35,7 @@ assert(!html.includes('comprehensive-help'));
 assert(fs.readFileSync('market/index.html','utf8').includes('comprehensive-table.js'));
 const comprehensiveCss=fs.readFileSync('market/comprehensive-table.css','utf8');
 assert(comprehensiveCss.includes('.column-filter'));
-assert(comprehensiveCss.includes('.comprehensive-panel th{color:#000!important}'));
+assert(comprehensiveCss.includes('.comprehensive-panel th{color:var(--ink,#102b30)}'));
 assert(comprehensiveCss.includes('flex-wrap:nowrap'));
 const recovery=fs.readFileSync('market/app.js','utf8');
 assert(recovery.includes('data/comprehensive.json?cb='));

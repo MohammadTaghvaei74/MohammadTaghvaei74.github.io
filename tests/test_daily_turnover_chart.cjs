@@ -3,15 +3,15 @@ for (const file of ['app.js']) {
  const source = fs.readFileSync(`market/${file}`, 'utf8');
  const start = source.indexOf('  function movingAverage('), end = source.indexOf('  function renderQueueCountChart(',start);
  const svg = {innerHTML:''}, status = {textContent:''};
- const context = {Intl, Map, Date, Number, Math, console, numeric: v => v === null || v === undefined || v === '' || !Number.isFinite(Number(v)) ? null : Number(v), escapeHtml: String,
+ const context = {Intl, Map, Date, Number, Math, console, setChartState: () => {}, numeric: v => v === null || v === undefined || v === '' || !Number.isFinite(Number(v)) ? null : Number(v), escapeHtml: String,
   core:{faDigits:String}, $: s => s === '#turnoverChart' ? svg : status, text: (s,v)=>status.textContent=v};
- vm.createContext(context); vm.runInContext(source.slice(start,end),context);
- const daily = Array.from({length:30},(_,i)=>({trading_date: new Date(Date.UTC(2026,8,1+i)).toISOString().slice(0,10), final_turnover_toman:(i+1)*1e12})).reverse();
+ vm.createContext(context); vm.runInContext(source.slice(start,end),context); context.bindTurnoverTooltip = () => {};
+ const daily = Array.from({length:30},(_,i)=>({trading_date: new Date(Date.UTC(2026,8,1+i)).toISOString().slice(0,10), turnover_scope:'common_stocks_plus_leveraged_funds', complete:true, final_turnover_toman:(i+1)*1e12})).reverse();
  context.renderTurnoverChart({daily});
  assert.equal((svg.innerHTML.match(/class="turnover-bar"/g)||[]).length,30,`${file}: one bar per trading day`);
  assert.ok(svg.innerHTML.includes('data-ma5-count="26"'));
  assert.ok(svg.innerHTML.includes('data-ma20-count="11"'));
- assert.ok(svg.innerHTML.includes('<title>'));
+ assert.ok(svg.innerHTML.includes('aria-label='));
  assert.ok(svg.innerHTML.includes('۱۴۰۵'), 'Persian calendar');
  assert.ok(!/\bC\d/.test(svg.innerHTML), 'no cubic smoothing');
  context.renderTurnoverChart({daily:daily.slice(0,7)});
