@@ -23,6 +23,48 @@ CONTRACTS = {
 CORE = ('market.json', 'comprehensive.json')
 
 
+def convert_median_history(raw):
+    doc = json.loads(raw, object_pairs_hook=unique_object, parse_constant=invalid_constant)
+    if not isinstance(doc, dict) or type(doc.get('schema_version')) is not int:
+        raise ValueError('median-history: missing schema version or object')
+    generated = timestamp(doc.get('generated_at'))
+    points, coverage = doc.get('points'), doc.get('coverage')
+    if not isinstance(points, list) or not points or not isinstance(coverage, list):
+        raise ValueError('median-history: missing points or coverage')
+    converted = []
+    for point in points:
+        if not isinstance(point, dict) or not isinstance(point.get('minute'), str):
+            raise ValueError('median-history: invalid point')
+        if point.get('market') is not None:
+            converted.append({'minute': point['minute'], 'market': float(point['market']),
+                              'market_count': int(point.get('market_count', 0)),
+                              'source': 'bourse-median-history',
+                              'contract': 'eligible-traded-score-median-v1'})
+    if not converted:
+        raise ValueError('median-history: no usable points')
+    target_coverage = []
+    for day in coverage:
+        if not isinstance(day, dict) or not isinstance(day.get('date'), str):
+            raise ValueError('median-history: invalid coverage')
+        target_coverage.append({'date': day['date'],
+                                'observed_rows': int(day.get('observed_minutes', 0)),
+                                'observed_minutes': int(day.get('observed_minutes', 0)),
+                                'expected_minutes': int(day.get('expected_minutes', 0)),
+                                'complete': not bool(day.get('partial', False)),
+                                'missing_ranges': day.get('missing_ranges', []),
+                                'first': day.get('first'), 'last': day.get('last')})
+    return {'schema_version': 2, 'generated_at': generated.isoformat(),
+            'timezone': doc.get('timezone', 'Asia/Tehran'),
+            'retention_calendar_days': doc.get('retention_calendar_days', 30),
+            'window_start': '09:15', 'window_end': '12:30',
+            'session': ['09:15', '12:30'], 'unit': 'score', 'series': 'total-market',
+            'source': 'bourse-median-history', 'coverage': target_coverage,
+            'dates_without_observations': doc.get('dates_without_observations', []),
+            'minute_policy': 'all real median-history observations; no interpolation',
+            'candle_policy': 'incomplete or gapped candles omitted; daily 09:15-close',
+            'points': converted}
+
+
 def timestamp(value):
     if not isinstance(value, str):
         raise ValueError('missing source timestamp')
@@ -102,6 +144,8 @@ def select_snapshots(repo, source, parent, env):
         raise ValueError('core source timestamps differ')
     if {r['symbol'] for r in a['stocks']} != {r['symbol'] for r in b['rows']}:
         raise ValueError('core symbol universes differ')
+    median_doc = convert_median_history((source / 'median-history.json').read_bytes())
+    selected['market-score-history.json'] = (json.dumps(median_doc, ensure_ascii=False, allow_nan=False, separators=(',', ':')) + '\n').encode()
     return selected
 
 
