@@ -290,6 +290,22 @@ html[data-theme="dark"] main table th *,
 html[data-theme="dark"] main table th bdi,
 html[data-theme="dark"] main table th span { color:#fff!important; }
 
+/* Dark surface ownership for route-specific legacy components. */
+html[data-theme="dark"] main :where(.industry-table-panel,.industry-table-filters,.industry-table-scroll,.industry-summary-section,.industry-summary-scroll,.fund-report-panel,.fund-report-scroll,.symbol-suggestions,.metric-card,.queue-card,.data-freshness,.filter-panel,.filter-toolbar,.selector-panel) {
+  background:#0b0b0b!important; color:#fff!important; border-color:#303030!important;
+  box-shadow:none!important;
+}
+html[data-theme="dark"] main :where(.industry-table-filters label,.industry-table-filters p,.filter-panel label,.filter-toolbar label,.data-freshness-label,.data-freshness time) { color:#fff!important; }
+html[data-theme="dark"] main :where(.industry-table-filters input,.industry-table-filters select,.industry-column-filter-row input,.industry-column-filter-row select,.filter-panel input,.filter-panel select) {
+  background:#151515!important; color:#fff!important; border-color:#536a6d!important;
+}
+html[data-theme="dark"] main :where(.industry-table thead th,.industry-table thead tr.industry-column-filter-row th,.fund-report-table th) { background:#173b3f!important; color:#fff!important; }
+html[data-theme="dark"] main :where(.industry-table tbody tr,.fund-report-table tbody tr) { background:#0b0b0b!important; }
+html[data-theme="dark"] main :where(.industry-table tbody tr:nth-child(even),.fund-report-table tbody tr:nth-child(even)) { background:#101010!important; }
+html[data-theme="dark"] main :where(.industry-table tbody td,.fund-report-table tbody td) { background:transparent!important; color:#fff!important; border-color:#303030!important; }
+html[data-theme="dark"] main :where(.industry-table a,.industry-name-cell a,.symbol-suggestions button) { color:#fff!important; background:transparent!important; }
+html[data-theme="dark"] main :where(.queue-card,.metric-card) { color:#fff!important; }
+
 html[data-theme="light"] :where(.table-scroll table td,.table-wrap table td,.industry-table tbody td,.fund-report-table td,.comprehensive-table td),
 html[data-theme="light"] :where(.table-scroll table td *,.table-wrap table td *,.industry-table tbody td *,.fund-report-table td *,.comprehensive-table td *) { color:#102b30!important; }
 html[data-theme="light"] :where(.table-scroll table thead th,.table-wrap table thead th,.industry-table thead th,.fund-report-table th,.comprehensive-table thead th) { color:#f5faef!important; }
