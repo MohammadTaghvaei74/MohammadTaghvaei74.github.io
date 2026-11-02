@@ -136,8 +136,8 @@
     const partialDays = coverage.filter((d) => d && d.partial).length;
     const missingMinutes = coverage.reduce((sum, d) => sum + (num(d && d.missing_minutes) || 0), 0);
     const title = 'جمع میانه امتیاز دقیقه‌ای هر روز؛ بدون جایگزینی داده مفقود با صفر. ' + coverage.map((d) => `${d.day}: ${d.minute_count}/${d.expected_minutes} دقیقه؛ میانه ${d.median}`).join(' | ') + (partialDays ? ` ثبت دقیقه‌ای در ${partialDays} روز ناقص است${missingMinutes ? `؛ ${missingMinutes} دقیقه کمبود` : ''}` : '');
-    const note = days >= expected ? `داده از هر ${digits(expected)} روز موجود است` : `داده برای ${digits(days)} روز از ${digits(expected)} روز`;
-    return metricCell(row.score_10d_total, 'score', row.score_10d_total, title).replace('</td>', `<small class="score-history-coverage" style="display:block;font-size:10px;white-space:nowrap">${note}</small></td>`);
+    const warning = days < 9 ? '<span class="score-history-warning" aria-label="پوشش ناقص" title="پوشش ناقص">⚠</span>' : '';
+    return metricCell(row.score_10d_total, 'score', row.score_10d_total, title).replace('</td>', `${warning}</td>`);
   }
   function captureViewState() {
     const scroll = table.closest(".table-scroll") || table.parentElement;
