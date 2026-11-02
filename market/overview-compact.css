@@ -61,6 +61,88 @@
   border-inline-start:3px solid currentColor!important;
 }
 
+#overview > .sorena-extras-toolbar {
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:8px;
+  margin-bottom:8px;
+  padding:8px;
+}
+#overview > .sorena-extras-toolbar .sorena-extras-heading h2 {
+  margin:0;
+  font-size:14px;
+  line-height:1.4;
+}
+#overview > .sorena-extras-toolbar .sorena-extras-actions {
+  gap:6px;
+  align-items:center;
+}
+#overview > .sorena-extras-toolbar .sorena-extras-button {
+  min-height:34px;
+  padding-block:4px;
+}
+#overview > #market-summary {
+  gap:6px;
+  margin-bottom:8px;
+  padding:8px;
+}
+#overview > #market-summary dl {
+  gap:4px;
+}
+#overview > #market-summary dt {
+  font-size:10px;
+  white-space:nowrap;
+  line-height:1.25;
+}
+#overview > #market-summary dd {
+  font-size:16px;
+  line-height:1.2;
+}
+#overview > #market-summary .market-risk-meter-heading {
+  gap:4px;
+  font-size:11px;
+}
+#overview > #market-summary .market-risk-meter-heading strong {
+  font-size:15px;
+}
+#overview > #market-summary .market-risk-meter-heading em {
+  font-size:9px;
+}
+#overview > #market-summary .market-risk-track {
+  height:6px;
+}
+#overview > #market-summary .market-risk-scale {
+  font-size:8px;
+}
+#overview > #market-summary .market-risk-meter {
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+  grid-template-rows:auto auto;
+  align-items:center;
+  column-gap:8px;
+  gap:3px;
+  padding-block:2px 0;
+}
+#overview > #market-summary .market-risk-meter-heading {
+  grid-column:1;
+  grid-row:1 / span 2;
+}
+#overview > #market-summary .market-risk-track {
+  grid-column:2;
+  grid-row:1;
+}
+#overview > #market-summary .market-risk-scale {
+  grid-column:2;
+  grid-row:2;
+}
+#overview > #market-summary .market-risk-track {
+  height:6px;
+}
+#overview > #market-summary .market-risk-scale {
+  font-size:9px;
+}
+#overview > #market-summary .market-summary-source {
+  font-size:11px;
+  line-height:1.4;
+}
 #overview > .daily-overview-pair {
   margin-block-start:var(--ds-space-3,12px);
   row-gap:var(--ds-space-4,16px);
@@ -75,7 +157,7 @@
   flex-direction:column;
   align-items:stretch;
   justify-content:flex-start;
-  gap:var(--ds-space-1,4px);
+  gap:2px;
   min-height:0;
   margin:0 0 var(--ds-space-2,8px);
   padding:0;
@@ -89,19 +171,20 @@
   margin:0;
   max-inline-size:38ch;
   font-size:clamp(18px,1.5vw,22px);
-  line-height:1.45;
+  line-height:1.25;
   text-wrap:balance;
 }
 #overview > .daily-overview-pair > section > .section-heading p {
   margin:0;
   max-inline-size:76ch;
-  line-height:1.6;
+  line-height:1.35;
+  font-size:12px;
   white-space:normal;
   overflow-wrap:anywhere;
   /* No line-clamp: source qualifications must remain readable in full. */
 }
 #overview > .daily-overview-pair > section > .section-heading > div > p {
-  margin-block-start:var(--ds-space-1,4px);
+  margin-block-start:2px;
 }
 #overview > .daily-overview-pair #turnoverStatus {
   color:var(--ds-muted,#536b68);
@@ -117,10 +200,10 @@
 /* Healthy is useful as text, not as a second green alert card. Keep stale,
    unknown, and error states visually explicit through the existing vocabulary. */
 #overview > .daily-overview-pair > section > .panel > .chart-wrap > .observation-clock[data-status="fresh"] {
-  padding-inline:0;
-  border-color:transparent;
-  background:transparent;
-  color:var(--ds-muted,#536b68);
+  padding-inline:0!important;
+  border-color:transparent!important;
+  background:transparent!important;
+  color:var(--ds-muted,#536b68)!important;
 }
 #overview > .daily-overview-pair > section > .panel > .chart-wrap > .observation-clock[data-status="fresh"]::before {
   content:"";
@@ -133,8 +216,79 @@
   vertical-align:middle;
 }
 @media(max-width:760px) {
+  html body header.topbar:has(.main-nav),
+  html body .topbar:not(.menu-open) {
+    height:82px!important;
+    min-height:82px!important;
+  }
+  html body .topbar .main-nav {
+    height:38px!important;
+    min-height:38px!important;
+  }
+  #overview > .sorena-extras-toolbar {
+    grid-template-columns:minmax(0,1fr) auto;
+    gap:4px;
+    margin-bottom:8px;
+    padding:4px 8px;
+  }
+  #overview > .sorena-extras-toolbar .sorena-extras-actions {
+    gap:6px;
+  }
+  #overview > .sorena-extras-toolbar .sorena-extras-button {
+    min-height:34px;
+    padding-block:4px;
+  }
+  #overview > #market-summary {
+    gap:6px;
+    margin-bottom:8px;
+    padding:8px;
+  }
+  #overview > #market-summary dl {
+    gap:4px;
+  }
+  #overview > #market-summary .market-risk-meter {
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+    grid-template-rows:auto auto;
+    align-items:center;
+    column-gap:8px;
+    gap:3px;
+    padding-block:2px 0;
+  }
+  #overview > #market-summary .market-risk-meter-heading {
+    grid-column:1;
+    grid-row:1 / span 2;
+  }
+  #overview > #market-summary .market-risk-track {
+    grid-column:2;
+    grid-row:1;
+  }
+  #overview > #market-summary .market-risk-scale {
+    grid-column:2;
+    grid-row:2;
+  }
+  #overview > #market-summary .market-risk-track {
+    height:6px;
+  }
+  #overview > #market-summary .market-risk-scale {
+    font-size:9px;
+  }
+  #overview > #market-summary .market-summary-source {
+    font-size:11px;
+    line-height:1.25;
+  }
+  #overview > .daily-overview-pair {
+    margin-block-start:0;
+  }
+  #overview > .daily-overview-pair > section > .section-heading {
+    margin-bottom:0;
+  }
   #overview > .daily-overview-pair > section > .section-heading h2 {
     max-inline-size:none;
+    font-size:16px;
+    line-height:1.2;
+  }
+  #overview > .daily-overview-pair > section > .section-heading p {
+    line-height:1.2;
   }
 }
 /* DS collapses the pair at 1100px; legacy subgrid still spans two rows from

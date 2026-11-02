@@ -37,7 +37,7 @@ const comprehensiveCss=fs.readFileSync('market/comprehensive-table.css','utf8');
 assert(comprehensiveCss.includes('.column-filter'));
 assert(comprehensiveCss.includes('.comprehensive-panel th{color:#000!important}'));
 assert(comprehensiveCss.includes('flex-wrap:nowrap'));
-const recovery=fs.readFileSync('market/app-fast-recovery-20261024-axis.js','utf8');
+const recovery=fs.readFileSync('market/app.js','utf8');
 assert(recovery.includes('data/comprehensive.json?cb='));
 const comprehensiveJs=fs.readFileSync('market/comprehensive-table.js','utf8');
 assert(comprehensiveJs.includes('mergeSnapshotRows'));

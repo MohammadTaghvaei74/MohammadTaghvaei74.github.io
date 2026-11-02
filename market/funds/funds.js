@@ -3,31 +3,31 @@
   'use strict';
   const number = value => typeof value === 'number' && Number.isFinite(value) ? value : null;
   function portfolioModel(fund) {
-    const holdings = (Array.isArray(fund?.holdings) ? fund.holdings : []).filter(h => h && (h.name || h.symbol)).map(h => ({...h, industry: String(h.industry || '').trim() || 'نامشخص', weight_pct: number(h.weight_pct) !== null && h.weight_pct >= 0 ? h.weight_pct : null}));
+    const holdings = (Array.isArray(fund && fund.holdings) ? fund.holdings : []).filter(h => h && (h.name || h.symbol)).map(h => ({...h, industry: String(h.industry || '').trim() || 'نامشخص', weight_pct: number(h.weight_pct) !== null && h.weight_pct >= 0 ? h.weight_pct : null}));
     const groups = new Map();
     for (const h of holdings) {
       if (!groups.has(h.industry)) groups.set(h.industry, {name:h.industry, weight_pct:null, count:0, unknown:0});
       const group = groups.get(h.industry);
       group.count++;
       if (h.weight_pct === null) group.unknown++;
-      else group.weight_pct = (group.weight_pct ?? 0) + h.weight_pct;
+      else group.weight_pct = (group.weight_pct === null || group.weight_pct === undefined ? 0 : group.weight_pct) + h.weight_pct;
     }
-    const total = holdings.reduce((sum,h) => sum + (h.weight_pct ?? 0),0);
-    return {holdings, industries:[...groups.values()].sort((a,b)=>(b.weight_pct ?? -1)-(a.weight_pct ?? -1)), available:holdings.length>0, total, unknown:holdings.filter(h=>h.weight_pct===null).length, remainder:Math.max(0,100-total), overflow:total>100};
+    const total = holdings.reduce((sum,h) => sum + (h.weight_pct === null || h.weight_pct === undefined ? 0 : h.weight_pct),0);
+    return {holdings, industries:[...groups.values()].sort((a,b)=>(b.weight_pct === null || b.weight_pct === undefined ? -1 : b.weight_pct)-(a.weight_pct === null || a.weight_pct === undefined ? -1 : a.weight_pct)), available:holdings.length>0, total, unknown:holdings.filter(h=>h.weight_pct===null).length, remainder:Math.max(0,100-total), overflow:total>100};
   }
-  const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const escapeHtml = value => String(value === null || value === undefined ? '' : value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   function safeSource(value) {
     if (typeof value !== 'string' || !/^https?:\/\//i.test(value) || /[\u0000-\u0020]/.test(value)) return '';
     try { const u = new URL(value); return ['http:','https:'].includes(u.protocol) && !u.username && !u.password ? value : ''; } catch (_) { return ''; }
   }
   function selectionFunds(summary, portfolios) {
-    const map = new Map(summary.filter(f=>f?.symbol).map(f=>[f.symbol,{symbol:f.symbol,name:f.description || f.symbol}]));
-    for (const fund of portfolios) if (fund?.symbol) map.set(fund.symbol,{...map.get(fund.symbol),...fund});
+    const map = new Map(summary.filter(f=>f && f.symbol).map(f=>[f.symbol,{symbol:f.symbol,name:f.description || f.symbol}]));
+    for (const fund of portfolios) if (fund && fund.symbol) map.set(fund.symbol,{...map.get(fund.symbol),...fund});
     return [...map.values()];
   }
-  const faText = value => String(value ?? '').replace(/[0-9]/g, d=>'۰۱۲۳۴۵۶۷۸۹'[Number(d)]);
+  const faText = value => String(value === null || value === undefined ? '' : value).replace(/[0-9]/g, d=>'۰۱۲۳۴۵۶۷۸۹'[Number(d)]);
   const publicNote = value => !value ? '' : /[A-Za-z]/.test(String(value)) ? 'جزئیات گزارش کامل نیست؛ فایل اصلی را بررسی کنید.' : String(value);
-  const initialSymbol = (funds, requested, prior) => funds.find(f=>f.symbol===requested)?.symbol || funds.find(f=>f.symbol===prior)?.symbol || funds.find(f=>portfolioModel(f).available)?.symbol || funds[0]?.symbol || '';
+  const initialSymbol = (funds, requested, prior) => { const requestedFund=funds.find(f=>f.symbol===requested), priorFund=funds.find(f=>f.symbol===prior), available=funds.find(f=>portfolioModel(f).available); return requestedFund ? requestedFund.symbol : priorFund ? priorFund.symbol : available ? available.symbol : funds.length ? funds[0].symbol : ''; };
   const fmt = (v,d=2) => number(v) === null ? '—' : v.toLocaleString('fa-IR',{maximumFractionDigits:d});
   const pct = v => number(v) === null ? 'نامشخص' : v > 0 && v < 0.05 ? 'کمتر از ۰٫۱٪' : `${v.toLocaleString('fa-IR',{minimumFractionDigits:1,maximumFractionDigits:1})}٪`;
   const holdingLabel = h => String(h.symbol || h.name || '').replace(/ي/g,'ی').replace(/ك/g,'ک');
@@ -35,7 +35,7 @@
   function chartMarkup(items, model, id) {
     if (model.overflow) return '<p class="fund-warning">مجموع وزن‌های گزارش بیش از ۱۰۰٪ است؛ برای جلوگیری از نمایش گمراه‌کننده، نمودار رسم نمی‌شود. وزن‌های اصلی در جدول حفظ شده‌اند.</p>';
     if (!model.available || !items.some(x=>x.weight_pct !== null)) return '<p class="fund-empty">وزن معتبر برای رسم نمودار در دسترس نیست.</p>';
-    const slices = [...items].sort((a,b)=>(b.weight_pct ?? -1)-(a.weight_pct ?? -1)).map(x=>({name:holdingLabel(x),weight_pct:x.weight_pct,unknown:x.unknown}));
+    const slices = [...items].sort((a,b)=>(b.weight_pct === null || b.weight_pct === undefined ? -1 : b.weight_pct)-(a.weight_pct === null || a.weight_pct === undefined ? -1 : a.weight_pct)).map(x=>({name:holdingLabel(x),weight_pct:x.weight_pct,unknown:x.unknown}));
     if (model.remainder>0) slices.push({name:'افشا‌نشده / غیرسهامی',weight_pct:model.remainder,remainder:true});
     let offset=0;
     const arcs=slices.map((x,i)=>{
@@ -60,7 +60,7 @@
         if(!response.ok) throw new Error('HTTP');
         const data=await response.json();
         if(!Array.isArray(data[key])) throw new Error('schema');
-        root.ObservationSafety?.accept(data);
+        if (root.ObservationSafety && root.ObservationSafety.accept) root.ObservationSafety.accept(data);
         return data;
       };
       const results=await Promise.allSettled([get('../data/funds.json','rows'),get('../data/fund-portfolios.json','funds')]);
@@ -73,9 +73,10 @@
       const prior=$('fundSelect').value;
       $('fundSelect').innerHTML=funds.map(f=>`<option value="${escapeHtml(f.symbol)}">${escapeHtml(f.symbol)} — ${escapeHtml(f.name || f.symbol)}</option>`).join('') || '<option>صندوقی در دسترس نیست</option>';
       $('fundSelect').disabled=!funds.length;
-      $('fundSelect').value=initialSymbol(funds,new URLSearchParams(root.location?.search || '').get('fund'),prior);
+      const queryFund=root.location && root.location.search ? new URLSearchParams(root.location.search).get('fund') : '';
+      $('fundSelect').value=initialSymbol(funds,queryFund,prior);
       const cell=(value,percent=false,digits=2)=>`<td><bdi>${percent?(number(value)===null?'—':pct(value)):fmt(value,digits)}</bdi></td>`;
-      $('fundReportRows').innerHTML=summary.map((f,i)=>`<tr data-fund="${escapeHtml(f.symbol)}"><td>${fmt(i+1,0)}</td><td><button type="button" class="fund-pick" data-symbol="${escapeHtml(f.symbol)}">${escapeHtml(f.symbol)}</button></td>${cell(f.bubble_pct,true)}${cell(f.liquidity ?? f.avg_daily_value_billion_toman,false,1)}${cell(f.portfolio_score)}${cell(f.board_score)}${cell(f.score_diff)}<td>${escapeHtml(faText(f.portfolio_last_update || f.report_date || '—'))}</td></tr>`).join('') || empty(8,results[0].status==='rejected'?'جدول خلاصه دریافت نشد.':'گزارش خلاصه صندوق‌ها هنوز آماده نیست.');
+      $('fundReportRows').innerHTML=summary.map((f,i)=>`<tr data-fund="${escapeHtml(f.symbol)}"><td>${fmt(i+1,0)}</td><td><button type="button" class="fund-pick" data-symbol="${escapeHtml(f.symbol)}">${escapeHtml(f.symbol)}</button></td>${cell(f.bubble_pct,true)}${cell(f.liquidity !== null && f.liquidity !== undefined ? f.liquidity : f.avg_daily_value_billion_toman,false,1)}${cell(f.portfolio_score)}${cell(f.board_score)}${cell(f.score_diff)}<td>${escapeHtml(faText(f.portfolio_last_update || f.report_date || '—'))}</td></tr>`).join('') || empty(8,results[0].status==='rejected'?'جدول خلاصه دریافت نشد.':'گزارش خلاصه صندوق‌ها هنوز آماده نیست.');
       function select() {
         const fund=funds.find(f=>f.symbol===$('fundSelect').value) || {};
         const model=portfolioModel(fund);
@@ -91,7 +92,7 @@
         else $('sourceLink').removeAttribute('href');
         $('portfolioStatus').textContent=(model.available?`${fmt(model.holdings.length,0)} ردیف سهام؛ مجموع وزن معلوم ${pct(model.total)}.${model.unknown?` وزن ${fmt(model.unknown,0)} ردیف نامشخص است.`:''}${model.overflow?' هشدار: مجموع وزن‌ها بیش از ۱۰۰٪؛ نمودارها غیرفعال شده‌اند.':''}`:'ریز سهام معتبر برای این صندوق در دسترس نیست. اگر فایل منبع موجود است، گزارش اصلی را بررسی کنید.')+(fund.note?` ${publicNote(fund.note)}`:'');
         $('holdingsCount').textContent=`${fmt(model.holdings.length,0)} ردیف سهام گزارش`;
-        $('holdingsRows').innerHTML=[...model.holdings].sort((a,b)=>(b.weight_pct ?? -1)-(a.weight_pct ?? -1)).map(h=>`<tr><td>${escapeHtml(holdingLabel(h))}</td><td>${escapeHtml(h.industry)}</td><td><bdi>${pct(h.weight_pct)}</bdi></td><td>${escapeHtml(h.source_sheet || '—')} / ${escapeHtml(faText(h.source_row ?? '—'))}</td></tr>`).join('') || empty(4,'ریز سهام در دسترس نیست.');
+        $('holdingsRows').innerHTML=[...model.holdings].sort((a,b)=>(b.weight_pct === null || b.weight_pct === undefined ? -1 : b.weight_pct)-(a.weight_pct === null || a.weight_pct === undefined ? -1 : a.weight_pct)).map(h=>`<tr><td>${escapeHtml(holdingLabel(h))}</td><td>${escapeHtml(h.industry)}</td><td><bdi>${pct(h.weight_pct)}</bdi></td><td>${escapeHtml(h.source_sheet || '—')} / ${escapeHtml(faText(h.source_row === null || h.source_row === undefined ? '—' : h.source_row))}</td></tr>`).join('') || empty(4,'ریز سهام در دسترس نیست.');
         $('industryRows').innerHTML=model.industries.map(g=>`<tr><td>${escapeHtml(g.name)}</td><td>${fmt(g.count,0)}</td><td><bdi>${pct(g.weight_pct)}</bdi></td><td>${g.unknown?`${fmt(g.unknown,0)} وزن نامشخص؛ جمع فقط وزن‌های معلوم`:'وزن‌های معلوم'}</td></tr>`).join('') || empty(4,'اطلاعات صنایع در دسترس نیست.');
         $('stockChart').innerHTML=chartMarkup(model.holdings,model,'stock');
         $('industryChart').innerHTML=chartMarkup(model.industries,model,'industry');

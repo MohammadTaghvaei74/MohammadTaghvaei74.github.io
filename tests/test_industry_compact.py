@@ -6,7 +6,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 def test_compact_industry_contract():
     html = (ROOT / 'market/index.html').read_text(encoding='utf-8')
-    js = (ROOT / 'market/app-fast-recovery-20261024-axis.js').read_text(encoding='utf-8')
+    js = (ROOT / 'market/app.js').read_text(encoding='utf-8')
     assert 'مرتب‌سازی بر اساس میانه امتیاز ·' not in html
     assert 'section-index' not in html
     assert 'data-filter-cell="average"' in html

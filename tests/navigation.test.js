@@ -10,6 +10,6 @@ function links(route) {
 }
 test('all market headers retain the same complete ordered navigation and destinations',()=>{
  const expected=links('');
- assert.equal(expected.length,7);
+ assert.equal(expected.length,8);
  for(const route of routes) assert.deepEqual(links(route),expected,route||'overview');
 });

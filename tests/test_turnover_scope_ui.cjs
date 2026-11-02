@@ -1,5 +1,5 @@
 const fs=require('fs'),vm=require('vm'),assert=require('assert');
-const src=fs.readFileSync(process.argv[2] || 'market/app-fast-recovery-20261024-axis.js','utf8');
+const src=fs.readFileSync(process.argv[2] || 'market/app.js','utf8');
 const fn=src.slice(src.indexOf('  function movingAverage('),src.indexOf('  function renderQueueCountChart('));
 const nodes={'#turnoverChart':{innerHTML:''}};const texts={};
 const context={numeric:v=>v===null||v===undefined||v===''?null:(Number.isFinite(Number(v))?Number(v):null),$:s=>nodes[s],text:(s,v)=>texts[s]=v,core:{faDigits:String},escapeHtml:String,Intl,console};

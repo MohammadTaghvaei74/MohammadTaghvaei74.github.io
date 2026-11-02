@@ -11,7 +11,7 @@ with sync_playwright() as p:
             if '--local' in sys.argv:
                 from pathlib import Path
                 root=Path(__file__).resolve().parents[1]/'market'
-                for asset in ['app-fast-recovery-20261024-axis.js','daily-turnover.css']:
+                for asset in ['app.js','daily-turnover.css']:
                     asset_path = root / asset
                     page.route('**/'+asset+'*', lambda route, request, asset_path=asset_path: route.fulfill(path=str(asset_path)))
             page.goto(url, wait_until='domcontentloaded', timeout=60000)

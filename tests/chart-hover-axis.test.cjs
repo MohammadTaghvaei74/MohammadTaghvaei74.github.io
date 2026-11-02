@@ -25,9 +25,9 @@ test('median rendered tick labels are distinct uniformly spaced integers',()=>{
  const {svg}=median([row]);const labels=svg.children.filter(n=>n.attrs.x===65);assertTicks(labels.map(n=>Number(ascii(n.textContent))));
  const ys=labels.map(n=>n.attrs.y);for(let i=2;i<ys.length;i++)assert.ok(Math.abs((ys[i]-ys[i-1])-(ys[1]-ys[0]))<.001);
 });
-for(const file of ['market/app.js','market/app-fast-recovery-20261024-axis.js'])test(file+' queue scale uses integer ticks at true positions',()=>{
+for(const file of ['market/app.js'])test(file+' queue scale uses integer ticks at true positions',()=>{
  const source=read(file),start=source.indexOf('  function renderQueueChart('),end=source.indexOf('\n  function ',start+5);
- const svg={innerHTML:''};const c=vm.createContext({$:()=>svg,core,numeric:core.number,escapeHtml:String,pathFor:(values,x,y)=>values.map((v,i)=>`${x(i)},${y(v)}`).join(' ')});
+ const svg={innerHTML:''};const c=vm.createContext({$:()=>svg,core,numeric:core.number,escapeHtml:String,setChartState:()=>{},pathFor:(values,x,y)=>values.map((v,i)=>`${x(i)},${y(v)}`).join(' ')});
  vm.runInContext(source.slice(start,end)+';this.render=renderQueueChart;',c);
  c.render({queue_intraday:[{time:'09:00',buy_value_hmt:2.1,sell_value_hmt:8.9},{time:'09:30',buy_value_hmt:2.3,sell_value_hmt:8.1}]});
  const texts=[...svg.innerHTML.matchAll(/<text[^>]*text-anchor="end">([^<]+)<\/text>/g)].map(m=>Number(ascii(m[1]).replace(' همت','')));assertTicks(texts);
@@ -43,7 +43,7 @@ test('symbol candle and line renderers use integer scales without rounding raw p
  }
 });
 test('all affected pages load the versioned shared scale before their renderer',()=>{
- for(const [page,renderer] of [['market/index.html','app-fast-recovery-20261024-axis.js'],['market/median-history/index.html','history.js'],['market/symbols/index.html','symbols.js'],['market/history/index.html','candles.js']]){
+ for(const [page,renderer] of [['market/index.html','app.js'],['market/median-history/index.html','history.js'],['market/symbols/index.html','symbols.js'],['market/history/index.html','candles.js']]){
  const html=read(page);const corePos=html.indexOf('core.js?v=integer-axis-20261101');assert.ok(corePos>=0,page);assert.ok(corePos<html.indexOf(renderer),page);
  }
 });

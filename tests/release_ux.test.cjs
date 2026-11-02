@@ -22,7 +22,7 @@ test('mobile content reserves the fixed navigation safe area', () => {
 
 test('overview charts expose honest pending states before data is accepted', () => {
   const html = read('market/index.html');
-  const renderer = read('market/app-fast-recovery-20261024-axis.js');
+  const renderer = read('market/app.js');
   for (const id of ['turnoverChart', 'priceDistributionChart', 'queueChart', 'marketChart', 'queueCountChart']) {
     assert.match(html, new RegExp(`<svg[^>]*id="${id}"[^>]*>[\\s\\S]*?chart-state`));
   }
@@ -39,6 +39,6 @@ test('non-decorative helper text uses the shared 12px minimum and AA-safe muted 
 });
 
 test('healthy overview status does not duplicate the section freshness notice', () => {
-  const renderer = read('market/app-fast-recovery-20261024-axis.js');
+  const renderer = read('market/app.js');
   assert.match(renderer, /text\("#turnoverStatus", quality\.join/);
 });

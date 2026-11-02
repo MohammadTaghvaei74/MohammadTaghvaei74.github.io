@@ -282,7 +282,7 @@
 
     const marketRows = (Array.isArray(snapshot.stocks) ? snapshot.stocks : []).concat(Array.isArray(snapshot.leveraged) ? snapshot.leveraged : []);
     const result = portfolio.calculatePortfolio({holdings: draft.holdings, cash: draft.cash || 0, marketMedian: snapshot.market && snapshot.market.median, stocks: marketRows, catalog, fallbackRows});
-    lastResult=result; window.ObservationSafety.portfolioRows=result.holdings.filter(h=>h.value>0).map(h=>({timestamp:window.ObservationSafety.observation(h.row)||h.row?.historyTimestamp})); renderResult(result); renderRows(result); window.enforcePortfolioObservation(); saveDraft();
+    lastResult=result; window.ObservationSafety.portfolioRows=result.holdings.filter(h=>h.value>0).map(h=>({timestamp:window.ObservationSafety.observation(h.row)||(h.row && h.row.historyTimestamp)})); renderResult(result); renderRows(result); window.enforcePortfolioObservation(); saveDraft();
     if (result.totalScore !== null) toast("امتیاز پرتفو محاسبه شد");
   }
 

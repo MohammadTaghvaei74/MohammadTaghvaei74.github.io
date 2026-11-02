@@ -3,7 +3,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-APP = (ROOT / "market/app-fast-recovery-20261024-axis.js").read_text(encoding="utf-8")
+APP = (ROOT / "market/app.js").read_text(encoding="utf-8")
 INDEX = (ROOT / "market/index.html").read_text(encoding="utf-8")
 
 

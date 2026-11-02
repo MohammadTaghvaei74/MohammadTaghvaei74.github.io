@@ -20,6 +20,8 @@ import subprocess
 import tempfile
 from datetime import datetime
 from pathlib import Path
+from zoneinfo import ZoneInfo
+
 
 from zipfile import ZIP_DEFLATED, ZipFile, ZipInfo
 from xml.sax.saxutils import escape
@@ -27,14 +29,26 @@ from xml.sax.saxutils import escape
 if __package__:
     from .export_signals import export as export_signals
     from .leveraged_snapshots import read_latest as read_leveraged
-    from .chart_data import load_daily_chart_rows
+    from .chart_data import (
+        load_daily_chart_rows,
+        load_intraday_chart_rows,
+        load_intraday_queue_rows,
+        load_intraday_queue_count_rows,
+        load_intraday_symbol_rows,
+    )
     from .export_options import export_from_scores_db
     from .score_candles import build_candles
     from .tsetmc_enrichment import enrich_stocks
 else:
     from export_signals import export as export_signals
     from leveraged_snapshots import read_latest as read_leveraged
-    from chart_data import load_daily_chart_rows
+    from chart_data import (
+        load_daily_chart_rows,
+        load_intraday_chart_rows,
+        load_intraday_queue_rows,
+        load_intraday_queue_count_rows,
+        load_intraday_symbol_rows,
+    )
     from export_options import export_from_scores_db
     from score_candles import build_candles
     from tsetmc_enrichment import enrich_stocks
@@ -53,6 +67,19 @@ SITE = Path(os.environ.get("SITE_REPO", "/root/bourse-site"))
 MARKET_OUT = SITE / "market/data/market.json"
 HISTORY_OUT = SITE / "market/history/data/history.json"
 XLSX_OUT = SITE / "market/history/data/market-score-history.xlsx"
+TEHRAN = ZoneInfo("Asia/Tehran")
+
+
+def is_publish_window(now: datetime | None = None) -> bool:
+    """Return whether the live market-session publication window is open.
+
+    Kept as a scheduling/query helper; ``main`` intentionally remains callable
+    outside this window for post-close finalization and retry jobs.
+    """
+    current = now or datetime.now(TEHRAN)
+    return current.weekday() in (0, 1, 2, 5, 6) and current.replace(
+        hour=8, minute=45, second=0, microsecond=0
+    ) <= current < current.replace(hour=12, minute=30, second=0, microsecond=0)
 
 
 def connect() -> sqlite3.Connection:

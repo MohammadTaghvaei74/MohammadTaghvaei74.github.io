@@ -8,7 +8,8 @@ async function run(options, optionOk = true) {
   const elements = {};
   ['marketMedian','optionsStatus','optionsMessage','optionsSource','optionsUpdatedAt','optionsEligibleCount','optionsPairCount','optionsPairs','optionsDiagnostics','optionsContracts','optionsRejected'].forEach(id => {elements['#'+id]={textContent:'',innerHTML:''};});
   const market = {schema_version:1,source:'test',generated_at:'2026-10-17T12:30:00+03:30',market:{},groups:[],top_stocks:[],leveraged:[],industries:[],daily:[]};
-  const ctx = {console, AbortController, navigator:{userAgent:''}, document:{querySelector:s=>elements[s]||null,querySelectorAll:()=>[],addEventListener:()=>{},visibilityState:'visible'},window:{MarketCore:core,setTimeout:()=>1,clearTimeout:()=>{},setInterval:()=>1,addEventListener:()=>{}},fetch: async url => ({ok:url.includes('options.json')?optionOk:true,json:async()=>url.includes('options.json')?options:market})};
+  const location = {origin:'https://example.org', href:'https://example.org/market/'};
+  const ctx = {console, URL, location, AbortController, navigator:{userAgent:''}, document:{querySelector:s=>elements[s]||null,querySelectorAll:()=>[],addEventListener:()=>{},visibilityState:'visible'},window:{MarketCore:core,location,setTimeout:()=>1,clearTimeout:()=>{},setInterval:()=>1,requestIdleCallback:callback=>{callback();return 1;},addEventListener:()=>{}},fetch: async url => ({ok:url.includes('options.json')?optionOk:true,json:async()=>url.includes('options.json')?options:market})};
   vm.runInNewContext(source,ctx);
   await new Promise(resolve=>setImmediate(resolve));
   return elements;

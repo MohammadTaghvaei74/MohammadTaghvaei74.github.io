@@ -61,12 +61,12 @@
         portfolio_score:metric(row.portfolio_score,'امتیاز خام',null,'archive-report',date,reportSource),
         report_board_score:metric(row.board_score,'امتیاز خام',observation(row),'report-board',null,reportSource),
         bubble_pct:metric(row.bubble_pct,'درصد',observation(row),'report-board',date,reportSource),
-        liquidity:metric(row.liquidity ?? row.avg_daily_value_billion_toman,'میلیارد تومان',null,'historical-liquidity',null,reportSource),
+        liquidity:metric(row.liquidity !== null && row.liquidity !== undefined ? row.liquidity : row.avg_daily_value_billion_toman,'میلیارد تومان',null,'historical-liquidity',null,reportSource),
         board_score:metric(live && live.score,'امتیاز خام',stamp,'live-board',null,source),
         price_change_pct:metric(live && live.last_pct,'درصد',stamp,'live-board',null,source),
         trade_value_toman:metric(live && live.trade_value_toman,'تومان',stamp,'live-board',null,source)
       };
-      metrics.liquidity.basis = safeText(row.liquidity_basis || report.portfolio_contract?.liquidity_basis || report.liquidity_basis);
+      metrics.liquidity.basis = safeText(row.liquidity_basis || report.portfolio_contract && report.portfolio_contract.liquidity_basis || report.liquidity_basis);
       metrics.portfolio_score.note = 'زمان مشاهده ورودی‌های امتیاز پرتفو در این گزارش قابل تأیید نیست.';
       result.push({id:'fund:'+symbol,type:'fund',symbol,label:safeText(row.description)||symbol,reportDate:date,metrics,source:reportSource});
     }
@@ -92,7 +92,7 @@
     return {hidden,order:order.concat(ids.filter(id => !order.includes(id)))};
   }
   function load(storage, key, fallback) {
-    try { return JSON.parse(storage.getItem(key)) ?? fallback; } catch (_) { return fallback; }
+    try { const value = JSON.parse(storage.getItem(key)); return value === null || value === undefined ? fallback : value; } catch (_) { return fallback; }
   }
   function save(storage, key, value) {
     try { storage.setItem(key, JSON.stringify(value)); return true; } catch (_) { return false; }

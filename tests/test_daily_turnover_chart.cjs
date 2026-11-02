@@ -1,5 +1,5 @@
 const fs = require('fs'), vm = require('vm'), assert = require('assert');
-for (const file of ['app.js','app-fast-recovery-20261024-axis.js']) {
+for (const file of ['app.js']) {
  const source = fs.readFileSync(`market/${file}`, 'utf8');
  const start = source.indexOf('  function movingAverage('), end = source.indexOf('  function renderQueueCountChart(',start);
  const svg = {innerHTML:''}, status = {textContent:''};

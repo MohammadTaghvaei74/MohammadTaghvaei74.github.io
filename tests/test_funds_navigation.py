@@ -4,7 +4,7 @@ import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-LABELS = ['نمای کلی', 'سیگنال‌ها', 'سهام', 'صنایع و سهام', 'آپشن', 'صندوق‌ها', 'امتیاز پرتفو']
+LABELS = ['نمای کلی', 'سیگنال‌ها', 'سهام', 'صنایع و سهام', 'آپشن', 'صندوق‌ها', 'امتیاز پرتفو', 'تاریخچه']
 
 class FundsNavigationTests(unittest.TestCase):
     def test_shared_menu_preserved_and_funds_route_distinct(self):

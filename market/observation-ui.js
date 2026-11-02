@@ -27,7 +27,7 @@
      const request=async(target,ms)=>{
        const controller=new AbortController();
        const timer=setTimeout(()=>controller.abort(),ms);
-       const signal=args[1]?.signal;
+       const signal=args[1] && args[1].signal;
        const abort=()=>controller.abort();
        if(signal){if(signal.aborted)abort();else signal.addEventListener('abort',abort,{once:true});}
        try {
@@ -60,12 +60,12 @@
    let el=document.getElementById('dataTransportStatus');
    if(!el){el=document.createElement('div');el.id='dataTransportStatus';el.setAttribute('role','status');el.style.cssText='padding:12px;margin:8px;border:1px solid #b98b36;border-radius:8px;line-height:1.8';(document.querySelector('main')||document.body).prepend(el);}
    el.dataset.state=state;
-   const snapshotAt=data?.market?.timestamp||data?.timestamp||data?.generated_at||'';
+   const snapshotAt=data && data.market && data.market.timestamp || data && data.timestamp || data && data.generated_at || '';
    const age=snapshotAt?`؛ سن snapshot: ${format(snapshotAt)}`:'';
    el.textContent=state==='error'?'دریافت داده ناموفق بود؛ اتصال را بررسی کنید و دوباره به‌روزرسانی کنید.':state==='fallback'?`نمایش نسخه ذخیره‌شده سایت${age}؛ تازگی داده در هر بخش مشخص است.`:'اتصال زنده برقرار است؛ تازگی داده در هر بخش مشخص است.';
  }
  function feed(suffix) { const key=Object.keys(feeds).find(k=>k.endsWith(suffix)); return key?feeds[key]:null; }
- function selectedSymbol() { return new URLSearchParams(location.search).get('symbol') || document.querySelector('#selectedSymbol')?.textContent || document.querySelector('#dossier h2')?.textContent; }
+ function selectedSymbol() { const selected=document.querySelector('#selectedSymbol'), dossier=document.querySelector('#dossier h2'); return new URLSearchParams(location.search).get('symbol') || selected && selected.textContent || dossier && dossier.textContent; }
  function description(element) {
    const m=feed('/data/market.json')||{}, symbol=selectedSymbol(), current=rows(m.stocks).find(r=>r.symbol===symbol);
    const base={r:unknown(),name:'منبع این بخش',archive:false,note:''};
@@ -76,7 +76,7 @@
    if (within('#queueCountChart')) return {...base,r:range(m.queue_count_intraday),series:true,name:'نمونه‌های تعداد صف'};
    if (within('#priceDistributionChart')) return {...base,r:range(m.stocks),name:'معاملات سهام'};
    if(location.pathname.includes('/funds/')) {
-        const reportDate=document.querySelector('#reportDate')?.textContent||'تاریخ اعلام نشده';
+        const report=document.querySelector('#reportDate'); const reportDate=report ? report.textContent : 'تاریخ اعلام نشده';
         return {...base,r:unknown(),archive:true,name:'گزارش ماهانه پرتفو ('+reportDate+')',note:'ترکیب دارایی و NAV این بخش گزارش ماهانه است، نه قیمت یا تحلیل لحظه‌ای؛ ساعت مشاهدهٔ ردیف‌ها در منبع اعلام نشده.'};
       }
    if (within('#funds')) return {...base,r:unknown(),archive:true,name:'گزارش ماهانه پرتفو',note:'ترکیب دارایی و NAV این بخش گزارش ماهانه است، نه قیمت یا تحلیل لحظه‌ای؛ ساعت مشاهدهٔ ردیف‌ها در منبع اعلام نشده.'};
@@ -86,11 +86,12 @@
    if (within('#industries,.industry-summary-section,.detail-section,.map-section')) return {...base,r:range(m.stocks),name:'سهام مبنای صنعت',note:'میانگین ۱۵روزه تاریخی است؛ پایان بازه مستقل در منبع باید بررسی شود.'};
    if (within('.metric-group')) { const behavior=element.textContent.includes('رفتار معامله');return {...base,r:behavior?range(current?[{timestamp:current.client_type_date}]:[]):range(current?[current]:[]),name:behavior?'حقیقی/حقوقی سهم':'نمونه سهم',note:behavior?'تاریخ داده معامله‌گران، نه زمان دریافت فایل':'میانگین‌های چندروزه تاریخی؛ زمان مستقل آن‌ها اعلام نشده'}; }
    if (within('#scoreChart')) {
-     const info=(feed('/symbols/data/history-manifest.json')||{}).symbols?.[symbol];
+     const manifest=feed('/symbols/data/history-manifest.json')||{}, info=manifest.symbols && manifest.symbols[symbol];
      const payload=info?feed('/symbols/data/'+info.file):null;
-     const frame=document.querySelector('[data-score-timeframe].active')?.dataset.scoreTimeframe || '15m';
-     const day=document.querySelector('#scoreDay')?.value;
-     const points=rows(payload?.candles?.[frame]).filter(r=>!day||r.day===day);
+     const frameNode=document.querySelector('[data-score-timeframe].active'), dayNode=document.querySelector('#scoreDay');
+     const frame=frameNode && frameNode.dataset.scoreTimeframe || '15m';
+     const day=dayNode && dayNode.value;
+     const points=rows(payload && payload.candles && payload.candles[frame]).filter(r=>!day||r.day===day);
      return {...base,r:F.range(points,r=>r.last_timestamp||r.day),archive:true,name:'آرشیو نمودار سهم',note:'زمان واقعی آخرین نمونه هر کندل؛ اگر ساعت منبع موجود نباشد فقط روز داده نمایش داده می‌شود.'};
    }
    if (within('#scoreCandleChart')) return {...base,r:F.range(rows((feed('/history/data/score-candles.json')||{}).rows).filter(r=>r.symbol===symbol),r=>r.last_timestamp||r.day),archive:true,name:'آرشیو کندل همین سهم'};
@@ -149,7 +150,7 @@
    // A preset already selected before expiry must not leave a recommendation visible.
    ['#industriesGrid','#comprehensiveRows'].forEach(sel=>{
      const body=document.querySelector(sel);if(!body)return;
-     const section=body.closest('section'), unavailable=section?.querySelector('[data-industry-preset]:disabled[aria-pressed="true"],[data-comprehensive-preset]:disabled[aria-pressed="true"]');
+     const section=body.closest('section'), unavailable=section && section.querySelector('[data-industry-preset]:disabled[aria-pressed="true"],[data-comprehensive-preset]:disabled[aria-pressed="true"]');
      body.dataset.observationStatus=sel==='#industriesGrid'?F.freshness(mr).status:unavailable?'stale':'fresh';
      if(sel==='#industriesGrid') {
        let notice=section.querySelector('[data-industry-preset-status]');
@@ -158,7 +159,7 @@
        notice.textContent='پریست ناموجود: داده قدیمی یا زمان منبع نامعلوم است؛ نتایج پریست لغو شده و جدول صرفاً داده موجود را نشان می‌دهد.';
      }
      body.classList.remove('observation-blocked'); // stale recommendations are blocked at the preset control, never the current data table
-     const download=section?.querySelector('#downloadComprehensiveXlsx');if(download){download.disabled=!!unavailable;download.title=unavailable?'دریافت تحلیل قدیمی یا نامعلوم مسدود است':'';}
+     const download=section && section.querySelector('#downloadComprehensiveXlsx');if(download){download.disabled=!!unavailable;download.title=unavailable?'دریافت تحلیل قدیمی یا نامعلوم مسدود است':'';}
    });
    const summary={r:mr,name:'تابلو سهام'}, health=status(summary);
    document.querySelectorAll('.market-state').forEach(el=>{el.dataset.observationHealth=health.status;});

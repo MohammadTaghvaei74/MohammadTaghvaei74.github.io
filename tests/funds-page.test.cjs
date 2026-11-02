@@ -4,12 +4,12 @@ const fs = require('node:fs');
 const path = require('node:path');
 const root = path.resolve(__dirname, '..');
 const ui = require('../market/funds/funds.js');
-test('page provides accessible RTL sections and retained seven-tab menu',()=>{
+test('page provides accessible RTL sections and retained complete menu',()=>{
  const html=fs.readFileSync(path.join(root,'market/funds/index.html'),'utf8');
  assert.match(html,/dir="rtl"/);
  for(const id of ['fundSelect','fundReportRows','holdingsRows','industryRows','stockChart','industryChart','sourceLink','reportDate']) assert.ok(html.includes(`id="${id}"`),id);
  const nav=html.match(/<nav class="main-nav"[\s\S]*?<\/nav>/)[0];
- assert.equal((nav.match(/<a /g)||[]).length,7);
+ assert.equal((nav.match(/<a /g)||[]).length,8);
  assert.match(nav,/aria-current="page"[^>]*>صندوق‌ها/);
 });
 test('browser loader independently fetches summary and portfolios and renders selection',async()=>{

@@ -14,6 +14,7 @@ function toast(message) {
   clearTimeout(toast.timer); toast.timer = setTimeout(() => el.classList.remove("show"), 2800);
 }
 function symbolRows(symbol) { return ((archive && archive.rows) || []).filter((row) => row.symbol === symbol).sort((a, b) => a.day.localeCompare(b.day)); }
+if (typeof window !== "undefined") window.HistoryCore = { csvCell, symbolRows };
 function preferredSymbol() { return ["فولاد", "فملی", "خودرو", "شستا"].find((symbol) => archive.symbols.includes(symbol)) || archive.symbols[0]; }
 function displayDay(day) { return faDigits(new Date(`${day}T12:00:00Z`).toLocaleDateString("fa-IR", { month: "short", day: "numeric" })); }
 function displayFullDay(day) { return faDigits(new Date(`${day}T12:00:00Z`).toLocaleDateString("fa-IR", { year: "numeric", month: "short", day: "numeric" })); }

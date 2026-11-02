@@ -63,7 +63,7 @@ test('dashboard renders missing leaders/options and preserves falsy text rather 
   const errors = [];
   const snapshot = { schema_version: 1, source: 'test', generated_at: '2026-10-17T09:00:00+03:30', market: {}, groups: [], top_stocks: [0, false, '', null, undefined].map(symbol => ({ symbol })), leveraged: [], industries: [], daily: [] };
   const context = vm.createContext({
-    window: { setTimeout: () => 1, clearTimeout() {}, setInterval: () => 1, addEventListener() {} },
+    URL, location: {origin:'https://example.org', href:'https://example.org/market/'}, window: { setTimeout: () => 1, clearTimeout() {}, setInterval: () => 1, addEventListener() {} },
     document: { querySelector: selector => elements.get(selector) || null, querySelectorAll: () => [], addEventListener() {} },
     navigator: { userAgent: '' },
     AbortController,
@@ -83,14 +83,15 @@ test('dashboard renders missing leaders/options and preserves falsy text rather 
 // Exercise CSV escaping without relying on a newer host's String.replaceAll.
 test('archive CSV retains null/zero/false and quote escaping without replaceAll', () => {
   const context = vm.createContext({
+    window: {},
     document: { querySelector: () => ({ addEventListener() {} }) },
     fetch: () => new Promise(() => {}),
   });
   vm.runInContext('String.prototype.replaceAll = undefined;', context);
   vm.runInContext(fs.readFileSync(path.join(market, 'history/history.js'), 'utf8'), context);
-  assert.equal(vm.runInContext('csvCell(null)', context), '""');
-  assert.equal(vm.runInContext('csvCell(0)', context), '"0"');
-  assert.equal(vm.runInContext('csvCell(false)', context), '"false"');
-  assert.equal(vm.runInContext('csvCell(\'a"b"c\')', context), '"a""b""c"');
-  assert.equal(vm.runInContext('symbolRows("missing").length', context), 0);
+  assert.equal(vm.runInContext('window.HistoryCore.csvCell(null)', context), '""');
+  assert.equal(vm.runInContext('window.HistoryCore.csvCell(0)', context), '"0"');
+  assert.equal(vm.runInContext('window.HistoryCore.csvCell(false)', context), '"false"');
+  assert.equal(vm.runInContext('window.HistoryCore.csvCell(\'a"b"c\')', context), '"a""b""c"');
+  assert.equal(vm.runInContext('window.HistoryCore.symbolRows("missing").length', context), 0);
 });

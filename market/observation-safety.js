@@ -15,7 +15,7 @@
     return {first:known[0] || null, last:known[known.length-1] || null, unknown:!values.length || known.length !== values.length};
   }
   function todayEvents(items, now=Date.now()) { return (items||[]).filter(r=>Number.isFinite(Date.parse(r.timestamp)) && Date.parse(r.timestamp)<=now && day(r.timestamp)===day(now)); }
-  function portfolioSafe(holdings, now=Date.now()) { return (holdings||[]).filter(h=>h.value>0).every(h=>state(observation(h.row)||h.row?.historyTimestamp,now)==='fresh'); }
+  function portfolioSafe(holdings, now=Date.now()) { return (holdings||[]).filter(h=>h.value>0).every(h=>state(observation(h.row)||(h.row && h.row.historyTimestamp),now)==='fresh'); }
   function rangeState(r, now=Date.now()) { return r.unknown || state(r.last,now)==='unknown' ? 'unknown' : state(r.first,now); }
   // Historical windows are not live ticks: require source-validated session coverage,
   // never substitute quote/fetch/publication times for their provenance.
@@ -63,21 +63,25 @@
     return date<calendar.from?null:{live:false,expected:time(date,close),day:date};
   }
   function freshness(r, options={}) {
-    const now=options.now??Date.now(), expected=session(now,options);
-    if(options.archive)return {status:'archive',timestamp:r?.last||null,expected};
-    const stamp=options.series?r?.last:r?.first, parsed=Date.parse(stamp||'');
+    const now=options.now !== null && options.now !== undefined ? options.now : Date.now(), expected=session(now,options);
+    if(options.archive)return {status:'archive',timestamp:r && r.last || null,expected};
+    const stamp=options.series ? (r && r.last) : (r && r.first), parsed=Date.parse(stamp||'');
     if(!r||r.unknown||!Number.isFinite(parsed)||!/T.*(Z|[+-]\d\d:\d\d)$/.test(String(stamp))||parsed>now+5000||Date.parse(r.last)>now+5000||!expected)return {status:'unknown',timestamp:stamp||null,expected};
     return {status:(expected.live ? now-parsed<=60000 : parsed>=expected.expected-60000)?'fresh':'stale',timestamp:stamp,expected};
   }
   function dailyRange(rows) {
     const valid=(rows||[]).map(r=>{
       const match=String(r.source||'').match(/^(?:persisted 12:30 MarketWatch final snapshot; |post-close MarketWatch ordinary shares; overview date verified; )(\d{4}-\d{2}-\d{2}T[^; ]+)/);
-      const stamp=match?.[1], time=Date.parse(stamp||'');
+      const stamp=match ? match[1] : null, time=Date.parse(stamp||'');
       return r.complete===true && typeof r.final_turnover_toman==='number' && Number.isFinite(r.final_turnover_toman) && r.final_turnover_toman>=0 && Number.isFinite(time) && day(time)===r.trading_date && time>=Date.parse(r.trading_date+'T12:30:00+03:30')?{timestamp:stamp}:null;
     }).filter(Boolean);
     return range(valid);
   }
-  const api = {observation, state, range, todayEvents, portfolioSafe, rangeState, comprehensiveSafe, tableVisible, freshness, session, sessionCalendar, dailyRange};
+  // Keep acceptance explicit at the boundary. Renderers may call this after a
+  // schema-validated payload is loaded; provenance is read from the payload and
+  // no publication/fetch timestamp is promoted to an observation.
+  function accept(payload) { return !!payload && typeof payload === 'object' && !Array.isArray(payload); }
+  const api = {accept, observation, state, range, todayEvents, portfolioSafe, rangeState, comprehensiveSafe, tableVisible, freshness, session, sessionCalendar, dailyRange};
   if (typeof module === 'object' && module.exports) module.exports = api;
   if (root) root.ObservationSafety = api;
 })(typeof window === 'object' ? window : null);

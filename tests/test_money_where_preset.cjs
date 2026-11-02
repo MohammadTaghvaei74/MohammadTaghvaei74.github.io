@@ -1,7 +1,7 @@
 const assert = require('assert');
 const fs = require('fs');
 const ui = fs.readFileSync('market/observation-ui.js', 'utf8');
-const app = fs.readFileSync('market/app-fast-recovery-20261024-axis.js', 'utf8');
+const app = fs.readFileSync('market/app.js', 'utf8');
 // Same-session snapshots remain usable after close, while genuinely stale data blocks the preset.
 assert.match(ui, /const safe=F\.freshness\(r\)\.status==='fresh'/,
   'industry preset gate must use session-aware freshness, not rangeState');

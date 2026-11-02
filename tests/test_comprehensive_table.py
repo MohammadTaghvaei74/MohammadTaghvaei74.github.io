@@ -17,7 +17,7 @@ def make_db():
     return db
 
 
-def test_score_window_uses_complete_days_nearest_target_and_dedupes_slots():
+def test_score_window_uses_complete_days_and_daily_medians_with_coverage():
     db = make_db()
     db.executemany("INSERT INTO v2_days VALUES (?,?)", [("2026-10-20", 1), ("2026-10-19", 1), ("2026-10-18", 0)])
     db.executemany("INSERT INTO stock_snapshots(timestamp,trading_date,symbol,score,valid) VALUES (?,?,?,?,?)", [
@@ -33,10 +33,11 @@ def test_score_window_uses_complete_days_nearest_target_and_dedupes_slots():
     ])
     days, samples = load_score_samples(db, "2026-10-20T12:30:00+03:30")
     assert days == ["2026-10-20", "2026-10-19"]
-    assert len(samples["AAA"]) == 6
-    assert sum(item["score"] for item in samples["AAA"]) == 33.0
-    assert {item["time"] for item in samples["AAA"]} == {"10:00", "11:00", "12:00"}
-    assert [item["score"] for item in samples["AAA"] if item["day"] == "2026-10-20"] == [3.0, 4.0, 5.0]
+    assert len(samples["AAA"]) == 2
+    assert [item["score"] for item in samples["AAA"]] == [7.0, 3.5]
+    assert samples["AAA"][0]["minute_count"] == 3
+    assert samples["AAA"][1]["minute_count"] == 4
+    assert samples["AAA"][1]["partial"] is True
 
 
 def test_comprehensive_row_keeps_missing_history_and_uses_signed_queue_and_close_gap():
@@ -53,9 +54,10 @@ def test_comprehensive_row_keeps_missing_history_and_uses_signed_queue_and_close
         "last_price": 102.0, "buy_per_capita_toman": None, "buyer_power": None,
         "legal_buy_pct": None, "legal_sell_pct": None,
     }, {"symbol": "MISSING", "score": 1.0}], "2026-10-20T12:30:00+03:30", db)
-    assert meta["expected_samples"] == 3
-    assert rows[0]["score_10d_total"] is None
-    assert rows[0]["score_10d_sample_count"] == 2
+    assert meta["expected_samples"] == 1
+    assert rows[0]["score_10d_total"] == 2.5
+    assert rows[0]["score_10d_sample_count"] == 1
+    assert rows[0]["score_10d_coverage"][0]["partial"] is True
     assert rows[0]["queue_value_toman"] == -5_000_000_000.0
     assert rows[0]["last_close_diff_pct"] == 2.0
     assert rows[0]["avg_trade_value_toman"] == 2_000_000_000.0
