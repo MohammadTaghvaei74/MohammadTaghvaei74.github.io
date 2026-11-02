@@ -1,0 +1,79 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mohammadtaghvaei74.github.io/market/schemas/signal-lifecycle-v1.json",
+  "title": "Signal lifecycle public payload v1",
+  "type": "object",
+  "required": ["schema_version", "status", "mother_signals", "open_positions", "closed_trades"],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "status": { "enum": ["ok", "unavailable"] },
+    "generated_at": { "type": ["string", "null"], "format": "date-time" },
+    "source_observed_at": { "type": ["string", "null"], "format": "date-time" },
+    "message": { "type": "string" },
+    "mother_signals": { "type": "array", "items": { "$ref": "#/$defs/motherSignal" } },
+    "open_positions": { "type": "array", "items": { "$ref": "#/$defs/openPosition" } },
+    "closed_trades": { "type": "array", "items": { "$ref": "#/$defs/closedTrade" } }
+  },
+  "$defs": {
+    "id": { "type": "string", "minLength": 1 },
+    "symbol": { "type": "string", "minLength": 1 },
+    "dateTime": { "type": "string", "format": "date-time" },
+    "motherSignal": {
+      "type": "object",
+      "required": ["id", "symbol", "issued_at", "zero_price", "orders"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "symbol": { "$ref": "#/$defs/symbol" },
+        "issued_at": { "$ref": "#/$defs/dateTime" },
+        "zero_price": { "type": "number", "exclusiveMinimum": 0 },
+        "rule_version": { "type": "string" },
+        "orders": { "type": "array", "minItems": 2, "maxItems": 2, "items": { "$ref": "#/$defs/order" } }
+      }
+    },
+    "order": {
+      "type": "object",
+      "required": ["id", "mother_id", "level", "order_price", "status"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "mother_id": { "$ref": "#/$defs/id" },
+        "level": { "enum": ["plus_1", "minus_2"] },
+        "order_price": { "type": "number", "exclusiveMinimum": 0 },
+        "status": { "enum": ["pending", "entered", "cancelled", "expired", "closed"] },
+        "entry_price": { "type": "number", "exclusiveMinimum": 0 },
+        "entry_at": { "$ref": "#/$defs/dateTime" }
+      }
+    },
+    "openPosition": {
+      "type": "object",
+      "required": ["id", "mother_id", "order_id", "symbol", "entry_price", "entry_at", "status"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "mother_id": { "$ref": "#/$defs/id" },
+        "order_id": { "$ref": "#/$defs/id" },
+        "symbol": { "$ref": "#/$defs/symbol" },
+        "entry_price": { "type": "number", "exclusiveMinimum": 0 },
+        "entry_at": { "$ref": "#/$defs/dateTime" },
+        "holding_days": { "type": "integer", "minimum": 0 },
+        "status": { "const": "open" }
+      }
+    },
+    "closedTrade": {
+      "type": "object",
+      "required": ["id", "mother_id", "order_id", "symbol", "entry_price", "entry_at", "exit_at", "exit_price", "net_pnl_pct", "holding_days", "status"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "mother_id": { "$ref": "#/$defs/id" },
+        "order_id": { "$ref": "#/$defs/id" },
+        "symbol": { "$ref": "#/$defs/symbol" },
+        "entry_price": { "type": "number", "exclusiveMinimum": 0 },
+        "entry_at": { "$ref": "#/$defs/dateTime" },
+        "exit_at": { "$ref": "#/$defs/dateTime" },
+        "exit_price": { "type": "number", "exclusiveMinimum": 0 },
+        "net_pnl_pct": { "type": "number" },
+        "holding_days": { "type": "integer", "minimum": 0 },
+        "status": { "const": "closed" },
+        "exit_price_source": { "enum": ["exit_quote"] }
+      }
+    }
+  }
+}
