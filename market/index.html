@@ -38,8 +38,8 @@
   <script src="design-system.js?v=rollout-1" defer></script>
 <link rel="stylesheet" href="design-extras.css?v=rollout-1">
 <link rel="stylesheet" href="data-interactions.css?v=rollout-1">
-<link rel="stylesheet" href="market-summary.css?v=summary-1">
-<script src="market-summary.js?v=summary-1" defer></script>
+<link rel="stylesheet" href="market-summary.css?v=summary-2">
+<script src="market-summary.js?v=summary-2" defer></script>
 <link rel="stylesheet" href="theme-preference.css?v=dark-readability-7">
 <script src="theme-preference.js?v=dark-readability-1" defer></script>
 <script src="theme-init.js?v=rollout-1" defer></script>
@@ -55,6 +55,7 @@
         </a>
         <nav class="main-nav" id="mobileMainNav" aria-label="ناوبری اصلی"><a class="active" aria-current="page" href="#overview">نمای کلی</a><a href="signals/">سیگنال‌ها</a><a href="symbols/">سهام</a><a href="industries/">صنایع</a><a href="options/">آپشن</a><a href="/market/funds/">صندوق‌ها</a><a href="portfolio/">امتیاز پرتفو</a><a data-history-tab="true" href="#history">تاریخچه</a></nav><button class="mobile-menu-toggle" id="mobileMenuToggle" type="button" aria-expanded="false" aria-controls="mobileMainNav">☰ منو</button>
                     <div class="topbar-actions">
+          <span class="market-risk-badge" id="marketRisk" data-state="loading" aria-live="polite" title="امتیاز مدل ریسک بازار؛ صفر مساعدترین و ۱۰۰ نامساعدترین وضعیت است."><span class="market-risk-label">ریسک بازار</span><strong data-market-risk-value>—</strong><small data-market-risk-status>در حال دریافت</small></span>
           <span class="market-state"><i></i><span id="marketState">در حال دریافت داده</span></span>
           <button class="refresh-button" id="refreshButton" type="button" aria-label="به‌روزرسانی داده">↻</button>
         </div>
