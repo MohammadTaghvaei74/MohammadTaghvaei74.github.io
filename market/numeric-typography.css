@@ -1,0 +1,23 @@
+/* Unified numeric typography — regular weight, shared Vazirmatn, +30% readability. */
+:where(.metric-value,.queue-metric .metric-value,.score,.pct,.industry-score,.queue-number,.queue-buy,.queue-sell,.ranking-symbol,.stock-symbol-link,.signal-symbol-link,.signal-list b,.allocation-copy strong,.hero-meta strong,.data-freshness time,.fund-report-table td bdi,.table-scroll td bdi,table td bdi,[data-numeric]){
+  font-family:Vazirmatn,"Segoe UI",sans-serif!important;
+  font-weight:400!important;
+  font-variant-numeric:tabular-nums lining-nums;
+}
+:where(.metric-value){font-size:48px!important}
+:where(.queue-metric .metric-value){font-size:42px!important}
+:where(.score){font-size:18px!important}
+:where(.pct,.queue-number,.queue-buy,.queue-sell,table td bdi,.fund-report-table td bdi){font-size:18px!important}
+:where(.industry-score){font-size:32px!important}
+:where(.signal-list b){font-size:22px!important}
+:where(.chart-label,.history-chart-wrap .chart-label,.candle-panel svg text,.archive-trend-chart text,.chart-tooltip-value,.chart-tooltip-title){font-family:Vazirmatn,"Segoe UI",sans-serif!important;font-weight:400!important;font-size:18px!important}
+:where(.table-scroll td,.fund-report-table td){font-family:Vazirmatn,"Segoe UI",sans-serif;font-weight:400!important;font-size:18px!important;font-variant-numeric:tabular-nums lining-nums}
+@media(max-width:720px){
+  :where(.metric-value){font-size:36px!important}
+  :where(.queue-metric .metric-value){font-size:32px!important}
+  :where(.score){font-size:17px!important}
+  :where(.pct,.queue-number,.queue-buy,.queue-sell,table td bdi,.fund-report-table td bdi){font-size:17px!important}
+  :where(.industry-score){font-size:28px!important}
+  :where(.chart-label,.history-chart-wrap .chart-label,.candle-panel svg text,.archive-trend-chart text){font-size:17px!important}
+  :where(.table-scroll td,.fund-report-table td){font-size:17px!important}
+}
