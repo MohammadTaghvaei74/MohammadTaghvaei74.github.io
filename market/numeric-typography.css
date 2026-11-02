@@ -1,0 +1,80 @@
+/* Final table typography correction: every cell and child uses the site's loaded Vazirmatn. */
+:where(table,table *, .table-scroll, .table-scroll *, .fund-report-table, .fund-report-table *, .industry-table, .industry-table *){
+  font-family:"Vazirmatn",sans-serif!important;
+  font-style:normal!important;
+  font-variant-numeric:tabular-nums lining-nums!important;
+}
+:where(table td,table td *, .table-scroll td,.table-scroll td *, .fund-report-table td,.fund-report-table td *, .industry-table td,.industry-table td *){
+  font-family:"Vazirmatn",sans-serif!important;
+  font-size:18px!important;
+  font-weight:400!important;
+  line-height:1.55!important;
+  font-style:normal!important;
+  font-variant-numeric:tabular-nums lining-nums!important;
+  letter-spacing:0!important;
+}
+:where(table td input,table td select,table td button, .table-scroll input,.table-scroll select,.table-scroll button){
+  font-family:"Vazirmatn",sans-serif!important;
+  font-size:18px!important;
+  font-weight:400!important;
+  line-height:1.55!important;
+}
+:where(.metric-value,.queue-metric .metric-value,.score,.pct,.industry-score,.queue-number,.queue-buy,.queue-sell,.ranking-symbol,.stock-symbol-link,.signal-symbol-link,.signal-list b,.hero-meta strong,.data-freshness time,[data-numeric]){
+  font-family:"Vazirmatn",sans-serif!important;
+  font-weight:400!important;
+  font-style:normal!important;
+  font-variant-numeric:tabular-nums lining-nums!important;
+}
+:where(.metric-value){font-size:48px!important}
+:where(.queue-metric .metric-value){font-size:42px!important}
+:where(.score,.pct,.queue-number,.queue-buy,.queue-sell,[data-numeric]){font-size:18px!important}
+:where(.industry-score){font-size:32px!important}
+:where(.signal-list b){font-size:22px!important}
+:where(.chart-label,.history-chart-wrap .chart-label,.candle-panel svg text,.archive-trend-chart text,.chart-tooltip-value,.chart-tooltip-title){font-family:"Vazirmatn",sans-serif!important;font-weight:400!important;font-size:18px!important}
+@media(max-width:720px){
+  :where(table td,table td *, .table-scroll td,.table-scroll td *, .fund-report-table td,.fund-report-table td *, .industry-table td,.industry-table td *,table td input,table td select,table td button){font-size:17px!important}
+  :where(.metric-value){font-size:36px!important}
+  :where(.queue-metric .metric-value){font-size:32px!important}
+  :where(.score,.pct,.queue-number,.queue-buy,.queue-sell,[data-numeric]){font-size:17px!important}
+  :where(.industry-score){font-size:28px!important}
+  :where(.chart-label,.history-chart-wrap .chart-label,.candle-panel svg text,.archive-trend-chart text){font-size:17px!important}
+}
+/* Direct-cell override: fixes values that are text nodes directly in td, not only bdi. */
+table tbody > tr > td,
+table tbody > tr > td *,
+table tbody > tr > th,
+table tbody > tr > th *,
+.table-scroll table tbody > tr > td,
+.table-scroll table tbody > tr > td *,
+.table-scroll table tbody > tr > th,
+.table-scroll table tbody > tr > th *,
+#industrySummaryTable tbody td,
+#industrySummaryTable tbody td *,
+#industrySummaryTable tbody th,
+#industrySummaryTable tbody th *,
+#comprehensiveTable tbody td,
+#comprehensiveTable tbody td *{
+  font-family:"Vazirmatn",sans-serif!important;
+  font-size:18px!important;
+  font-weight:400!important;
+  font-style:normal!important;
+  line-height:1.55!important;
+  letter-spacing:0!important;
+  font-variant-numeric:tabular-nums lining-nums!important;
+}
+@media(max-width:720px){
+  table tbody > tr > td,
+  table tbody > tr > td *,
+  table tbody > tr > th,
+  table tbody > tr > th *,
+  .table-scroll table tbody > tr > td,
+  .table-scroll table tbody > tr > td *,
+  .table-scroll table tbody > tr > th,
+  .table-scroll table tbody > tr > th *,
+  #industrySummaryTable tbody td,
+  #industrySummaryTable tbody td *,
+  #industrySummaryTable tbody th,
+  #industrySummaryTable tbody th *,
+  #comprehensiveTable tbody td,
+  #comprehensiveTable tbody td *{font-size:17px!important}
+}

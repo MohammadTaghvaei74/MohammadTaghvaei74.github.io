@@ -1,0 +1,12 @@
+[Unit]
+Description=Check canonical median freshness every five minutes
+
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=5min
+AccuracySec=30s
+Unit=bourse-median-freshness-monitor.service
+Persistent=true
+
+[Install]
+WantedBy=timers.target

@@ -1,0 +1,15 @@
+/* Mobile readability and navigation continuation for reference theme */
+@media (max-width:720px){
+  body{padding-bottom:calc(92px + env(safe-area-inset-bottom))!important}
+  .mobile-nav,.phone-nav{grid-template-columns:repeat(5,minmax(0,1fr))!important;right:8px!important;bottom:8px!important;left:8px!important;min-height:68px!important;padding:5px!important;border:1px solid var(--line-strong)!important;border-radius:14px!important;background:rgba(20,28,43,.96)!important;box-shadow:0 12px 32px rgba(0,0,0,.38)!important}
+  .mobile-nav a,.phone-nav a{min-width:0!important;min-height:58px!important;color:var(--muted)!important;font-size:10px!important;border-radius:10px!important;white-space:nowrap!important}
+  .mobile-nav a span,.phone-nav a span{font-size:17px!important;color:var(--muted)!important}
+  .mobile-nav a b,.phone-nav a b{font-weight:600!important}
+  .mobile-nav a.active,.phone-nav a.active{color:var(--ink)!important;background:#24344c!important}
+  .mobile-nav a.active span,.phone-nav a.active span{color:var(--accent)!important}
+  .chart-label,.history-chart-wrap .chart-label,.candle-panel svg text,.archive-trend-chart text{font-size:13px!important}
+  .chart-legend{font-size:11px!important;gap:10px!important;padding-top:10px!important}
+  .panel-note,.chart-caption,.table-note{font-size:12px!important;color:#aab4c3!important}
+  .section-heading p{font-size:13px!important}
+}
+@media(min-width:721px){.mobile-nav,.phone-nav{background:var(--surface)!important;border-color:var(--line)!important}}

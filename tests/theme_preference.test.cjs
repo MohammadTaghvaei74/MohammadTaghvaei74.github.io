@@ -85,11 +85,17 @@ test('normalizes invalid persisted values to system', () => {
   assert.strictEqual(normalizeTheme(null), 'system');
 });
 
-test('reads localStorage safely and ignores invalid values', () => {
+test('reads localStorage safely and defaults to dark when no preference exists', () => {
   assert.strictEqual(getStoredTheme(storageWith('dark')), 'dark');
-  assert.strictEqual(getStoredTheme(storageWith('sepia')), 'system');
-  assert.strictEqual(getStoredTheme(storageWith(null)), 'system');
-  assert.strictEqual(getStoredTheme(storageWith(null, { throwOnRead: true })), 'system');
+  assert.strictEqual(getStoredTheme(storageWith('sepia')), 'dark');
+  assert.strictEqual(getStoredTheme(storageWith(null)), 'dark');
+  assert.strictEqual(getStoredTheme(storageWith(null, { throwOnRead: true })), 'dark');
+});
+
+test('dark is the first-paint default while system remains an explicit choice', () => {
+  const script = createBootstrapScript();
+  assert.match(script, /var p='dark'/);
+  assert.strictEqual(resolveTheme('system', { matches: false }), 'light');
 });
 
 test('resolves system to the media preference', () => {
@@ -168,7 +174,7 @@ test('bootstrap still follows OS when localStorage access is blocked', () => {
   Object.defineProperty(context, 'localStorage', { get() { throw new Error('SecurityError'); } });
   require('vm').runInNewContext(createBootstrapScript(), context);
   assert.strictEqual(document.documentElement.dataset.theme, 'dark');
-  assert.strictEqual(document.documentElement.dataset.themePreference, 'system');
+  assert.strictEqual(document.documentElement.dataset.themePreference, 'dark');
 });
 
 test('bootstrap honors explicit preference when matchMedia is unavailable', () => {

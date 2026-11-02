@@ -154,3 +154,215 @@ html[data-theme="light"], html[data-theme="dark"] {
 @media (prefers-color-scheme: dark) {
   html:not([data-theme]) { color-scheme: dark; }
 }
+
+/* Dark terminal mode: neutral structure, white data, restrained semantic colors. */
+html[data-theme="dark"] {
+  --theme-bg:#000;
+  --theme-surface:#0b0b0b;
+  --theme-surface-muted:#151515;
+  --theme-ink:#fff;
+  --theme-muted:#c7c7c7;
+  --theme-line:#303030;
+  --theme-positive:#5fe39a;
+  --theme-negative:#ff7676;
+  --theme-warning:#f2c14e;
+  --theme-focus:0 0 0 3px rgba(255,255,255,.35);
+  --ds-bg:#000;
+  --ds-surface:#0b0b0b;
+  --ds-surface-muted:#151515;
+  --ds-ink:#fff;
+  --ds-muted:#c7c7c7;
+  --ds-ink-muted:#c7c7c7;
+  --ds-ink-subtle:#a6a6a6;
+  --ds-line:#303030;
+  --ds-brand:#fff;
+  --ds-accent:#d6d6d6;
+  --ds-accent-soft:#202020;
+  --ds-positive:#5fe39a;
+  --ds-negative:#ff7676;
+  --ds-warning:#f2c14e;
+  --ds-info:#d6d6d6;
+  --ds-archive:#b8b8b8;
+  --bg:#000;
+  --surface:#0b0b0b;
+  --surface-2:#151515;
+  --surface-3:#202020;
+  --ink:#fff;
+  --muted:#c7c7c7;
+  --dim:#a6a6a6;
+  --line:#303030;
+  --green:#5fe39a;
+  --red:#ff7676;
+  color-scheme:dark;
+}
+html[data-theme="dark"] body,
+html[data-theme="dark"] .shell,
+html[data-theme="dark"] main,
+html[data-theme="dark"] .wrap { background:#000; color:#fff; }
+html[data-theme="dark"] :where(.panel,.table-panel,.portfolio-panel,.fund-card,.selector-panel,.history-chart-panel,.rows-panel,.card,.chartbox,.chart-card,.metric-card,.section-card,.options-section,.comprehensive-panel) {
+  background:#0b0b0b!important;
+  color:#fff!important;
+  border-color:#303030!important;
+  box-shadow:none!important;
+}
+html[data-theme="dark"] :where(header.topbar,.topbar,.site-footer) {
+  background:#000!important;
+  color:#fff!important;
+  border-color:#303030!important;
+}
+html[data-theme="dark"] :where(table,thead,tbody,tr,th,td) {
+  color:#fff;
+  border-color:#303030!important;
+}
+html[data-theme="dark"] :where(th) { background:#151515!important; color:#fff!important; }
+html[data-theme="dark"] :where(td) { background:#0b0b0b; }
+html[data-theme="dark"] :where(tr:nth-child(even) td) { background:#101010; }
+html[data-theme="dark"] :where(a,.topbar .main-nav a,.mobile-nav a) { color:#fff; }
+html[data-theme="dark"] :where(.muted,.dim,.panel-note,.table-note,.section-heading p,.source-time,.panel-intro,.privacy-note,.portfolio-disclaimer,.chart-hint,.chart-caption,.chart-extrema,.field-unit,.data-freshness,.history-aside small) { color:#c7c7c7!important; }
+html[data-theme="dark"] :where(input,select,textarea,button,.download-button,.ghost-button,.add-button,.calculate-button) {
+  background:#0b0b0b!important;
+  color:#fff!important;
+  border-color:#444!important;
+}
+html[data-theme="dark"] :where(button:hover,a:hover,.topbar .main-nav a[aria-current="page"],.mobile-nav a[aria-current="page"]) { color:#fff!important; background:#202020!important; }
+html[data-theme="dark"] .theme-preference { background:#151515; border-color:#444; color:#fff; }
+html[data-theme="dark"] .theme-preference__option:has(.theme-preference__input:checked) { background:#303030; color:#fff; box-shadow:none; }
+html[data-theme="dark"] :where(.positive,[data-tone="positive"],.buy-line,.chart-limit-positive) { color:#5fe39a!important; stroke:#5fe39a!important; }
+html[data-theme="dark"] :where(.negative,[data-tone="negative"],.sell-line,.chart-limit-negative) { color:#ff7676!important; stroke:#ff7676!important; }
+html[data-theme="dark"] :where(.warning,[data-tone="warning"],[data-state="partial"],[data-status="unknown"]) { color:#f2c14e!important; }
+html[data-theme="dark"] :where(.chart-tooltip,.chart-tooltip-html) { background:#0b0b0b!important; color:#fff!important; border-color:#444!important; }
+html[data-theme="dark"] #dataTransportStatus[data-state="live"] { color:#c7c7c7!important; background:transparent!important; }
+html[data-theme="dark"] #dataTransportStatus[data-state="fallback"],
+html[data-theme="dark"] #dataTransportStatus[data-state="stale"] { color:#f2c14e!important; background:#151515!important; }
+html[data-theme="dark"] #dataTransportStatus[data-state="error"] { color:#ff7676!important; background:#151515!important; }
+/* Mobile controls remain legible without introducing another color layer. */
+@media (max-width:720px) {
+  html[data-theme="dark"] body { padding-bottom:calc(112px + env(safe-area-inset-bottom))!important; }
+  html[data-theme="dark"] .mobile-nav {
+    background:#0b0b0b!important;
+    border-color:#444!important;
+    box-shadow:0 -8px 24px rgba(0,0,0,.75)!important;
+  }
+  html[data-theme="dark"] .mobile-nav a { color:#d6d6d6!important; font-size:13px!important; }
+  html[data-theme="dark"] .mobile-nav a.active { color:#fff!important; background:#303030!important; }
+  html[data-theme="dark"] .topbar .main-nav a { color:#d6d6d6!important; font-size:14px!important; font-weight:500; }
+  html[data-theme="dark"] .topbar .main-nav a[aria-current="page"] { color:#fff!important; }
+  html[data-theme="dark"] .topbar .main-nav a[aria-current="page"]:after { background:#fff!important; }
+  html[data-theme="dark"] .section-heading p,
+  html[data-theme="dark"] .panel-note,
+  html[data-theme="dark"] .table-note { color:#d0d0d0!important; }
+}
+html[data-theme="dark"] .options-cta,
+html[data-theme="dark"] .calculate-button { background:#fff!important; color:#000!important; border-color:#fff!important; }
+html[data-theme="dark"] .ds-appearance > summary { background:#0b0b0b!important; color:#fff!important; border-color:#444!important; }
+
+/* Unified readability contract: legacy route CSS must not erase table text.
+   Keep semantic colors, but make the neutral text/surface pair theme-owned. */
+html[data-theme="dark"] :where(.table-scroll table,.table-wrap table,.industry-table,.fund-report-table,.comprehensive-table) {
+  background:#0b0b0b!important; color:#fff!important;
+}
+html[data-theme="dark"] :where(.table-scroll table td,.table-wrap table td,.industry-table tbody td,.fund-report-table td,.comprehensive-table td),
+html[data-theme="dark"] :where(.table-scroll table td *,.table-wrap table td *,.industry-table tbody td *,.fund-report-table td *,.comprehensive-table td *) {
+  color:#f5f7f2!important;
+}
+html[data-theme="dark"] :where(.table-scroll table thead th,.table-wrap table thead th,.industry-table thead th,.fund-report-table th,.comprehensive-table thead th) {
+  background:#173b3f!important; color:#f5faef!important; border-color:#396067!important;
+}
+html[data-theme="dark"] :where(.table-scroll table tbody td,.table-wrap table tbody td,.industry-table tbody td,.fund-report-table tbody td,.comprehensive-table tbody td) {
+  background:#0b0b0b!important; border-color:#303030!important;
+}
+html[data-theme="dark"] :where(.table-scroll table tbody tr:nth-child(even) td,.table-wrap table tbody tr:nth-child(even) td,.industry-table tbody tr:nth-child(even) td,.fund-report-table tbody tr:nth-child(even) td,.comprehensive-table tbody tr:nth-child(even) td) { background:#101010!important; }
+html[data-theme="dark"] :where(.table-scroll table input,.table-scroll table select,.table-wrap table input,.table-wrap table select,.comprehensive-table input,.comprehensive-table select) {
+  background:#151515!important; color:#fff!important; border-color:#536a6d!important;
+}
+html[data-theme="dark"] :where(.table-scroll table a,.table-wrap table a,.industry-table a,.fund-report-table a,.comprehensive-table a) { color:#d8f58c!important; }
+
+/* Final dark-mode table pass: data itself is white; color is not a hidden
+   signal. Status/positive/negative semantics are communicated elsewhere. */
+html[data-theme="dark"] main table td,
+html[data-theme="dark"] main table td *,
+html[data-theme="dark"] main table td bdi,
+html[data-theme="dark"] main table td a,
+html[data-theme="dark"] main table td strong,
+html[data-theme="dark"] main table td span { color:#fff!important; }
+html[data-theme="dark"] main table th,
+html[data-theme="dark"] main table th *,
+html[data-theme="dark"] main table th bdi,
+html[data-theme="dark"] main table th span { color:#fff!important; }
+
+/* Dark surface ownership for route-specific legacy components. */
+html[data-theme="dark"] main :where(.industry-table-panel,.industry-table-filters,.industry-table-scroll,.industry-summary-section,.industry-summary-scroll,.fund-report-panel,.fund-report-scroll,.symbol-suggestions,.metric-card,.queue-card,.data-freshness,.filter-panel,.filter-toolbar,.selector-panel) {
+  background:#0b0b0b!important; color:#fff!important; border-color:#303030!important;
+  box-shadow:none!important;
+}
+html[data-theme="dark"] main :where(.industry-table-filters label,.industry-table-filters p,.filter-panel label,.filter-toolbar label,.data-freshness-label,.data-freshness time) { color:#fff!important; }
+html[data-theme="dark"] main :where(.industry-table-filters input,.industry-table-filters select,.industry-column-filter-row input,.industry-column-filter-row select,.filter-panel input,.filter-panel select) {
+  background:#151515!important; color:#fff!important; border-color:#536a6d!important;
+}
+html[data-theme="dark"] main :where(.industry-table thead th,.industry-table thead tr.industry-column-filter-row th,.fund-report-table th) { background:#173b3f!important; color:#fff!important; }
+html[data-theme="dark"] main :where(.industry-table tbody tr,.fund-report-table tbody tr) { background:#0b0b0b!important; }
+html[data-theme="dark"] main :where(.industry-table tbody tr:nth-child(even),.fund-report-table tbody tr:nth-child(even)) { background:#101010!important; }
+html[data-theme="dark"] main :where(.industry-table tbody td,.fund-report-table tbody td) { background:transparent!important; color:#fff!important; border-color:#303030!important; }
+html[data-theme="dark"] main :where(.industry-table a,.industry-name-cell a,.symbol-suggestions button) { color:#fff!important; background:transparent!important; }
+html[data-theme="dark"] main :where(.queue-card,.metric-card) { color:#fff!important; }
+
+/* Freshness strips inside chart cards must belong to the dark surface. */
+html[data-theme="dark"] :where(.observation-clock,.observation-clock[data-status="fresh"],.observation-clock[data-status="unknown"],.observation-clock[data-status="stale"],.observation-clock[data-status="error"]) {
+  background:#151515!important; color:#fff!important; border-color:#536a6d!important;
+}
+html[data-theme="dark"] :where(.observation-clock[data-status="fresh"]) { background:#151515!important; color:#fff!important; }
+html[data-theme="dark"] :where(.data-freshness,#turnoverStatus,.chart-legend,.chart-caption,.chart-hint) { color:#e6eee9!important; }
+html[data-theme="dark"] :where(.chart-label,.price-distribution-label,.chart-empty) { fill:#fff!important; color:#fff!important; }
+html[data-theme="dark"] :where(.chart-grid-line,.chart-zero) { stroke:#536a6d!important; }
+html[data-theme="dark"] :where(.chart-path,.chart-market) { stroke:#f5faef!important; stroke-width:3!important; fill:none!important; }
+html[data-theme="dark"] :where(.chart-leaders) { stroke:#7fd8ef!important; stroke-width:3!important; fill:none!important; }
+html[data-theme="dark"] :where(.chart-buy) { stroke:#96dfaa!important; stroke-width:3!important; fill:none!important; }
+html[data-theme="dark"] :where(.chart-sell) { stroke:#ff8791!important; stroke-width:3!important; fill:none!important; }
+html[data-theme="dark"] :where(.buy-line) { background:#96dfaa!important; }
+html[data-theme="dark"] :where(.sell-line) { background:#ff8791!important; }
+html[data-theme="dark"] :where(.market-line) { background:#f5faef!important; }
+html[data-theme="dark"] :where(.leaders-line) { background:#7fd8ef!important; }
+html[data-theme="dark"] :where(.chart-area) { fill:#d8f58c!important; opacity:.12!important; }
+
+html[data-theme="light"] :where(.table-scroll table td,.table-wrap table td,.industry-table tbody td,.fund-report-table td,.comprehensive-table td),
+html[data-theme="light"] :where(.table-scroll table td *,.table-wrap table td *,.industry-table tbody td *,.fund-report-table td *,.comprehensive-table td *) { color:#102b30!important; }
+html[data-theme="light"] :where(.table-scroll table thead th,.table-wrap table thead th,.industry-table thead th,.fund-report-table th,.comprehensive-table thead th) { color:#f5faef!important; }
+
+/* Persian UI copy: readable floor on desktop and phone, without changing data. */
+html[data-theme] main :where(small,label,button,summary,th,td,.panel-note,.table-note,.source-time,.data-freshness) { font-size:max(12px,.75rem)!important; }
+@media (max-width:720px) {
+  html[data-theme] main :where(small,label,button,summary,th,td,.panel-note,.table-note,.source-time,.data-freshness) { font-size:max(12px,.75rem)!important; }
+}
+
+/* Light-mode table contract: neutral tables must not inherit the legacy
+   dark market-desk surface. This block intentionally comes last so it wins
+   over route CSS that still uses !important on .fund-report-panel. */
+html[data-theme="light"] main :where(.table-panel,.fund-report-panel,.fund-report-scroll,.comprehensive-panel,.industry-table-panel) {
+  background:#fff!important;
+  color:#102b30!important;
+  border-color:#d6e1d9!important;
+  box-shadow:0 14px 35px rgba(38,73,60,.07)!important;
+}
+html[data-theme="light"] main :where(.table-scroll table,.table-wrap table,.industry-table,.fund-report-table,.comprehensive-table) {
+  background:#fff!important;
+  color:#102b30!important;
+}
+html[data-theme="light"] main :where(.table-scroll table thead th,.table-wrap table thead th,.industry-table thead th,.fund-report-table th,.comprehensive-table thead th) {
+  background:#e8f1eb!important;
+  color:#173b3f!important;
+  border-color:#b8cec0!important;
+}
+html[data-theme="light"] main :where(.table-scroll table tbody tr,.table-wrap table tbody tr,.industry-table tbody tr,.fund-report-table tbody tr,.comprehensive-table tbody tr) {
+  background:#fff!important;
+}
+html[data-theme="light"] main :where(.table-scroll table tbody tr:nth-child(even),.table-wrap table tbody tr:nth-child(even),.industry-table tbody tr:nth-child(even),.fund-report-table tbody tr:nth-child(even),.comprehensive-table tbody tr:nth-child(even)) {
+  background:#fbfdf9!important;
+}
+html[data-theme="light"] main :where(.table-scroll table tbody td,.table-wrap table tbody td,.industry-table tbody td,.fund-report-table tbody td,.comprehensive-table tbody td) {
+  background:transparent!important;
+  color:#102b30!important;
+  border-color:#e3ebe5!important;
+}
+html[data-theme="light"] main :where(.table-scroll table tbody tr:hover,.table-wrap table tbody tr:hover,.industry-table tbody tr:hover,.fund-report-table tbody tr:hover,.comprehensive-table tbody tr:hover) {
+  background:#f0f7e8!important;
+}
