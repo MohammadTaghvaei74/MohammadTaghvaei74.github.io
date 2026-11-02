@@ -20,11 +20,6 @@ import subprocess
 import tempfile
 from datetime import datetime
 from pathlib import Path
-try:
-    from .instrument_filters import filter_common_stocks
-except ImportError:
-    from instrument_filters import filter_common_stocks
-from zoneinfo import ZoneInfo
 
 from zipfile import ZIP_DEFLATED, ZipFile, ZipInfo
 from xml.sax.saxutils import escape
@@ -32,44 +27,25 @@ from xml.sax.saxutils import escape
 if __package__:
     from .export_signals import export as export_signals
     from .leveraged_snapshots import read_latest as read_leveraged
-    from .chart_data import load_daily_chart_rows, load_intraday_chart_rows, load_intraday_queue_rows, load_intraday_queue_count_rows, load_intraday_symbol_rows
+    from .chart_data import load_daily_chart_rows
     from .export_options import export_from_scores_db
     from .score_candles import build_candles
     from .tsetmc_enrichment import enrich_stocks
-    from .comprehensive_table import build_comprehensive_rows
-    from .industry_table import build_industry_table
-    from .symbol_history import write_symbol_history
-    from .portfolio_special import build_portfolio_special
-    from .export_market_score_history import export_market_score_history, write as write_market_score_history
 else:
     from export_signals import export as export_signals
     from leveraged_snapshots import read_latest as read_leveraged
-    from chart_data import load_daily_chart_rows, load_intraday_chart_rows, load_intraday_queue_rows, load_intraday_queue_count_rows, load_intraday_symbol_rows
+    from chart_data import load_daily_chart_rows
     from export_options import export_from_scores_db
     from score_candles import build_candles
     from tsetmc_enrichment import enrich_stocks
-    from comprehensive_table import build_comprehensive_rows
-    from industry_table import build_industry_table
-    from symbol_history import write_symbol_history
-    from portfolio_special import build_portfolio_special
-    from export_market_score_history import export_market_score_history, write as write_market_score_history
 
 PUBLISHED_FILES = (
-    "market/tsetmc_enrichment.py",
-    'market/publish_snapshot.py',
     "market/data/market.json",
-    "market/data/comprehensive.json",
     "market/data/signals.json",
     "market/data/options.json",
-    "market/data/portfolio-special.json",
     "market/history/data/history.json",
     "market/history/data/score-candles.json",
     "market/history/data/market-score-history.xlsx",
-    "market/data/market-score-history.json",
-    "market/symbols/data/intraday.json",
-    "market/symbols/data/intraday.json",
-    "market/symbols/data/history-manifest.json",
-    "market/symbols/data/history",
 )
 
 DB = Path(os.environ.get("BOURSE_DB", "/root/bourse-alert/scores_history.db"))
@@ -77,27 +53,6 @@ SITE = Path(os.environ.get("SITE_REPO", "/root/bourse-site"))
 MARKET_OUT = SITE / "market/data/market.json"
 HISTORY_OUT = SITE / "market/history/data/history.json"
 XLSX_OUT = SITE / "market/history/data/market-score-history.xlsx"
-MARKET_SCORE_HISTORY_OUT = SITE / "market/data/market-score-history.json"
-INTRADAY_SYMBOLS_OUT = SITE / "market/symbols/data/intraday.json"
-SYMBOL_HISTORY_DIR = SITE / "market/symbols/data"
-COMPREHENSIVE_OUT = SITE / "market/data/comprehensive.json"
-FUND_OUT = SITE / "market/data/funds.json"
-PORTFOLIO_SPECIAL_OUT = SITE / "market/data/portfolio-special.json"
-FUND_SOURCE = Path("/root/bourse-alert/fund_report_public.json")
-TEHRAN = ZoneInfo("Asia/Tehran")
-
-
-def is_publish_window(now: datetime | None = None) -> bool:
-    """Allow market-data publication only during the Tehran market window."""
-    now = now or datetime.now(TEHRAN)
-    if os.environ.get("FORCE_HEAVY_PUBLISH") == "1":
-        return now.weekday() in (0, 1, 2, 5, 6)
-    # Iran cash market operates Saturday through Wednesday.
-    if now.weekday() not in (0, 1, 2, 5, 6):
-        return False
-    start = now.replace(hour=8, minute=45, second=0, microsecond=0)
-    end = now.replace(hour=12, minute=30, second=0, microsecond=0)
-    return start <= now < end
 
 
 def connect() -> sqlite3.Connection:
@@ -120,49 +75,6 @@ def atomic_json(path: Path, payload: dict) -> None:
             os.unlink(name)
 
 
-def build_intraday_symbols(conn: sqlite3.Connection, trading_date: str) -> dict:
-    try:
-        symbols = load_intraday_symbol_rows(conn, trading_date)
-    except sqlite3.OperationalError as exc:
-        # Keep older databases compatible while optional price columns are absent.
-        if "no such table" not in str(exc).lower() and "no such column" not in str(exc).lower():
-            raise
-        symbols = {}
-    return {
-        "schema_version": 1,
-        "source": "scores_history.db / valid stock_snapshots",
-        "trading_date": trading_date,
-        "window_start": "09:00",
-        "window_end": "12:30",
-        "symbols": symbols,
-    }
-
-
-def normalize_fund_score_units(payload: dict) -> dict:
-    # Publication boundary guard for legacy percentage-vs-fraction mix.
-    rows = payload.get('rows') if isinstance(payload, dict) else None
-    if not isinstance(rows, list): return payload
-    for row in rows:
-        if not isinstance(row, dict) or not isinstance(row.get('matched_weight'), (int, float)) or row['matched_weight'] <= 1: continue
-        for key in ('matched_weight', 'total_equity_weight'):
-            if isinstance(row.get(key), (int, float)): row[key] /= 100.0
-        if isinstance(row.get('portfolio_score'), (int, float)): row['portfolio_score'] /= 100.0
-        if isinstance(row.get('score_diff'), (int, float)): row['score_diff'] = row['portfolio_score'] - float(row.get('board_score') or 0)
-        row['portfolio_score_unit_normalized'] = True
-    return payload
-
-
-def load_fund_report() -> dict:
-    if not FUND_SOURCE.exists():
-        return {'schema_version': 1, 'status': 'unavailable', 'rows': [], 'row_count': 0}
-    try:
-        payload = json.loads(FUND_SOURCE.read_text(encoding='utf-8'))
-        rows = payload.get('rows') if isinstance(payload, dict) else []
-        return normalize_fund_score_units({**payload, 'status': 'ready' if isinstance(rows, list) else 'unavailable', 'rows': rows if isinstance(rows, list) else []})
-    except (OSError, ValueError, TypeError) as exc:
-        return {'schema_version': 1, 'status': 'unavailable', 'rows': [], 'row_count': 0, 'error': str(exc)}
-
-
 def build_market(conn: sqlite3.Connection) -> dict:
     latest = conn.execute(
         "SELECT timestamp FROM stock_snapshots WHERE valid=1 ORDER BY timestamp DESC LIMIT 1"
@@ -177,45 +89,16 @@ def build_market(conn: sqlite3.Connection) -> dict:
     )]
     available = {row[1] for row in conn.execute("PRAGMA table_info(stock_snapshots)")}
     wanted = "symbol,instrument,industry,instrument_type,trading_date,timestamp,yesterday_price,close_price,last_price,last_pct,trade_volume,trade_value_toman,buy_queue_volume,sell_queue_volume,buy_queue_value_toman,sell_queue_value_toman,score".split(",")
-    daily_columns = {row[1] for row in conn.execute("PRAGMA table_info(daily_stock_summary)")}
-    has_industry_fallback = {"trading_date", "symbol", "industry"}.issubset(daily_columns)
-    select_parts = [
-        "COALESCE(s.industry, d.industry) AS industry" if column == "industry" and has_industry_fallback else f"s.{column}"
-        for column in wanted if column in available
-    ]
-    from_clause = (
-        "stock_snapshots s LEFT JOIN daily_stock_summary d "
-        "ON d.trading_date=s.trading_date AND d.symbol=s.symbol"
-        if has_industry_fallback else "stock_snapshots s"
-    )
+    columns = ",".join(column for column in wanted if column in available)
     rows = conn.execute(
-        f"SELECT {','.join(select_parts)} FROM {from_clause} "
-        "WHERE s.timestamp=? AND s.valid=1 AND s.trade_volume>0 ORDER BY s.score DESC, s.symbol ASC",
+        f"SELECT {columns} FROM stock_snapshots WHERE timestamp=? AND valid=1 AND trade_volume>0 ORDER BY score DESC, symbol ASC",
         (latest,),
     ).fetchall()
     stocks, seen = [], set()
     for row in rows:
-        item = dict(row)
-        if item["symbol"] in seen or (item.get("instrument_type") is not None and not filter_common_stocks([item])):
-            continue
-        stocks.append(item)
-        seen.add(item["symbol"])
-    # The live stock feed may not carry industry labels. Recover the validated
-    # symbol-to-industry mapping from the finalized daily summary for today.
-    try:
-        industry_by_symbol = {
-            row["symbol"]: row["industry"]
-            for row in conn.execute(
-                "SELECT symbol,industry FROM daily_stock_summary "
-                "WHERE trading_date=? AND industry IS NOT NULL",
-                (latest[:10],),
-            )
-        }
-    except sqlite3.OperationalError:
-        industry_by_symbol = {}
-    for item in stocks:
-        if not item.get("industry"):
-            item["industry"] = industry_by_symbol.get(item.get("symbol"))
+        if row["symbol"] not in seen:
+            stocks.append(dict(row))
+            seen.add(row["symbol"])
     top_stocks = stocks[:10]
     # Same ranking basis as Telegram's #صف_خرید_برتر: valid traded stocks
     # with a positive buy queue, ordered by queue value. Missing history stays
@@ -256,14 +139,8 @@ def build_market(conn: sqlite3.Connection) -> dict:
         item["score_rank"] = score_rank
         item["score_rank_total"] = score_total
         item["score_position_pct"] = round(score_rank / score_total * 100) if score_total else None
-    # TSETMC enrichment is optional and must never block publication of the
-    # core market snapshot. External provider failures are represented as
-    # missing enrichment fields, while core market data continues publishing.
-    if os.environ.get("SKIP_TSETMC_ENRICHMENT", "") != "1":
-        enrich_stocks(stocks, datetime.fromisoformat(latest))
+    enrich_stocks(stocks, datetime.fromisoformat(latest))
     queue_rows = build_queue_rows(stocks, datetime.fromisoformat(latest), conn)
-    comprehensive_stocks, comprehensive_meta = build_comprehensive_rows(stocks, latest, conn)
-    industry_table = build_industry_table(stocks, latest, conn)
     selected_industries = (
         "خودرو", "بانک", "شیمیایی", "استخراج کانه فلزی",
         "شرکتهای چند رشته ای", "فلزات اساسی", "فراورده های نفتی",
@@ -280,9 +157,6 @@ def build_market(conn: sqlite3.Connection) -> dict:
         (latest, *selected_industries),
     )]
     daily = load_daily_chart_rows(conn)
-    intraday = load_intraday_chart_rows(conn, latest[:10])
-    queue_intraday = load_intraday_queue_rows(conn, latest[:10], "09:15")
-    queue_count_intraday = load_intraday_queue_count_rows(conn, latest[:10], "09:15")
     return {
         "schema_version": 1,
         "source": "scores_history.db",
@@ -291,16 +165,10 @@ def build_market(conn: sqlite3.Connection) -> dict:
         "groups": groups,
         "top_stocks": top_stocks,
         "top_buy_queue": queue_rows[:10],
-        "stocks": stocks,
-        "comprehensive_stocks": comprehensive_stocks,
-        "comprehensive_meta": comprehensive_meta,
-        "industry_table": industry_table,
+        "stocks": [row for row in stocks if row.get("industry")],
         "leveraged": read_leveraged(conn, latest),
         "industries": industries,
         "daily": daily,
-        "intraday": intraday,
-        "queue_intraday": queue_intraday,
-        "queue_count_intraday": queue_count_intraday,
         "options": {"status": "connecting", "message": "داده معتبر آپشن بعد از نهایی شدن قرارداد داده اضافه می‌شود."},
     }
 
@@ -324,14 +192,29 @@ def build_history(conn: sqlite3.Connection) -> dict:
     ))
     complete_days = {d["day"] for d in days}
     observed = {}
-    for row in _rows_as_dicts(conn.execute(
-        """SELECT trading_date, COUNT(*) AS snapshot_count,
-                COUNT(DISTINCT timestamp) AS timestamp_count,
-                MIN(timestamp) AS first_timestamp, MAX(timestamp) AS last_timestamp,
-                SUM(CASE WHEN valid=1 THEN 1 ELSE 0 END) AS valid_snapshot_count
-           FROM stock_snapshots GROUP BY trading_date ORDER BY trading_date"""
-    )):
-        observed[row["trading_date"]] = row
+    available_tables = {
+        row[0] for row in conn.execute(
+            "SELECT name FROM sqlite_master WHERE type='table'"
+        )
+    }
+    for table in ("chart_snapshots", "stock_snapshots"):
+        if table not in available_tables:
+            continue
+        for row in _rows_as_dicts(conn.execute(
+            f"""SELECT trading_date, COUNT(*) AS snapshot_count,
+                    COUNT(DISTINCT timestamp) AS timestamp_count,
+                    MIN(timestamp) AS first_timestamp, MAX(timestamp) AS last_timestamp,
+                    SUM(CASE WHEN valid=1 THEN 1 ELSE 0 END) AS valid_snapshot_count
+               FROM {table} GROUP BY trading_date ORDER BY trading_date"""
+        )):
+            current = observed.get(row["trading_date"])
+            if current is None:
+                observed[row["trading_date"]] = row
+            else:
+                for key in ("snapshot_count", "timestamp_count", "valid_snapshot_count"):
+                    current[key] += row[key] or 0
+                current["first_timestamp"] = min(current["first_timestamp"], row["first_timestamp"])
+                current["last_timestamp"] = max(current["last_timestamp"], row["last_timestamp"])
 
     rows = []
     for day in days:
@@ -339,8 +222,22 @@ def build_history(conn: sqlite3.Connection) -> dict:
         samples = {}
         # score IS NOT NULL matches the producer's score eligibility. Do not
         # invent a score from another table or mutate the production database.
+        # The collector changed storage tables on 2026-10-05. Older valid
+        # scores live in chart_snapshots, while newer rows live in
+        # stock_snapshots. Prefer the richer stock table when it has data for a
+        # day, otherwise use the historical chart table; never fill a gap with
+        # zero or with a neighboring day's value.
+        source_table = "stock_snapshots"
+        source_count = conn.execute(
+            "SELECT COUNT(*) FROM stock_snapshots WHERE trading_date=? AND valid=1 AND score IS NOT NULL",
+            (day_key,),
+        ).fetchone()[0] if "stock_snapshots" in available_tables else 0
+        if not source_count and "chart_snapshots" in available_tables:
+            source_table = "chart_snapshots"
+        if source_table not in available_tables:
+            continue
         for row in _rows_as_dicts(conn.execute(
-            """SELECT symbol, score, timestamp FROM stock_snapshots
+            f"""SELECT symbol, score, timestamp FROM {source_table}
                WHERE trading_date=? AND valid=1 AND score IS NOT NULL
                ORDER BY symbol, timestamp""",
             (day_key,),
@@ -357,7 +254,7 @@ def build_history(conn: sqlite3.Connection) -> dict:
                 "max": max(scores),
                 "last": values[-1][1],
             }
-            stats.update({"day": day_key, "symbol": symbol, "source": "stock_snapshots"})
+            stats.update({"day": day_key, "symbol": symbol, "source": source_table})
             stats["quality"] = "review" if any(abs(score) > 20 for score in scores) else "valid"
             rows.append(stats)
 
@@ -459,8 +356,8 @@ def assert_safe_worktree(status_lines: list[str]) -> None:
         # not published, but an older/manual run may leave it untracked under
         # the site tree. Ignore only this exact cache; all other unexpected
         # files remain fail-closed.
-        safe_path = path in PUBLISHED_FILES or path == "market/symbols/data/" or path.startswith("market/symbols/data/history/")
-        runtime_cache = path in {"market/data/options_history.sqlite", "market/data/funds.json"}
+        safe_path = path in PUBLISHED_FILES
+        runtime_cache = path == "market/data/options_history.sqlite"
         unsafe_status = "U" in (index_status, worktree_status) or "D" in (index_status, worktree_status) or index_status == "R" or worktree_status == "R" or " -> " in path
         if (not safe_path and not runtime_cache) or unsafe_status:
             unrelated.append(line)
@@ -492,76 +389,34 @@ def git_publish(site: Path, paths: list[str]) -> bool:
     if staged.returncode == 2:
         raise subprocess.CalledProcessError(staged.returncode, staged.args)
     if staged.returncode == 0:
-        _git(site, "pull", "--rebase", "--autostash", "origin", "main")
+        _git(site, "pull", "--rebase", "origin", "main")
         _git(site, "push", "origin", "main")
         return False
     _git(site, "commit", "-m", "chore: publish market and signal data")
-    _git(site, "pull", "--rebase", "--autostash", "origin", "main")
+    _git(site, "pull", "--rebase", "origin", "main")
     _git(site, "push", "origin", "main")
     return True
 
 
 def main() -> None:
-    if not is_publish_window():
-        print("SKIP_OUTSIDE_MARKET_WINDOW")
-        return
-    global DB, SITE, MARKET_OUT, COMPREHENSIVE_OUT, HISTORY_OUT, XLSX_OUT, INTRADAY_SYMBOLS_OUT, SYMBOL_HISTORY_DIR, FUND_OUT, PORTFOLIO_SPECIAL_OUT
+    global DB, SITE, MARKET_OUT, HISTORY_OUT, XLSX_OUT
     DB = Path(os.environ.get("BOURSE_DB", str(DB)))
     event_db = Path(os.environ.get("EVENT_DB", "/root/bourse-alert/event_live.db"))
     SITE = Path(os.environ.get("SITE_REPO", str(SITE)))
     MARKET_OUT = SITE / "market/data/market.json"
     SIGNALS_OUT = SITE / "market/data/signals.json"
-    COMPREHENSIVE_OUT = SITE / "market/data/comprehensive.json"
     HISTORY_OUT = SITE / "market/history/data/history.json"
     XLSX_OUT = SITE / "market/history/data/market-score-history.xlsx"
-    INTRADAY_SYMBOLS_OUT = SITE / "market/symbols/data/intraday.json"
-    SYMBOL_HISTORY_DIR = SITE / "market/symbols/data"
     OPTIONS_OUT = SITE / "market/data/options.json"
-    FUND_OUT = SITE / "market/data/funds.json"
-    PORTFOLIO_SPECIAL_OUT = SITE / "market/data/portfolio-special.json"
     with connect() as conn:
         market = build_market(conn)
-        market_score_history = export_market_score_history(conn)
-        try:
-            from .daily_turnover import load_completed_daily, attach_completed_daily
-        except ImportError:
-            from daily_turnover import load_completed_daily, attach_completed_daily
-        completed = load_completed_daily(conn, datetime.now(TEHRAN))
-        if MARKET_OUT.exists():
-            previous_daily = json.loads(MARKET_OUT.read_text()).get("daily", [])
-            market["daily"] = previous_daily
-        market = attach_completed_daily(market, completed)
-        portfolio_special = build_portfolio_special(conn, market["generated_at"])
-        fund_report = load_fund_report()
-        market["fund_report"] = fund_report
-        comprehensive = {
-            "schema_version": 1,
-            "generated_at": market["generated_at"],
-            "rows": market.pop("comprehensive_stocks", []),
-            "meta": market.pop("comprehensive_meta", {}),
-        }
         history = build_history(conn)
         candles = build_candles(conn)
-        intraday_symbols = build_intraday_symbols(conn, market["generated_at"][:10])
-        if write_symbol_history is not None:
-            source_rows = comprehensive.get("rows") or market.get("stocks", [])
-            symbols = {row.get("symbol") for row in source_rows if row.get("symbol")}
-            try:
-                symbols.update(row[0] for row in conn.execute("SELECT DISTINCT symbol FROM history WHERE symbol IS NOT NULL"))
-            except sqlite3.OperationalError:
-                pass
-            write_symbol_history(conn, symbols, SYMBOL_HISTORY_DIR / "history")
     signal_payload = export_signals(event_db, SIGNALS_OUT)
     options_payload = export_from_scores_db(DB, OPTIONS_OUT)
     atomic_json(MARKET_OUT, market)
-    write_market_score_history(MARKET_SCORE_HISTORY_OUT, market_score_history)
-    atomic_json(COMPREHENSIVE_OUT, comprehensive)
-    if os.environ.get("SKIP_FUNDS_PUBLISH") != "1":
-        atomic_json(FUND_OUT, fund_report)
-    atomic_json(PORTFOLIO_SPECIAL_OUT, portfolio_special)
     atomic_json(HISTORY_OUT, history)
     atomic_json(SITE / "market/history/data/score-candles.json", candles)
-    atomic_json(INTRADAY_SYMBOLS_OUT, intraday_symbols)
     build_xlsx(history)
     changed = git_publish(SITE, list(PUBLISHED_FILES))
     print("PUBLISHED" if changed else "NO_CHANGE", market["generated_at"], history["valid_day_count"], history["row_count"], signal_payload["status"], options_payload["status"], options_payload["counts"])
