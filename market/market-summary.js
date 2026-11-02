@@ -27,7 +27,7 @@
   function render(){
    if(!host)return;const m=model(last),risk=riskModel(last),fmt=new Intl.NumberFormat('fa-IR',{maximumFractionDigits:2}),state=risk.value===null?'loading':risk.value<=30?'low':risk.value<=65?'medium':'high';
    const riskHost=doc.querySelector('#marketRisk');if(riskHost){riskHost.dataset.state=state;riskHost.querySelector('[data-market-risk-value]').textContent=risk.value===null?'—':fmt.format(risk.value);riskHost.querySelector('[data-market-risk-status]').textContent=risk.status;}
-   const meter=doc.querySelector('#marketRiskMeter');if(meter){meter.dataset.state=state;const marker=meter.querySelector('[data-risk-marker]'),value=meter.querySelector('[data-risk-meter-value]');marker.style.right=risk.value===null?'0%':risk.value+'%';value.textContent=risk.value===null?'—':fmt.format(risk.value);}
+   const meter=doc.querySelector('#marketRiskMeter');if(meter){meter.dataset.state=state;const marker=meter.querySelector('[data-risk-marker]'),value=meter.querySelector('[data-risk-meter-value]');marker.style.left=risk.value===null?'0%':risk.value+'%';value.textContent=risk.value===null?'—':fmt.format(risk.value);}
    ['median','buy','sell'].forEach(k=>{const e=host.querySelector('[data-summary-value="'+k+'"]');e.textContent=m[k]===null?'ناموجود':fmt.format(m[k]);e.dataset.available=String(m[k]!==null);});
    host.querySelector('.market-summary-source').textContent=last?'منبع: دادهٔ پذیرفته‌شدهٔ بازار؛ زمان و کیفیت در نشان وضعیت نمودارهای همین بخش.':'در انتظار دریافت دادهٔ بازار؛ مقادیر هنوز قابل تأیید نیستند.';host.dataset.state=last?'received':'loading';
   }
