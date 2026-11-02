@@ -333,3 +333,36 @@ html[data-theme] main :where(small,label,button,summary,th,td,.panel-note,.table
 @media (max-width:720px) {
   html[data-theme] main :where(small,label,button,summary,th,td,.panel-note,.table-note,.source-time,.data-freshness) { font-size:max(12px,.75rem)!important; }
 }
+
+/* Light-mode table contract: neutral tables must not inherit the legacy
+   dark market-desk surface. This block intentionally comes last so it wins
+   over route CSS that still uses !important on .fund-report-panel. */
+html[data-theme="light"] main :where(.table-panel,.fund-report-panel,.fund-report-scroll,.comprehensive-panel,.industry-table-panel) {
+  background:#fff!important;
+  color:#102b30!important;
+  border-color:#d6e1d9!important;
+  box-shadow:0 14px 35px rgba(38,73,60,.07)!important;
+}
+html[data-theme="light"] main :where(.table-scroll table,.table-wrap table,.industry-table,.fund-report-table,.comprehensive-table) {
+  background:#fff!important;
+  color:#102b30!important;
+}
+html[data-theme="light"] main :where(.table-scroll table thead th,.table-wrap table thead th,.industry-table thead th,.fund-report-table th,.comprehensive-table thead th) {
+  background:#e8f1eb!important;
+  color:#173b3f!important;
+  border-color:#b8cec0!important;
+}
+html[data-theme="light"] main :where(.table-scroll table tbody tr,.table-wrap table tbody tr,.industry-table tbody tr,.fund-report-table tbody tr,.comprehensive-table tbody tr) {
+  background:#fff!important;
+}
+html[data-theme="light"] main :where(.table-scroll table tbody tr:nth-child(even),.table-wrap table tbody tr:nth-child(even),.industry-table tbody tr:nth-child(even),.fund-report-table tbody tr:nth-child(even),.comprehensive-table tbody tr:nth-child(even)) {
+  background:#fbfdf9!important;
+}
+html[data-theme="light"] main :where(.table-scroll table tbody td,.table-wrap table tbody td,.industry-table tbody td,.fund-report-table tbody td,.comprehensive-table tbody td) {
+  background:transparent!important;
+  color:#102b30!important;
+  border-color:#e3ebe5!important;
+}
+html[data-theme="light"] main :where(.table-scroll table tbody tr:hover,.table-wrap table tbody tr:hover,.industry-table tbody tr:hover,.fund-report-table tbody tr:hover,.comprehensive-table tbody tr:hover) {
+  background:#f0f7e8!important;
+}
