@@ -189,3 +189,10 @@ th[role="button"][aria-sort="descending"]:after{content:"↓";color:var(--blue);
 .industry-table .industry-filter-pair{grid-template-columns:38px minmax(0,1fr);gap:3px;align-items:center}
 .industry-table .industry-column-filter-row th{padding:5px 3px}
 .industry-table .industry-column-filter-row input,.industry-table .industry-column-filter-row select{margin:0;min-height:28px;padding:3px;font-size:10px}
+
+/* Temporary numeric readability experiment — reversible. */
+.metric-value{font-size:42px!important;font-weight:500!important}
+.queue-metric .metric-value{font-size:36px!important;font-weight:500!important}
+.table-scroll td bdi,.fund-report-table td bdi{font-size:1.04em;font-weight:400}
+.chart-label,.history-chart-wrap .chart-label,.candle-panel svg text,.archive-trend-chart text{font-weight:500}
+@media(max-width:720px){.metric-value{font-size:31px!important}.queue-metric .metric-value{font-size:26px!important}}
