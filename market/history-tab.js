@@ -37,7 +37,7 @@
       if (selected) link.setAttribute('aria-current', 'page');
       else link.removeAttribute('aria-current');
     });
-    if (active && !frame.hasAttribute('src')) frame.src = 'median-history/?embedded=1&asset=hover-20261102-1';
+    if (active && !frame.hasAttribute('src')) frame.src = 'median-history/?embedded=1&asset=hover-20261102-2';
   }
   window.addEventListener('hashchange', render);
   render();

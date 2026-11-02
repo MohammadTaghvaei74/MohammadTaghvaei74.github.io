@@ -19,3 +19,7 @@
 #median-history .candle-mark.is-selected{stroke:#c56b13;stroke-width:3}
 #median-history #status{background:#e2edfb;padding:14px;border-radius:10px}
 @media(max-width:600px){#median-history{padding:12px}#median-history h1{font-size:21px}#median-history section{padding:10px}#median-history label{min-width:0;flex:1 1 100%}}
+
+/* Embedded overlay layering. */
+body.history-embedded-route #median-history .chart-shell{overflow:visible;isolation:isolate}
+body.history-embedded-route #median-history .candle-float-tip{z-index:100;visibility:visible}
