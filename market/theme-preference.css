@@ -306,6 +306,15 @@ html[data-theme="dark"] main :where(.industry-table tbody td,.fund-report-table 
 html[data-theme="dark"] main :where(.industry-table a,.industry-name-cell a,.symbol-suggestions button) { color:#fff!important; background:transparent!important; }
 html[data-theme="dark"] main :where(.queue-card,.metric-card) { color:#fff!important; }
 
+/* Freshness strips inside chart cards must belong to the dark surface. */
+html[data-theme="dark"] :where(.observation-clock,.observation-clock[data-status="fresh"],.observation-clock[data-status="unknown"],.observation-clock[data-status="stale"],.observation-clock[data-status="error"]) {
+  background:#151515!important; color:#fff!important; border-color:#536a6d!important;
+}
+html[data-theme="dark"] :where(.observation-clock[data-status="fresh"]) { background:#151515!important; color:#fff!important; }
+html[data-theme="dark"] :where(.data-freshness,#turnoverStatus,.chart-legend,.chart-caption,.chart-hint) { color:#e6eee9!important; }
+html[data-theme="dark"] :where(.chart-label,.price-distribution-label,.chart-empty) { fill:#fff!important; color:#fff!important; }
+html[data-theme="dark"] :where(.chart-grid-line,.chart-zero) { stroke:#536a6d!important; }
+
 html[data-theme="light"] :where(.table-scroll table td,.table-wrap table td,.industry-table tbody td,.fund-report-table td,.comprehensive-table td),
 html[data-theme="light"] :where(.table-scroll table td *,.table-wrap table td *,.industry-table tbody td *,.fund-report-table td *,.comprehensive-table td *) { color:#102b30!important; }
 html[data-theme="light"] :where(.table-scroll table thead th,.table-wrap table thead th,.industry-table thead th,.fund-report-table th,.comprehensive-table thead th) { color:#f5faef!important; }
