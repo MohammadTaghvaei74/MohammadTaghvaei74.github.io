@@ -7,7 +7,7 @@
 }
 html,body,button,input,select,textarea,table,th,td{font-family:var(--fa)!important}
 html{background:var(--bg)!important}
-body{background:var(--bg)!important;color:var(--ink)!important;font-size:15px!important;line-height:1.8!important;letter-spacing:0!important;-webkit-font-smoothing:antialiased}
+body{background:var(--bg)!important;color:var(--ink)!important;font-size:var(--ds-font-body,16px)!important;line-height:1.8!important;letter-spacing:0!important;-webkit-font-smoothing:antialiased}
 body:before{background:radial-gradient(ellipse at 8% 0%,rgba(96,165,250,.10),transparent 32%),radial-gradient(ellipse at 94% 8%,rgba(52,211,153,.055),transparent 25%),linear-gradient(180deg,rgba(20,28,43,.32),transparent 42%)!important}
 ::selection{background:rgba(96,165,250,.35)!important;color:#fff!important}:focus-visible{outline:2px solid var(--accent)!important;outline-offset:3px}
 .shell{width:min(var(--max),calc(100% - 56px))!important}
