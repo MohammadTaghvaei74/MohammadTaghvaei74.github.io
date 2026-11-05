@@ -42,7 +42,7 @@
      };
      try {
        let result, fallback=false;
-       try {result=await request(live,2000);} catch(error) {fallback=true;result=await request(local,7000);}
+       try {result=await request(local,7000);} catch(error) {fallback=true;result=await request(live,2000);}
        response=result.res;
        if(url.pathname.endsWith('/market.json'))transportStatus(fallback?'fallback':'live',result.data);
      } catch(error) {
