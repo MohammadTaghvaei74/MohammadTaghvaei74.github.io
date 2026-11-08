@@ -14,7 +14,7 @@ with sync_playwright() as p:
     operators = '[data-industry-op], #comprehensiveTable .filter-operator'
     def defaults(selector=operators):
         values = page.locator(selector).evaluate_all("els => els.map(e => ({value:e.value, options:[...e.options].map(o=>o.value), width:e.getBoundingClientRect().width}))")
-        assert values and all(v['value'] == '<' and v['options'] == ['<', '=', '>'] and v['width'] > 0 for v in values), values
+        assert values and all(v['value'] == '<' and v['options'] == ['<', '<=', '=', '>=', '>'] and v['width'] > 0 for v in values), values
         return len(values)
     result = {'url': page.url, 'defaultControls': defaults()}
     for name, rows, field in [
