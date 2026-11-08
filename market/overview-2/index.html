@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#f5f3ee" />
+    <meta name="description" content="نمای کلی ۲؛ خوانش آرام و داده‌محور از نبض بازار." />
+    <link rel="icon" type="image/svg+xml" href="../../assets/favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="overview-2.css?v=apple-design-1" />
+    <title>نمای کلی ۲ | نبض بازار</title>
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="glass-header">
+        <a class="brand" href="../" aria-label="بازگشت به نمای کلی">
+          <span class="brand-mark">mt<span>.</span></span>
+          <span class="brand-copy"><b>نبض بازار</b><small>MARKET PULSE / DATA DESK</small></span>
+        </a>
+        <nav class="main-nav" aria-label="ناوبری اصلی">
+          <a href="../">نمای کلی</a>
+          <a class="active" aria-current="page" href="./">نمای کلی ۲</a>
+          <a href="../signals/">سیگنال‌ها</a>
+          <a href="../history/">آرشیو امتیاز</a>
+          <a href="../symbols/">کاوش نماد</a>
+          <a href="../industries/">صنایع</a>
+        </nav>
+        <div class="header-actions">
+          <span class="live-state" data-state="loading"><i></i><span id="marketState">در حال دریافت</span></span>
+          <button class="refresh-button" id="refreshButton" type="button" aria-label="به‌روزرسانی داده">↻</button>
+        </div>
+      </header>
+
+      <main>
+        <section class="hero" aria-labelledby="heroTitle">
+          <div class="eyebrow"><span class="eyebrow-dot"></span> MARKET PULSE / OVERVIEW 02</div>
+          <div class="hero-grid">
+            <div class="hero-copy">
+              <h1 id="heroTitle">بازار را<br /><em>مثل یک جریان</em> ببین.</h1>
+              <p>یک نمای آرام‌تر برای دیدن چیزی که پشت عددها اتفاق می‌افتد؛ تعادل تقاضا، حرکت لیدرها و کیفیت داده در یک نگاه.</p>
+              <div class="hero-meta"><span>آخرین snapshot</span><strong id="updatedAt">—</strong><small id="sourceStatus">در حال اتصال به منبع داده…</small></div>
+            </div>
+            <div class="hero-orbit" aria-hidden="true"><div class="orbit-ring ring-one"></div><div class="orbit-ring ring-two"></div><div class="orbit-core"><span>MARKET</span><b id="heroScore">—</b><small>امتیاز کل</small></div><span class="orbit-pill pill-one">LIVE</span><span class="orbit-pill pill-two">TEHRAN</span></div>
+          </div>
+        </section>
+
+        <section class="signal-strip" aria-label="خلاصه بازار">
+          <article class="signal-card featured"><span class="signal-kicker">خوانش امروز</span><strong id="marketMood">در حال تحلیل</strong><span id="allocationLabel">داده تخصیص کافی نیست</span></article>
+          <article class="signal-card"><span class="signal-kicker">میانه بازار</span><strong id="marketMedian">—</strong><span>امتیاز snapshot</span></article>
+          <article class="signal-card"><span class="signal-kicker">میانه لیدرها</span><strong id="leaderMedian">—</strong><span id="allocationGap">فاصله با بازار: —</span></article>
+          <article class="signal-card"><span class="signal-kicker">نمادهای معتبر</span><strong id="tradedCount">—</strong><span>در snapshot فعلی</span></article>
+        </section>
+
+        <section class="story-grid">
+          <article class="story-card chart-card">
+            <div class="card-head"><div><span class="card-kicker">01 / MARKET RHYTHM</span><h2>ریتم بازار</h2></div><span class="quiet-label">روند روزانه</span></div>
+            <div class="chart-wrap"><svg id="marketChart" viewBox="0 0 860 300" role="img" aria-label="روند امتیاز بازار در روزهای اخیر"></svg></div>
+            <div class="legend"><span><i class="legend-dot market"></i>کل بازار</span><span><i class="legend-dot leaders"></i>لیدرها</span><span><i class="legend-dot rest"></i>سایر بازار</span><span class="legend-note">امتیاز، نه سیگنال خرید</span></div>
+          </article>
+          <aside class="story-card focus-card">
+            <div class="card-head"><div><span class="card-kicker">02 / DIRECTION</span><h2>جهت جریان</h2></div><span class="direction-icon" aria-hidden="true">↗</span></div>
+            <div class="direction-reading"><strong id="directionTitle">بدون تمایل مشخص</strong><span id="directionText">فاصله میانه‌ها برای خوانش جهت کافی نیست.</span></div>
+            <div class="balance"><div class="balance-labels"><span>لیدرها</span><span>هم‌وزن</span></div><div class="balance-track"><i id="allocationMarker"></i></div></div>
+            <div class="mini-facts"><div><span>خالص صف‌ها</span><strong id="netQueue">—</strong></div><div><span>منبع</span><strong id="sourceName">—</strong></div></div>
+          </aside>
+        </section>
+
+        <section class="section-block" aria-labelledby="focusTitle">
+          <div class="section-head"><div><span class="card-kicker">03 / FOCUS</span><h2 id="focusTitle">جاهایی که ارزش نگاه دارند</h2></div><p>برترین‌های snapshot فعلی؛ رتبه‌بندی به‌تنهایی توصیه خرید نیست.</p></div>
+          <div class="focus-grid">
+            <article class="data-card top-card"><div class="data-card-head"><h3>برترین امتیازها</h3><span>TOP SCORES</span></div><div class="compact-list" id="topStocks"></div></article>
+            <article class="data-card leveraged-card"><div class="data-card-head"><h3>صندوق‌های اهرمی</h3><span>LEVERAGED</span></div><div class="compact-list" id="leveragedStocks"></div></article>
+            <article class="data-card industry-card"><div class="data-card-head"><h3>سه صنعت برتر</h3><span>SECTORS</span></div><div class="compact-list" id="topIndustries"></div></article>
+          </div>
+        </section>
+
+        <section class="closing-card" aria-label="یادداشت داده">
+          <div><span class="card-kicker">A CALMER LENS</span><h2>وضوح، قبل از سرعت.</h2></div>
+          <p>این صفحه یک لایه‌ی نمایشی مستقل روی همان snapshot معتبر بازار است. اعداد ناموجود با «—» باقی می‌مانند و وضعیت منبع همیشه کنار خوانش اصلی دیده می‌شود.</p>
+          <a class="text-link" href="../">بازگشت به نمای کلی اصلی <span aria-hidden="true">←</span></a>
+        </section>
+      </main>
+
+      <footer class="site-footer"><span class="brand-mark">mt<span>.</span></span><span>نبض بازار / نمای کلی ۲</span><span>داده تحلیلی است؛ توصیه سرمایه‌گذاری نیست.</span></footer>
+    </div>
+
+    <nav class="mobile-nav" aria-label="ناوبری سریع موبایل">
+      <a href="../"><span aria-hidden="true">⌂</span><b>نمای کلی</b></a>
+      <a class="active" aria-current="page" href="./"><span aria-hidden="true">✦</span><b>نمای ۲</b></a>
+      <a href="../signals/"><span aria-hidden="true">⌁</span><b>سیگنال</b></a>
+      <a href="../symbols/"><span aria-hidden="true">⌕</span><b>نماد</b></a>
+      <a href="../industries/"><span aria-hidden="true">▦</span><b>صنایع</b></a>
+    </nav>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <script src="../core.js?v=overview-2-1"></script>
+    <script src="overview-2.js?v=overview-2-1" defer></script>
+  </body>
+</html>
