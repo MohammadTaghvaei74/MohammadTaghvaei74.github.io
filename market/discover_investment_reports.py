@@ -35,10 +35,15 @@ def query(symbol, cache_dir):
             response = None
             for attempt in range(3):
                 response = requests.get("https://search.codal.ir/api/search/v2/q", params=params,
-                                        headers={"User-Agent": "Mozilla/5.0"}, timeout=90)
+                                        headers={"User-Agent": "Mozilla/5.0", "Accept": "application/json"}, timeout=90)
                 if response.status_code != 429:
                     break
-                time.sleep(2 ** attempt)
+                # Codal rate-limits bursts. Do not turn a temporary block
+                # into a false "report missing" result.
+                time.sleep(10 * (attempt + 1))
+            if response is not None and response.status_code == 429:
+                return symbol, {"status": "blocked_or_rate_limited", "http_status": 429,
+                                "retry_after": response.headers.get("Retry-After")}
             response.raise_for_status()
             payload = response.json()
             cache.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
@@ -67,8 +72,15 @@ def main():
     symbols = sorted({row["symbol"] for row in payload.get("rows", []) if row.get("symbol")})
     cache_dir = root / "data/codal-investment-cache"
     cache_dir.mkdir(parents=True, exist_ok=True)
-    with concurrent.futures.ThreadPoolExecutor(max_workers=4) as pool:
-        found = dict(pool.map(lambda s: query(s, cache_dir), symbols))
+    def paced(symbol):
+        result = query(symbol, cache_dir)
+        # Keep requests below Codal's burst threshold. This is deliberately
+        # conservative because a blocked request yields no usable evidence.
+        time.sleep(2)
+        return result
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
+        found = dict(pool.map(paced, symbols))
     result = {"schema_version": 1, "generated_at": dt.datetime.now(dt.timezone.utc).isoformat(),
               "row_count": len(symbols), "reports": found}
     (root / "data/investment-report-discovery.json").write_text(json.dumps(result, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
