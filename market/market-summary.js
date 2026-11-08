@@ -12,7 +12,7 @@
   const n=number,bucket=(v,t)=>{if(v===null)return null;for(let i=0;i<t.length;i++)if(t[i](v))return i+1;return t.length+1},normalize=(r,max)=>r===null?null:(r-1)/(max-1);
   const medianRank=bucket(n(m.median),[v=>v>3,v=>v>1,v=>v>-1,v=>v>-2,v=>v>-3]);
   const recent=intraday.map(x=>n(x.median_score)).filter(x=>x!==null),sma=(a,k)=>a.length<k?null:a.slice(-k).reduce((s,v)=>s+v,0)/k;
-  const s5=sma(recent,5),s20=sma(recent,20),trendRank=bucket(s5!==null&&s20!==null?s5-s20:null,[v=>v>.15,v=>v>-.15]);
+  const s5=sma(recent,5),s20=sma(recent,Math.min(20,recent.length)),trendRank=bucket(s5!==null&&s20!==null?s5-s20:null,[v=>v>.15,v=>v>-.15]);
   const today=String(m.timestamp||(d&&d.generated_at)||'').slice(0,10),complete=daily.filter(x=>x&&x.complete&&x.trading_date&&x.trading_date!==today&&n(x.final_turnover_toman)!==null),vals=complete.map(x=>n(x.final_turnover_toman));
   const baselineDays=Math.min(vals.length,5),baseline20Days=Math.min(vals.length,20);
   const ma5=baselineDays?vals.slice(0,baselineDays).reduce((s,v)=>s+v,0)/baselineDays:null;
