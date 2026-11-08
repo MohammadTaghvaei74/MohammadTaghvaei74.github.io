@@ -23,6 +23,7 @@
    if (liveFeed) {
      const local=new URL(url.pathname+url.search,location.origin);
      const live=new URL(local.href);live.protocol='https:';live.host='94-101-184-98.sslip.io';
+     if (url.pathname.endsWith('/market.json')) live.pathname='/api/live/latest';
      live.searchParams.set('observation',Date.now());
      const request=async(target,ms)=>{
        const controller=new AbortController();
@@ -42,7 +43,12 @@
      };
      try {
        let result, fallback=false;
-       try {result=await request(local,7000);} catch(error) {fallback=true;result=await request(live,2000);}
+       try {
+         result=await request(live,2000);
+       } catch(error) {
+         fallback=true;
+         result=await request(local,7000);
+       }
        response=result.res;
        if(url.pathname.endsWith('/market.json'))transportStatus(fallback?'fallback':'live',result.data);
      } catch(error) {
