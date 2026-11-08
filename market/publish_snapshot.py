@@ -39,6 +39,7 @@ if __package__:
     from .export_options import export_from_scores_db
     from .score_candles import build_candles
     from .tsetmc_enrichment import enrich_stocks
+    from .build_investment_companies import build_payload as build_investment_payload
 else:
     from export_signals import export as export_signals
     from leveraged_snapshots import read_latest as read_leveraged
@@ -52,11 +53,14 @@ else:
     from export_options import export_from_scores_db
     from score_candles import build_candles
     from tsetmc_enrichment import enrich_stocks
+    from build_investment_companies import build_payload as build_investment_payload
 
 PUBLISHED_FILES = (
     "market/data/market.json",
     "market/data/signals.json",
     "market/data/options.json",
+    "market/data/investment-companies.json",
+    "market/data/investment-portfolio-reports.json",
     "market/history/data/history.json",
     "market/history/data/score-candles.json",
     "market/history/data/market-score-history.xlsx",
@@ -184,6 +188,20 @@ def build_market(conn: sqlite3.Connection) -> dict:
         (latest, *selected_industries),
     )]
     daily = load_daily_chart_rows(conn)
+    # Preserve the complete investment-company universe, including symbols
+    # with no trade volume (for example a symbol closed after a meeting).
+    investment_catalog = []
+    available_catalog = {row[1] for row in conn.execute("PRAGMA table_info(stock_snapshots)")}
+    wanted_catalog = ["symbol", "instrument", "industry", "instrument_type", "description", "last_pct", "trade_volume", "timestamp", "trading_date"]
+    selected_catalog = [column for column in wanted_catalog if column in available_catalog]
+    if selected_catalog:
+        selected_sql = ",".join(selected_catalog)
+        investment_catalog = [dict(row) for row in conn.execute(
+            f"SELECT {selected_sql} FROM (SELECT {selected_sql}, ROW_NUMBER() OVER (PARTITION BY symbol ORDER BY timestamp DESC) AS rn FROM stock_snapshots WHERE valid=1 AND (industry LIKE ? OR industry = ?)) WHERE rn=1 ORDER BY symbol",
+            ("%سرمایه%", "شرکتهای چند رشته ای"),
+        )]
+        for row in investment_catalog:
+            row["is_current_snapshot"] = row.get("timestamp") == latest
     return {
         "schema_version": 1,
         "source": "scores_history.db",
@@ -193,6 +211,7 @@ def build_market(conn: sqlite3.Connection) -> dict:
         "top_stocks": top_stocks,
         "top_buy_queue": queue_rows[:10],
         "stocks": [row for row in stocks if row.get("industry")],
+        "investment_catalog": investment_catalog,
         "leveraged": read_leveraged(conn, latest),
         "industries": industries,
         "daily": daily,
@@ -435,15 +454,18 @@ def main() -> None:
     HISTORY_OUT = SITE / "market/history/data/history.json"
     XLSX_OUT = SITE / "market/history/data/market-score-history.xlsx"
     OPTIONS_OUT = SITE / "market/data/options.json"
+    INVESTMENTS_OUT = SITE / "market/data/investment-companies.json"
     with connect() as conn:
         market = build_market(conn)
         history = build_history(conn)
         candles = build_candles(conn)
     signal_payload = export_signals(event_db, SIGNALS_OUT)
     options_payload = export_from_scores_db(DB, OPTIONS_OUT)
+    investment_payload = build_investment_payload(market)
     atomic_json(MARKET_OUT, market)
     atomic_json(HISTORY_OUT, history)
     atomic_json(SITE / "market/history/data/score-candles.json", candles)
+    atomic_json(INVESTMENTS_OUT, investment_payload)
     build_xlsx(history)
     changed = git_publish(SITE, list(PUBLISHED_FILES))
     print("PUBLISHED" if changed else "NO_CHANGE", market["generated_at"], history["valid_day_count"], history["row_count"], signal_payload["status"], options_payload["status"], options_payload["counts"])
