@@ -4,7 +4,7 @@ import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-LABELS = ['نمای کلی', 'سیگنال‌ها', 'سهام', 'صنایع و سهام', 'آپشن', 'صندوق‌ها', 'هلدینگ‌ها', 'امتیاز پرتفو', 'تاریخچه']
+LABELS = ['نمای کلی', 'نمای کلی ۲', 'سیگنال‌ها', 'سهام', 'صنایع', 'آپشن', 'صندوق‌ها', 'هلدینگ‌ها', 'امتیاز پرتفو', 'تاریخچه']
 
 class FundsNavigationTests(unittest.TestCase):
     def test_shared_menu_preserved_and_funds_route_distinct(self):
@@ -17,9 +17,8 @@ class FundsNavigationTests(unittest.TestCase):
                 self.assertIsNotNone(nav)
                 links = re.findall(r'<a\b([^>]*)>(.*?)</a>', nav[1], re.S)
                 labels = [label.strip() for _, label in links]
-                if labels[3] == 'صنایع': labels[3] = 'صنایع و سهام'
                 self.assertEqual(labels, LABELS)
-                attrs = links[5][0]
+                attrs = links[6][0]
                 self.assertNotIn('#funds', attrs)
                 href = re.search(r'href="([^"]+)"', attrs)[1]
                 self.assertIn(href, ['/market/funds/', './', '../funds/', 'funds/'])
