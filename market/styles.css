@@ -208,3 +208,19 @@ body :where(p,span,small,b,strong,td,th,button,a,li,label,time,figcaption,captio
 .industry-score{font-size:29px!important;font-weight:400!important}
 .signal-list b{font-size:22px!important;font-weight:400!important}
 @media(max-width:720px){.metric-value{font-size:35px!important}.queue-metric .metric-value{font-size:30px!important}.score{font-size:15px!important}.industry-score{font-size:26px!important}.signal-list b{font-size:19px!important}}
+
+
+/* Shared data-table containment contract: cell content never paints into a neighbour. */
+.table-scroll{min-width:0;max-width:100%;overflow-x:auto;overscroll-behavior-inline:contain}
+table:not(.queue-leaders-table):not(.options-table){width:100%;table-layout:fixed}
+table:not(.queue-leaders-table):not(.options-table) th,
+table:not(.queue-leaders-table):not(.options-table) td{box-sizing:border-box;min-width:0;max-width:0;overflow:hidden;vertical-align:middle}
+table:not(.queue-leaders-table):not(.options-table) th{white-space:normal;overflow-wrap:anywhere;word-break:break-word;line-height:1.45}
+table:not(.queue-leaders-table):not(.options-table) td{white-space:nowrap;text-overflow:ellipsis}
+table:not(.queue-leaders-table):not(.options-table) td>*{display:inline-block;max-width:100%;min-width:0;overflow:hidden;text-overflow:ellipsis;vertical-align:middle}
+table:not(.queue-leaders-table):not(.options-table) td a{white-space:nowrap}
+/* Flex/grid cards need the same min-width boundary as table cells. */
+.industry-card>*{min-width:0;max-width:100%}
+.industry-card strong,.industry-card .card-meta{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* Keep wide analytical tables intentionally scrollable; they must not be clipped. */
+.queue-leaders-table,.options-table{table-layout:auto}
