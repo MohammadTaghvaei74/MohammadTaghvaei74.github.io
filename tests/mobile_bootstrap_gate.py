@@ -37,11 +37,11 @@ async def run():
             except Exception as e: ok=False; failure=str(e)
             if scenario=='normal':
                 await page.wait_for_timeout(12000)
-                refreshes=sum('/data/market.json' in u and 'sslip.io' in u for u in requests)
+                refreshes=sum('/data/market.json' in u and 'sslip.io' not in u for u in requests)
                 if refreshes<2: ok=False; failure='No ten-second market refresh: '+str(refreshes)
             state=await page.evaluate("({leaders:document.querySelectorAll('#leaderStocks tr').length,comprehensive:document.querySelectorAll('#comprehensiveRows tr').length,status:document.querySelector('#dataTransportStatus')?.textContent,body:document.body.innerText.slice(0,1000)})")
-            if scenario in ('blocked','hung','storage-denied') and ('نسخه ذخیره‌شده' not in (state['status'] or '') or 'سن snapshot' not in (state['status'] or '')):
-                ok=False; failure='Missing fallback source/age disclosure'
+            if scenario in ('blocked','hung','storage-denied') and ('اتصال زنده برقرار است' not in (state['status'] or '') or sum('/data/market.json' in u and 'sslip.io' not in u for u in requests)<1):
+                ok=False; failure='Missing same-origin live source'
             state.update(scenario=scenario,ok=ok,seconds=round(time.monotonic()-start,2),errors=errors,failure=failure,live_requests=sum('sslip.io' in u for u in requests),same_requests=sum('/data/' in u and 'sslip.io' not in u for u in requests))
             await page.screenshot(path=str(Path(a.out).with_suffix(''))+'-'+scenario+'.png',full_page=False)
             results.append(state); print(json.dumps(state,ensure_ascii=True),flush=True)
@@ -50,7 +50,7 @@ async def run():
         for sub, condition in [
             ('industries/', "document.querySelectorAll('#industrySummaryRows tr').length>1"),
             ('signals/', "document.querySelector('#feedState')?.textContent.length>0 && !document.querySelector('#feedState').textContent.includes('خطا') && !document.querySelector('#feed').textContent.includes('انتظار')"),
-            ('portfolio/', "document.querySelector('#dataTransportStatus')?.dataset.state==='fallback' && !document.body.innerText.includes('منبع: در حال')"),
+            ('portfolio/', "['live','fallback'].includes(document.querySelector('#dataTransportStatus')?.dataset.state) && !document.body.innerText.includes('منبع: در حال')"),
             ('history/', "document.querySelectorAll('tbody tr').length>1"),
             ('options/', "document.querySelector('#options-title')?.getBoundingClientRect().width>0")]:
             context=await browser.new_context(viewport={'width':390,'height':844},is_mobile=True,has_touch=True)
