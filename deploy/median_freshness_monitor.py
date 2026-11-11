@@ -1,9 +1,18 @@
 #!/usr/bin/env python3
 import argparse, json, subprocess, sys
 from datetime import datetime, timezone, timedelta
+from zoneinfo import ZoneInfo
 from pathlib import Path
 
 MAX_AGE = timedelta(minutes=15)
+MAX_PUBLIC_LAG = timedelta(minutes=5)
+TEHRAN = ZoneInfo('Asia/Tehran')
+
+def market_window(now):
+    local = now.astimezone(TEHRAN)
+    return (local.weekday() in (0, 1, 2, 5, 6) and
+            local.replace(hour=8, minute=45, second=0, microsecond=0) <= local <
+            local.replace(hour=12, minute=31, second=0, microsecond=0))
 def stamp(value):
     return datetime.fromisoformat(value.replace('Z', '+00:00'))
 def load(raw):
@@ -27,10 +36,17 @@ def main():
         raw=subprocess.check_output(['git','-C',str(args.repo),'show',f'{args.ref}:market/data/market-score-history.json'])
         public=load(raw)
         public_at=stamp(public['generated_at'])
+        if not market_window(now):
+            print(f'BOURSE_CANONICAL_MEDIAN_OK outside_market source={source_at.isoformat()} public={public_at.isoformat()} points={len(source["points"])} coverage={len(source["coverage"])}', flush=True)
+            return 0
         if source_at < now-MAX_AGE:
             raise ValueError(f'ALERT_MEDIAN_HISTORY_SOURCE_STALE age_seconds={int((now-source_at).total_seconds())}')
         if public_at < source_at:
-            raise ValueError(f'ALERT_MEDIAN_HISTORY_PUBLIC_LAG public={public_at.isoformat()} source={source_at.isoformat()}')
+            lag = now - public_at
+            if lag > MAX_PUBLIC_LAG:
+                raise ValueError(f'ALERT_MEDIAN_HISTORY_PUBLIC_LAG public={public_at.isoformat()} source={source_at.isoformat()}')
+            print(f'BOURSE_CANONICAL_MEDIAN_PENDING public_lag_seconds={int(lag.total_seconds())} source={source_at.isoformat()} public={public_at.isoformat()}', flush=True)
+            return 0
     except (OSError, ValueError, subprocess.CalledProcessError, json.JSONDecodeError) as exc:
         print(f'BOURSE_CANONICAL_MEDIAN_ALERT {exc}', flush=True)
         return 1

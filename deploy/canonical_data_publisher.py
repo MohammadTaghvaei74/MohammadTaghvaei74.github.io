@@ -184,8 +184,11 @@ def publish(repo, source, attempts=3):
                    GIT_COMMITTER_NAME='Canonical snapshot publisher',
                    GIT_COMMITTER_EMAIL='canonical-publisher@localhost')
         for attempt in range(attempts):
-            run(repo, 'fetch', '--no-tags', '--no-write-fetch-head', 'origin',
-                '+refs/heads/main:refs/canonical-publisher/main', env=env)
+            if os.environ.get('CANONICAL_SKIP_FETCH') == '1':
+                print('SKIP_FETCH_USE_LOCAL_REF', flush=True)
+            else:
+                run(repo, 'fetch', '--no-tags', '--no-write-fetch-head', 'origin',
+                    '+refs/heads/main:refs/canonical-publisher/main', env=env)
             parent = run(repo, 'rev-parse', 'refs/canonical-publisher/main', env=env).stdout.decode().strip()
             snapshots = select_snapshots(repo, source, parent, env)
             run(repo, 'read-tree', parent, env=env)
@@ -198,7 +201,20 @@ def publish(repo, source, attempts=3):
                 return None
             commit = run(repo, 'commit-tree', tree, '-p', parent, '-m',
                          'chore(data): publish validated canonical snapshots', env=env).stdout.decode().strip()
-            result = run(repo, 'push', '--porcelain', 'origin', f'{commit}:refs/heads/main', env=env, check=False)
+            try:
+                result = run(repo, 'push', '--porcelain', 'origin', f'{commit}:refs/heads/main', env=env, check=False)
+            except subprocess.TimeoutExpired:
+                probe = run(repo, 'ls-remote', 'origin', 'refs/heads/main', env=env, check=False)
+                remote = probe.stdout.decode().split()[0] if probe.returncode == 0 and probe.stdout else ''
+                if remote == commit:
+                    run(repo, 'update-ref', 'refs/canonical-publisher/main', commit, env=env)
+                    print('PUBLISHED_AFTER_PUSH_TIMEOUT', commit, flush=True)
+                    return commit
+                if remote and run(repo, 'cat-file', '-e', f'{remote}^{{commit}}', env=env, check=False).returncode == 0:
+                    run(repo, 'update-ref', 'refs/canonical-publisher/main', remote, env=env)
+                    print('PUSH_TIMEOUT_REMOTE_ADVANCED', remote, flush=True)
+                    continue
+                raise
             if result.returncode == 0:
                 run(repo, 'update-ref', 'refs/canonical-publisher/main', commit, env=env)
                 print('PUBLISHED', commit, flush=True)
