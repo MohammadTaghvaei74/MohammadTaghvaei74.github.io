@@ -291,6 +291,7 @@
       // options feed must never delay the first useful paint.
       const data = core.validateSnapshot(await fetchJson(`data/market.json?ts=${Date.now()}`));
       render(data, emptyOptions());
+      window.ObservationSafety?.accept(data);
       text("#sourceStatus", `منبع: ${currentData.source} · زمان منبع: ${core.formatDate(core.sourceTimestamp(currentData))}`);
       void fetchOptionsInBackground();
       if (showToast) toast("داده داشبورد به‌روزرسانی شد");
