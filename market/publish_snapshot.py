@@ -20,8 +20,6 @@ import subprocess
 import tempfile
 from datetime import datetime
 from pathlib import Path
-from zoneinfo import ZoneInfo
-
 
 from zipfile import ZIP_DEFLATED, ZipFile, ZipInfo
 from xml.sax.saxutils import escape
@@ -29,38 +27,22 @@ from xml.sax.saxutils import escape
 if __package__:
     from .export_signals import export as export_signals
     from .leveraged_snapshots import read_latest as read_leveraged
-    from .chart_data import (
-        load_daily_chart_rows,
-        load_intraday_chart_rows,
-        load_intraday_queue_rows,
-        load_intraday_queue_count_rows,
-        load_intraday_symbol_rows,
-    )
+    from .chart_data import load_daily_chart_rows
     from .export_options import export_from_scores_db
     from .score_candles import build_candles
     from .tsetmc_enrichment import enrich_stocks
-    from .build_investment_companies import build_payload as build_investment_payload
 else:
     from export_signals import export as export_signals
     from leveraged_snapshots import read_latest as read_leveraged
-    from chart_data import (
-        load_daily_chart_rows,
-        load_intraday_chart_rows,
-        load_intraday_queue_rows,
-        load_intraday_queue_count_rows,
-        load_intraday_symbol_rows,
-    )
+    from chart_data import load_daily_chart_rows
     from export_options import export_from_scores_db
     from score_candles import build_candles
     from tsetmc_enrichment import enrich_stocks
-    from build_investment_companies import build_payload as build_investment_payload
 
 PUBLISHED_FILES = (
     "market/data/market.json",
     "market/data/signals.json",
     "market/data/options.json",
-    "market/data/investment-companies.json",
-    "market/data/investment-portfolio-reports.json",
     "market/history/data/history.json",
     "market/history/data/score-candles.json",
     "market/history/data/market-score-history.xlsx",
@@ -71,19 +53,6 @@ SITE = Path(os.environ.get("SITE_REPO", "/root/bourse-site"))
 MARKET_OUT = SITE / "market/data/market.json"
 HISTORY_OUT = SITE / "market/history/data/history.json"
 XLSX_OUT = SITE / "market/history/data/market-score-history.xlsx"
-TEHRAN = ZoneInfo("Asia/Tehran")
-
-
-def is_publish_window(now: datetime | None = None) -> bool:
-    """Return whether the live market-session publication window is open.
-
-    Kept as a scheduling/query helper; ``main`` intentionally remains callable
-    outside this window for post-close finalization and retry jobs.
-    """
-    current = now or datetime.now(TEHRAN)
-    return current.weekday() in (0, 1, 2, 5, 6) and current.replace(
-        hour=8, minute=45, second=0, microsecond=0
-    ) <= current < current.replace(hour=12, minute=30, second=0, microsecond=0)
 
 
 def connect() -> sqlite3.Connection:
@@ -106,6 +75,25 @@ def atomic_json(path: Path, payload: dict) -> None:
             os.unlink(name)
 
 
+def load_queue_intraday(conn: sqlite3.Connection, trading_date: str, available: set[str]) -> list[dict]:
+    """Aggregate real queue values at each intraday snapshot timestamp."""
+    required = {"timestamp", "buy_queue_value_toman", "sell_queue_value_toman", "valid"}
+    if not required.issubset(available):
+        return []
+    rows = conn.execute(
+        "SELECT timestamp, SUM(COALESCE(buy_queue_value_toman,0)), SUM(COALESCE(sell_queue_value_toman,0)) "
+        "FROM stock_snapshots WHERE trading_date=? AND valid=1 GROUP BY timestamp ORDER BY timestamp",
+        (trading_date,),
+    ).fetchall()
+    output = []
+    for timestamp, buy, sell in rows:
+        try:
+            output.append({"timestamp": timestamp, "time": str(timestamp)[11:16], "buy_value_hmt": float(buy or 0) / 1e12, "sell_value_hmt": float(sell or 0) / 1e12})
+        except (TypeError, ValueError):
+            continue
+    return output
+
+
 def build_market(conn: sqlite3.Connection) -> dict:
     latest = conn.execute(
         "SELECT timestamp FROM stock_snapshots WHERE valid=1 ORDER BY timestamp DESC LIMIT 1"
@@ -119,6 +107,7 @@ def build_market(conn: sqlite3.Connection) -> dict:
         (latest, "لیدرها", "اهرمی‌ها", "اهرمی\u200cها"),
     )]
     available = {row[1] for row in conn.execute("PRAGMA table_info(stock_snapshots)")}
+    queue_intraday = load_queue_intraday(conn, latest[:10], available)
     wanted = "symbol,instrument,industry,instrument_type,trading_date,timestamp,yesterday_price,close_price,last_price,last_pct,trade_volume,trade_value_toman,buy_queue_volume,sell_queue_volume,buy_queue_value_toman,sell_queue_value_toman,score".split(",")
     columns = ",".join(column for column in wanted if column in available)
     rows = conn.execute(
@@ -188,20 +177,6 @@ def build_market(conn: sqlite3.Connection) -> dict:
         (latest, *selected_industries),
     )]
     daily = load_daily_chart_rows(conn)
-    # Preserve the complete investment-company universe, including symbols
-    # with no trade volume (for example a symbol closed after a meeting).
-    investment_catalog = []
-    available_catalog = {row[1] for row in conn.execute("PRAGMA table_info(stock_snapshots)")}
-    wanted_catalog = ["symbol", "instrument", "industry", "instrument_type", "description", "last_pct", "trade_volume", "timestamp", "trading_date"]
-    selected_catalog = [column for column in wanted_catalog if column in available_catalog]
-    if selected_catalog:
-        selected_sql = ",".join(selected_catalog)
-        investment_catalog = [dict(row) for row in conn.execute(
-            f"SELECT {selected_sql} FROM (SELECT {selected_sql}, ROW_NUMBER() OVER (PARTITION BY symbol ORDER BY timestamp DESC) AS rn FROM stock_snapshots WHERE valid=1 AND (industry LIKE ? OR industry = ?)) WHERE rn=1 ORDER BY symbol",
-            ("%سرمایه%", "شرکتهای چند رشته ای"),
-        )]
-        for row in investment_catalog:
-            row["is_current_snapshot"] = row.get("timestamp") == latest
     return {
         "schema_version": 1,
         "source": "scores_history.db",
@@ -211,10 +186,10 @@ def build_market(conn: sqlite3.Connection) -> dict:
         "top_stocks": top_stocks,
         "top_buy_queue": queue_rows[:10],
         "stocks": [row for row in stocks if row.get("industry")],
-        "investment_catalog": investment_catalog,
         "leveraged": read_leveraged(conn, latest),
         "industries": industries,
         "daily": daily,
+        "queue_intraday": queue_intraday,
         "options": {"status": "connecting", "message": "داده معتبر آپشن بعد از نهایی شدن قرارداد داده اضافه می‌شود."},
     }
 
@@ -454,18 +429,15 @@ def main() -> None:
     HISTORY_OUT = SITE / "market/history/data/history.json"
     XLSX_OUT = SITE / "market/history/data/market-score-history.xlsx"
     OPTIONS_OUT = SITE / "market/data/options.json"
-    INVESTMENTS_OUT = SITE / "market/data/investment-companies.json"
     with connect() as conn:
         market = build_market(conn)
         history = build_history(conn)
         candles = build_candles(conn)
     signal_payload = export_signals(event_db, SIGNALS_OUT)
     options_payload = export_from_scores_db(DB, OPTIONS_OUT)
-    investment_payload = build_investment_payload(market)
     atomic_json(MARKET_OUT, market)
     atomic_json(HISTORY_OUT, history)
     atomic_json(SITE / "market/history/data/score-candles.json", candles)
-    atomic_json(INVESTMENTS_OUT, investment_payload)
     build_xlsx(history)
     changed = git_publish(SITE, list(PUBLISHED_FILES))
     print("PUBLISHED" if changed else "NO_CHANGE", market["generated_at"], history["valid_day_count"], history["row_count"], signal_payload["status"], options_payload["status"], options_payload["counts"])
