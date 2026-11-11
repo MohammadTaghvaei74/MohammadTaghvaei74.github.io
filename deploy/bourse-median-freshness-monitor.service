@@ -6,10 +6,10 @@ Wants=network-online.target
 [Service]
 Type=oneshot
 User=root
-ExecStart=/usr/bin/python3 /root/bourse-canonical-publisher/deploy/median_freshness_monitor.py --repo /root/bourse-canonical-publisher --source /srv/sorena/market/data
+ExecStart=/usr/bin/python3 /root/bourse-site/deploy/median_freshness_monitor.py --repo /root/bourse-site --source /srv/sorena/market/data
 NoNewPrivileges=true
 ProtectSystem=full
-ReadOnlyPaths=/srv/sorena/market/data /root/bourse-canonical-publisher
+ReadOnlyPaths=/srv/sorena/market/data /root/bourse-site
 StandardOutput=journal
 StandardError=journal
 

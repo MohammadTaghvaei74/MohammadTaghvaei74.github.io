@@ -6,13 +6,15 @@ Wants=network-online.target
 [Service]
 Type=oneshot
 User=root
-WorkingDirectory=/root/bourse-canonical-publisher
+WorkingDirectory=/root/bourse-site
 Environment=PYTHONUNBUFFERED=1
 Environment=GIT_TERMINAL_PROMPT=0
-ExecStart=/usr/bin/flock -n /run/bourse-canonical-publisher.lock /usr/bin/python3 /root/bourse-canonical-publisher/deploy/canonical_data_publisher.py --repo /root/bourse-canonical-publisher --source /srv/sorena/market/data
+Environment=CANONICAL_SKIP_FETCH=1
+ExecStart=/usr/bin/flock -n /run/bourse-canonical-publisher.lock /usr/bin/python3 /root/bourse-site/deploy/canonical_data_publisher.py --repo /root/bourse-site --source /srv/sorena/market/data
 TimeoutStartSec=300
 NoNewPrivileges=true
 PrivateTmp=true
 ProtectSystem=full
-ReadOnlyPaths=/srv/sorena/market/data
+ReadOnlyPaths=/srv/sorena/market/data /root/bourse-site
+ReadWritePaths=/root/bourse-site/.git
 UMask=0022
