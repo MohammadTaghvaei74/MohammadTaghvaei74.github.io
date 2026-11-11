@@ -6,6 +6,11 @@ from collections import defaultdict
 from datetime import date, datetime, timedelta
 
 try:
+    from .universe import analytical_rows
+except ImportError:
+    from universe import analytical_rows
+
+try:
     from .signal_client_type import enrich_signal_client_type, METRIC_FIELDS
 except ImportError:
     from signal_client_type import enrich_signal_client_type, METRIC_FIELDS
@@ -39,7 +44,7 @@ def average_turnovers(conn, now: datetime | date) -> dict[str, float]:
 
 
 def build_queue_rows(stocks, now, conn, limit=10):
-    candidates = [dict(stock) for stock in stocks if float(stock.get("buy_queue_value_toman") or 0) > 0
+    candidates = [dict(stock) for stock in analytical_rows(stocks) if float(stock.get("buy_queue_value_toman") or 0) > 0
                   and not str(stock.get("symbol") or "").strip().endswith(("3", "4", "۳", "۴"))]
     candidates.sort(key=lambda stock: (-float(stock.get("buy_queue_value_toman") or 0),
                                      -float(stock.get("score") or -math.inf), str(stock.get("symbol") or "")))

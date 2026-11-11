@@ -437,14 +437,6 @@ if (typeof window !== "undefined") {
         if (detail && detail.scrollIntoView) detail.scrollIntoView({behavior: "smooth", block: "start"});
       }
     }
-    function selectRequestedIndustry() {
-      var query = new URLSearchParams(window.location.search).get("industry");
-      if (!query) return;
-      var requested = E.normalizeFa(query);
-      var group = state.groups.find(function (item) { return E.normalizeFa(item.name) === requested; });
-      if (!group) return;
-      selectIndustry(group.name, true);
-    }
     function load() {
       updateStatus(state.last, state.error, true);
       return timeoutFetch("../data/market.json", 10000).then(function (response) {
@@ -482,7 +474,7 @@ if (typeof window !== "undefined") {
       var search = $("search"); if (search) search.addEventListener("input", applyVisible);
       var choice = $("industrySelectFilter"); if (choice) choice.addEventListener("change", applyVisible);
       var choiceText = $("industryTextFilter"); if (choiceText) choiceText.addEventListener("input", applyVisible);
-      load().then(selectRequestedIndustry); setInterval(load, 60000);
+      load(); setInterval(load, 60000);
     });
     window.IndustryExplorerSelect = selectIndustry;
   })();

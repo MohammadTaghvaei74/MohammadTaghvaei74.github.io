@@ -25,6 +25,11 @@ from pathlib import Path
 from zipfile import ZIP_DEFLATED, ZipFile, ZipInfo
 from xml.sax.saxutils import escape
 
+try:
+    from .universe import aggregate_industries, aggregate_rows, analytical_rows
+except ImportError:
+    from universe import aggregate_industries, aggregate_rows, analytical_rows
+
 if __package__:
     from .export_signals import export as export_signals
     from .leveraged_snapshots import read_latest as read_leveraged
@@ -165,7 +170,9 @@ def build_market(conn: sqlite3.Connection) -> dict:
         if row["symbol"] not in seen:
             stocks.append(dict(row))
             seen.add(row["symbol"])
-    top_stocks = stocks[:10]
+    analytical = analytical_rows(stocks)
+    market.update(aggregate_rows(analytical))
+    top_stocks = analytical[:10]
     # Same ranking basis as Telegram's #صف_خرید_برتر: valid traded stocks
     # with a positive buy queue, ordered by queue value. Missing history stays
     # null; the public UI must never invent a value.
@@ -197,17 +204,16 @@ def build_market(conn: sqlite3.Connection) -> dict:
             avg_volume_by_symbol[row[0]] = row[1]
     # Attach the prior-15-complete-trading-day average to every displayed stock.
     # The current snapshot day is deliberately excluded by the query above.
-    for item in stocks:
+    for item in analytical:
         item["avg15_trade_value_toman"] = avg_by_symbol.get(item.get("symbol"))
         item["avg15_trade_volume"] = avg_volume_by_symbol.get(item.get("symbol"))
-    attach_history_metrics(conn, stocks, latest[:10])
-    score_total = len(stocks)
-    for score_rank, item in enumerate(stocks, start=1):
+    attach_history_metrics(conn, analytical, latest[:10])
+    score_total = len(analytical)
+    for score_rank, item in enumerate(analytical, start=1):
         item["score_rank"] = score_rank
         item["score_rank_total"] = score_total
         item["score_position_pct"] = round(score_rank / score_total * 100) if score_total else None
-    enrich_stocks(stocks, datetime.fromisoformat(latest))
-    queue_rows = build_queue_rows(stocks, datetime.fromisoformat(latest), conn)
+    queue_rows = build_queue_rows(analytical, datetime.fromisoformat(latest), conn)
     selected_industries = (
         "خودرو", "بانک", "شیمیایی", "استخراج کانه فلزی",
         "شرکتهای چند رشته ای", "فلزات اساسی", "فراورده های نفتی",
@@ -217,12 +223,7 @@ def build_market(conn: sqlite3.Connection) -> dict:
         "سایر محصولات کانی غیرفلزی",
     )
     placeholders = ",".join("?" for _ in selected_industries)
-    industries = [dict(row) for row in conn.execute(
-        "SELECT industry,count,average,median,turnover_toman,net_queue_hmt "
-        "FROM industry_detail_snapshots WHERE timestamp=? AND count >= 5 "
-        f"AND industry IN ({placeholders}) ORDER BY median DESC LIMIT 6",
-        (latest, *selected_industries),
-    )]
+    industries = aggregate_industries(analytical, selected_industries, limit=6)
     daily = load_daily_chart_rows(conn)
     return {
         "schema_version": 1,
