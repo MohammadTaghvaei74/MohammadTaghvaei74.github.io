@@ -11,8 +11,10 @@ from datetime import datetime
 
 try:
     from .queue_data import build_queue_rows
+    from .publish_snapshot import attach_history_metrics
 except ImportError:
     from queue_data import build_queue_rows
+    from publish_snapshot import attach_history_metrics
 from pathlib import Path
 try:
     from .instrument_filters import filter_common_stocks
@@ -115,6 +117,7 @@ def export(db_path: str, output_path: str) -> None:
     for item in stocks:
         item["avg15_trade_value_toman"] = avg_by_symbol.get(item.get("symbol"))
         item["avg15_trade_volume"] = avg_volume_by_symbol.get(item.get("symbol"))
+    attach_history_metrics(conn, stocks, latest[:10])
     score_total = len(stocks)
     for score_rank, item in enumerate(stocks, start=1):
         item["score_rank"] = score_rank

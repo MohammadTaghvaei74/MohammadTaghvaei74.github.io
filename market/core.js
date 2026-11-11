@@ -30,11 +30,11 @@ function formatPercent(value, digits = 2) {
 function formatScore(value) { return formatSigned(value, 1); }
 function formatMillion(value, suffix = " M", digits = 1) {
   const parsed = number(value);
-  return parsed === null ? "—" : `${formatNumber(parsed / 1e6, digits)}${suffix}`;
+  return parsed === null ? "—" : formatNumber(parsed / 1e6, digits);
 }
 function formatBillion(value, suffix = " B", digits = 1) {
   const parsed = number(value);
-  return parsed === null ? "—" : `${formatNumber(parsed / 1e9, digits)}${suffix}`;
+  return parsed === null ? "—" : formatNumber(parsed / 1e9, digits);
 }
 function formatMillionToman(value) { return formatMillion(value, " M", 1); }
 function formatBillionToman(value) { return formatBillion(value, " B", 0); }
@@ -62,6 +62,7 @@ function formatDate(value, includeSeconds = false) {
   return `${datePart} · ${timePart}`;
 }
 function findLeaders(data) { return (Array.isArray(data && data.groups) ? data.groups : []).find((group) => String(group.group_name || "").includes("لیدر")) || null; }
+function isBaseMarket(row) { return String(row && (row.instrument_type || row.market_segment || row.market_title) || "").includes("بازار پایه"); }
 function allocation(marketMedian, leaderMedian) {
   const market = number(marketMedian), leaders = number(leaderMedian);
   if (market === null || leaders === null) return { key: "none", label: "داده تخصیص کافی نیست", gap: null };
@@ -127,6 +128,6 @@ function chartScale(...series) {
   return { min, max, ticks: Array.from({ length: max - min + 1 }, (_, index) => min + index) };
 }
 
-const api = { TEHRAN_TIME_ZONE, number, faDigits, formatNumber, formatInteger, formatSigned, formatPercent, formatScore, formatMillion, formatBillion, formatMillionToman, formatBillionToman, closePercent, formatQueueBillion, sourceTimestamp, formatDate, findLeaders, allocation, validateSnapshot, chartSeries, chartExtrema, integerNiceTicks, chartScale };
+const api = { TEHRAN_TIME_ZONE, number, faDigits, formatNumber, formatInteger, formatSigned, formatPercent, formatScore, formatMillion, formatBillion, formatMillionToman, formatBillionToman, closePercent, formatQueueBillion, sourceTimestamp, formatDate, findLeaders, isBaseMarket, allocation, validateSnapshot, chartSeries, chartExtrema, integerNiceTicks, chartScale };
 if (typeof module !== "undefined") module.exports = api;
 if (typeof window !== "undefined") window.MarketCore = api;

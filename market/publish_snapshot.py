@@ -10,6 +10,7 @@ import json
 import os
 import shutil
 import sqlite3
+from collections import defaultdict
 
 try:
     from .queue_data import build_queue_rows
@@ -98,6 +99,47 @@ def load_queue_intraday(conn: sqlite3.Connection, trading_date: str, available: 
     return output
 
 
+def attach_history_metrics(conn: sqlite3.Connection, rows: list[dict[str, object]], before_day: str) -> None:
+    """Publish ten-day score totals and current industry positions explicitly."""
+    days = [row[0] for row in conn.execute(
+        "SELECT day FROM v2_days WHERE complete=1 AND day < ? ORDER BY day DESC LIMIT 10",
+        (before_day,),
+    )]
+    by_symbol_day = defaultdict(lambda: defaultdict(list))
+    if days:
+        marks = ",".join("?" for _ in days)
+        for symbol, day, score in conn.execute(
+            f"SELECT symbol,trading_date,score FROM stock_snapshots WHERE valid=1 AND score IS NOT NULL AND trading_date IN ({marks})",
+            days,
+        ):
+            try:
+                by_symbol_day[str(symbol)][str(day)].append(float(score))
+            except (TypeError, ValueError):
+                continue
+    totals = {}
+    coverage = {}
+    for symbol, day_map in by_symbol_day.items():
+        medians = [statistics.median(values) for values in day_map.values() if values]
+        totals[symbol] = sum(medians) if medians else None
+        coverage[symbol] = len(medians)
+    for row in rows:
+        symbol = str(row.get("symbol") or "")
+        row["score_10d_total"] = totals.get(symbol)
+        row["score_10d_days"] = coverage.get(symbol, 0)
+        row["score_10d_expected_days"] = len(days)
+    groups = defaultdict(list)
+    for row in rows:
+        if row.get("industry"):
+            groups[str(row["industry"])].append(row)
+    for members in groups.values():
+        members.sort(key=lambda row: (row.get("score") is None, -(float(row.get("score") or 0)), str(row.get("symbol") or "")))
+        total = len(members)
+        for rank, row in enumerate(members, 1):
+            row["industry_rank"] = rank
+            row["industry_rank_total"] = total
+            row["industry_position_pct"] = round(rank / total * 100) if total else None
+
+
 def build_market(conn: sqlite3.Connection) -> dict:
     latest = conn.execute(
         "SELECT timestamp FROM stock_snapshots WHERE valid=1 ORDER BY timestamp DESC LIMIT 1"
@@ -158,6 +200,7 @@ def build_market(conn: sqlite3.Connection) -> dict:
     for item in stocks:
         item["avg15_trade_value_toman"] = avg_by_symbol.get(item.get("symbol"))
         item["avg15_trade_volume"] = avg_volume_by_symbol.get(item.get("symbol"))
+    attach_history_metrics(conn, stocks, latest[:10])
     score_total = len(stocks)
     for score_rank, item in enumerate(stocks, start=1):
         item["score_rank"] = score_rank

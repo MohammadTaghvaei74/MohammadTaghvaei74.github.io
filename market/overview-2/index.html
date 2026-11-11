@@ -38,7 +38,7 @@
         <section class="story-grid">
           <article class="story-card chart-card">
             <div class="card-head"><div><span class="card-kicker">01 / MARKET RHYTHM</span><h2>ریتم بازار</h2></div><span class="quiet-label">روند روزانه</span></div>
-            <div class="chart-wrap"><svg id="marketChart" viewBox="0 0 860 300" role="img" aria-label="روند امتیاز بازار در روزهای اخیر"></svg></div>
+            <div class="chart-wrap"><svg id="marketChart" viewBox="0 0 760 265" role="img" aria-label="روند امتیاز بازار در روزهای اخیر"></svg></div>
             <div class="legend"><span><i class="legend-dot market"></i>کل بازار</span><span><i class="legend-dot leaders"></i>لیدرها</span><span><i class="legend-dot rest"></i>سایر بازار</span><span class="legend-note">امتیاز، نه سیگنال خرید</span></div>
           </article>
           <aside class="story-card focus-card">
@@ -61,7 +61,7 @@
           <div class="parity-grid">
             <article class="parity-card"><span class="card-kicker">INTRADAY PULSE</span><h3>حرکت درون‌روزی امتیاز</h3><svg id="intradayChart" viewBox="0 0 760 210" role="img" aria-label="روند درون‌روزی امتیاز بازار"></svg><div class="legend"><span>کل بازار</span><span>لیدرها</span><span>سایر بازار</span></div></article>
             <article class="parity-card"><span class="card-kicker">QUEUE FLOW</span><h3>جریان صف‌ها</h3><svg id="queueChart" viewBox="0 0 760 210" role="img" aria-label="روند درون‌روزی ارزش صف‌ها"></svg><div class="legend"><span>صف خرید</span><span>صف فروش</span></div></article>
-            <article class="parity-card parity-wide"><span class="card-kicker">TOP BUY QUEUE</span><h3>صف خریدهای برتر</h3><div class="table-scroll"><table><thead><tr><th>نماد</th><th>امتیاز</th><th>صف</th><th>میانگین ارزش معاملات ۱۵ روز اخیر</th><th>سهم حقوقی از فروش</th></tr></thead><tbody id="topBuyQueueRows"></tbody></table></div></article>
+            <article class="parity-card top-queue-card"><span class="card-kicker">TOP BUY QUEUE</span><h3>صف خریدهای برتر</h3><div class="table-scroll"><table><thead><tr><th>نماد</th><th>امتیاز</th><th>صف</th><th>میانگین ارزش معاملات ۱۵ روز اخیر</th><th>سهم حقوقی از فروش</th></tr></thead><tbody id="topBuyQueueRows"></tbody></table></div></article>
             <article class="parity-card"><span class="card-kicker">LEADERS</span><h3>لیدرهای بازار</h3><div class="table-scroll"><table><thead><tr><th>نماد</th><th>امتیاز</th><th>جایگاه</th><th>صف</th></tr></thead><tbody id="leaderRows"></tbody></table></div></article>
             <article class="parity-card"><span class="card-kicker">INDUSTRY TABLE</span><h3>جدول صنایع</h3><div class="table-scroll"><table><thead><tr><th>صنعت</th><th>امتیاز (میانه)</th><th>ارزش معاملات</th><th>میانگین ارزش معاملات ۱۵ روز اخیر</th></tr></thead><tbody id="industryRows"></tbody></table></div></article>
             <article class="parity-card parity-wide"><span class="card-kicker">COMPREHENSIVE MARKET</span><h3>جدول جامع بازار</h3><div class="table-scroll"><table><thead><tr><th>نماد</th><th>صنعت</th><th>امتیاز</th><th>مجموع امتیاز ۱۰ روز اخیر</th><th>جایگاه بازار</th><th>جایگاه در صنعت</th><th>میانگین ارزش</th><th>اختلاف آخرین و پایانی</th><th>صف</th><th>سرانه خرید</th><th>قدرت</th><th>خ حقوقی</th><th>ف حقوقی</th></tr></thead><tbody id="comprehensiveRows"></tbody></table></div></article>
@@ -86,6 +86,7 @@
       <a href="../signals/"><span aria-hidden="true">⌁</span><b>سیگنال</b></a>
       <a href="../symbols/"><span aria-hidden="true">⌕</span><b>نماد</b></a>
       <a href="../industries/"><span aria-hidden="true">▦</span><b>صنایع</b></a>
+      <a href="../history/"><span aria-hidden="true">▤</span><b>آرشیو</b></a>
     </nav>
 
     <div class="toast" id="toast" role="status" aria-live="polite"></div>

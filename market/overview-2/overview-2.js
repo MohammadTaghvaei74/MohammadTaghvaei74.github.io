@@ -53,7 +53,7 @@
     setText("#directionTitle", allocation.label);
     setText("#allocationGap", allocation.gap === null ? "فاصله با بازار: —" : `فاصله با بازار: ${signed(allocation.gap)}`);
     setText("#directionText", allocation.gap === null ? "فاصله میانه‌ها برای خوانش جهت کافی نیست." : `میانه بازار ${allocation.gap >= 0 ? "بالاتر" : "پایین‌تر"} از لیدرها قرار گرفته است.`);
-    setText("#netQueue", net === null ? "—" : `${signed(net, 2)} همت`);
+    setText("#netQueue", net === null ? "—" : signed(net, 2));
     setText("#sourceName", data.source || "—");
     setText("#updatedAt", core.formatDate(core.sourceTimestamp(data)));
     setText("#sourceStatus", `منبع: ${data.source || "نامشخص"} · ${core.formatDate(core.sourceTimestamp(data))}`);
@@ -78,13 +78,13 @@
     const days = [...(Array.isArray(data.daily) ? data.daily : [])].reverse();
     const series = core.chartSeries(data);
     const values = [series.market, series.leaders, series.rest].flat().map(numeric).filter((value) => value !== null);
-    const width = 860, height = 300, pad = { top: 26, right: 16, bottom: 42, left: 34 };
+    const width = 760, height = 265, pad = { top: 18, right: 14, bottom: 32, left: 38 };
     if (!values.length) { svg.innerHTML = '<text class="chart-empty" x="430" y="150" text-anchor="middle">داده تاریخی بازار موجود نیست.</text>'; return; }
     const min = Math.min(-3, ...values) - .5, max = Math.max(3, ...values) + .5;
     const x = (index) => pad.left + index * (width - pad.left - pad.right) / Math.max(days.length - 1, 1);
     const y = (value) => pad.top + (max - value) * (height - pad.top - pad.bottom) / (max - min);
     const grid = [-3, 0, 3].map((tick) => `<line class="chart-grid ${tick === 0 ? "zero" : ""}" x1="${pad.left}" x2="${width - pad.right}" y1="${y(tick)}" y2="${y(tick)}"/><text class="chart-axis" x="${pad.left - 10}" y="${y(tick) + 4}" text-anchor="end">${core.faDigits(tick)}</text>`).join("");
-    const labels = days.map((day, index) => `<text class="chart-axis" x="${x(index)}" y="${height - 12}" text-anchor="middle">${escapeHtml(core.faDigits(String(day.trading_date || "").slice(5)))}</text>`).join("");
+    const labels = days.map((day, index) => index === 0 || index === days.length - 1 || index % 5 === 0 ? `<text class="chart-axis" x="${x(index)}" y="${height - 8}" text-anchor="middle">${escapeHtml(core.faDigits(String(day.trading_date || "").slice(5)))}</text>` : "").join("");
     svg.innerHTML = `${grid}${labels}<path class="chart-path rest-path" d="${chartPath(series.rest, x, y)}"/><path class="chart-path leader-path" d="${chartPath(series.leaders, x, y)}"/><path class="chart-path market-path" d="${chartPath(series.market, x, y)}"/>`;
   }
 
@@ -105,7 +105,7 @@
   const parityEmpty = '<tr><td colspan="6" class="parity-empty">داده‌ای برای نمایش نیست.</td></tr>';
   const parityLine = (values, width, height, color, min, max) => {
     const clean = values.map(numeric), pad = {top:18,right:12,bottom:24,left:30};
-    const x = index => pad.left + index * (width - pad.left - pad.right) / Math.max(clean.length - 1, 1);
+    const x = index => clean.length === 1 ? width / 2 : pad.left + index * (width - pad.left - pad.right) / Math.max(clean.length - 1, 1);
     const y = value => pad.top + (max - value) * (height - pad.top - pad.bottom) / Math.max(max - min, 1);
     let path = "";
     clean.forEach((value, index) => { if (value === null) return; path += `${path && clean[index - 1] !== null ? "L" : "M"}${x(index).toFixed(1)},${y(value).toFixed(1)} `; });
@@ -123,22 +123,22 @@
   function renderParity(data, options) {
     const intraday = Array.isArray(data.intraday) && data.intraday.length ? data.intraday.slice(-80) : (Array.isArray(data.daily) ? data.daily.slice(-80).map(row => ({...row, time: row.trading_date})) : []);
     renderParityChart("#intradayChart", intraday, [intraday.map(row => row.median_score), intraday.map(row => row.leader_median_score), intraday.map(row => row.rest_median_score)], ["#3f735b","#e87958","#8bb8c9"]);
-    const queueSource = Array.isArray(data.queue_intraday) && data.queue_intraday.length ? data.queue_intraday.slice(-80) : [{time: "snapshot فعلی", buy_value_hmt: data.market && data.market.buy_value_hmt, sell_value_hmt: data.market && data.market.sell_value_hmt}];
+    const queueSource = Array.isArray(data.queue_intraday) && data.queue_intraday.length ? data.queue_intraday.slice(-80) : [{time: core.formatDate(core.sourceTimestamp(data)), buy_value_hmt: numeric(data.market && data.market.buy_value_hmt) || 0, sell_value_hmt: numeric(data.market && data.market.sell_value_hmt) || 0}];
     renderParityChart("#queueChart", queueSource, [queueSource.map(row => row.buy_value_hmt), queueSource.map(row => row.sell_value_hmt)], ["#3f735b","#e87958"], true);
     const topQueue = Array.isArray(data.top_buy_queue) ? data.top_buy_queue : [];
-    const queueRows = $("#topBuyQueueRows"); if (queueRows) queueRows.innerHTML = topQueue.map(row => `<tr><td>${escapeHtml(row.symbol)}</td><td class="${numeric(row.score) >= 0 ? "positive" : "negative"}">${escapeHtml(signed(row.score, 1))}</td><td>${escapeHtml(core.formatQueueBillion(row.buy_queue_value_toman))}</td><td>${escapeHtml(core.formatBillionToman(row.avg15_trade_value_toman))}</td><td>${escapeHtml(core.formatPercent(row.legal_sell_pct, 1))}</td></tr>`).join("") || '<tr><td colspan="5" class="parity-empty">صف خرید معتبر برای نمایش نیست.</td></tr>';
+    const queueRows = $("#topBuyQueueRows"); if (queueRows) queueRows.innerHTML = topQueue.map(row => `<tr><td>${escapeHtml(row.symbol)}</td><td class="${numeric(row.score) >= 0 ? "positive" : "negative"}">${escapeHtml(signed(row.score, 1))}</td><td>${escapeHtml(core.formatQueueBillion(row.buy_queue_value_toman))}</td><td>${escapeHtml(core.formatBillionToman(row.avg15_trade_value_toman))}</td><td>${escapeHtml(core.formatPercent(row.legal_sell_pct, 0))}</td></tr>`).join("") || '<tr><td colspan="5" class="parity-empty">صف خرید معتبر برای نمایش نیست.</td></tr>';
     const stockMap = new Map((Array.isArray(data.stocks) ? data.stocks : []).map(row => [row.symbol, row]));
-    const ranking = [...(Array.isArray(data.stocks) ? data.stocks : [])].filter(row => numeric(row.score) !== null).sort((a,b) => numeric(b.score) - numeric(a.score));
+    const ranking = [...(Array.isArray(data.stocks) ? data.stocks : [])].filter(row => !core.isBaseMarket(row) && numeric(row.score) !== null).sort((a,b) => numeric(b.score) - numeric(a.score));
     const leaders = leaderSymbols.map(symbol => stockMap.get(symbol) || {symbol, score:null, score_rank:null, score_rank_total:null, buy_queue_value_toman:null}).sort((a,b) => (numeric(b.score) || -Infinity) - (numeric(a.score) || -Infinity));
     const position = row => numeric(row.score_rank) !== null && numeric(row.score_rank_total) ? `${core.faDigits(Math.round((row.score_rank / row.score_rank_total) * 100))}٪` : (numeric(row.score) === null ? "—" : `${core.faDigits(ranking.findIndex(item => item.symbol === row.symbol) + 1)} / ${core.faDigits(ranking.length)}`);
     const leaderRows = $("#leaderRows"); if (leaderRows) leaderRows.innerHTML = leaders.map(row => `<tr><td>${escapeHtml(row.symbol)}</td><td class="${numeric(row.score) >= 0 ? "positive" : "negative"}">${escapeHtml(signed(row.score, 1))}</td><td>${escapeHtml(position(row))}</td><td>${escapeHtml(core.formatQueueBillion(row.buy_queue_value_toman))}</td>`).join("") || parityEmpty;
     const industries = Array.isArray(data.industry_table) ? data.industry_table : (Array.isArray(data.industries) ? data.industries : []);
     const industryAverages = new Map();
-    (Array.isArray(data.stocks) ? data.stocks : []).forEach(row => { const value = numeric(row.avg15_trade_value_toman); if (!row.industry || value === null) return; const item = industryAverages.get(row.industry) || {sum: 0, count: 0}; item.sum += value; item.count += 1; industryAverages.set(row.industry, item); });
+    (Array.isArray(data.stocks) ? data.stocks : []).filter(row => !core.isBaseMarket(row)).forEach(row => { const value = numeric(row.avg15_trade_value_toman); if (!row.industry || value === null) return; const item = industryAverages.get(row.industry) || {sum: 0, count: 0}; item.sum += value; item.count += 1; industryAverages.set(row.industry, item); });
     const industryRows = $("#industryRows"); if (industryRows) industryRows.innerHTML = industries.map(row => { const avg = row.avg_trade_value_15d_toman !== undefined ? row.avg_trade_value_15d_toman : (industryAverages.has(row.industry) ? industryAverages.get(row.industry).sum / industryAverages.get(row.industry).count : null); return `<tr><td>${escapeHtml(row.industry)}</td><td>${escapeHtml(signed(row.median_score !== undefined ? row.median_score : row.median, 1))}</td><td>${escapeHtml(core.formatBillionToman(row.trade_value_toman !== undefined ? row.trade_value_toman : row.turnover_toman))}</td><td>${escapeHtml(core.formatBillionToman(avg))}</td></tr>`; }).join("") || '<tr><td colspan="4" class="parity-empty">داده صنعت برای نمایش نیست.</td></tr>';
-    const comprehensiveRows = $("#comprehensiveRows"); if (comprehensiveRows) comprehensiveRows.innerHTML = (Array.isArray(data.stocks) ? data.stocks : []).map(row => `<tr><td>${escapeHtml(row.symbol)}</td><td>${escapeHtml(row.industry)}</td><td>${escapeHtml(signed(row.score, 1))}</td><td>—</td><td>${escapeHtml(row.score_position_pct === null || row.score_position_pct === undefined ? "—" : core.formatPercent(row.score_position_pct, 0))}</td><td>—</td><td>${escapeHtml(core.formatBillionToman(row.avg15_trade_value_toman))}</td><td>${escapeHtml(core.formatPercent(core.number(row.last_price) === null || core.number(row.close_price) === null || core.number(row.close_price) === 0 ? null : ((row.last_price - row.close_price) / row.close_price) * 100, 1))}</td><td>${escapeHtml(core.formatQueueBillion(row.buy_queue_value_toman || row.sell_queue_value_toman))}</td><td>${escapeHtml(core.formatMillionToman(row.buy_per_capita_toman))}</td><td>${escapeHtml(core.formatNumber(row.buyer_power, 1))}</td><td>${escapeHtml(core.formatPercent(row.legal_buy_pct, 1))}</td><td>${escapeHtml(core.formatPercent(row.legal_sell_pct, 1))}</td></tr>`).join("") || parityEmpty;
-    const fundRows = $("#fundRows"), funds = data.fund_report && Array.isArray(data.fund_report.rows) ? data.fund_report.rows : [];
-    if (fundRows) fundRows.innerHTML = funds.map((row,index) => `<tr><td>${core.faDigits(index + 1)}</td><td>${escapeHtml(row.symbol)}</td><td>${escapeHtml(core.formatPercent(row.bubble_pct, 1))}</td><td>${escapeHtml(core.formatBillionToman(row.avg_daily_value_toman))}</td><td>${escapeHtml(signed(row.portfolio_score, 1))}</td><td>${escapeHtml(signed(row.board_score, 1))}</td><td>${escapeHtml(signed(row.score_diff, 1))}</td><td>${escapeHtml(row.display_portfolio_date || row.portfolio_last_update || "—")}</td></tr>`).join("") || '<tr><td colspan="8" class="parity-empty">داده صندوق‌های سهامی موجود نیست.</td></tr>';
+    const comprehensiveRows = $("#comprehensiveRows"); if (comprehensiveRows) comprehensiveRows.innerHTML = (Array.isArray(data.stocks) ? data.stocks : []).map(row => { const closePct = core.closePercent(row.close_price, row.yesterday_price); const lastCloseDiff = numeric(row.last_pct) === null || closePct === null ? null : numeric(row.last_pct) - closePct; return `<tr><td>${escapeHtml(row.symbol)}</td><td>${escapeHtml(row.industry)}</td><td>${escapeHtml(signed(row.score, 1))}</td><td>${escapeHtml(signed(row.score_10d_total, 1))}</td><td>${escapeHtml(row.score_position_pct === null || row.score_position_pct === undefined ? "—" : core.formatPercent(row.score_position_pct, 0))}</td><td>${escapeHtml(row.industry_position_pct === null || row.industry_position_pct === undefined ? "—" : core.formatPercent(row.industry_position_pct, 0))}</td><td>${escapeHtml(core.formatBillionToman(row.avg15_trade_value_toman))}</td><td>${escapeHtml(core.formatPercent(lastCloseDiff, 1))}</td><td>${escapeHtml(core.formatQueueBillion(row.buy_queue_value_toman || row.sell_queue_value_toman))}</td><td>${escapeHtml(core.formatMillionToman(row.buy_per_capita_toman))}</td><td>${escapeHtml(core.formatNumber(row.buyer_power, 1))}</td><td>${escapeHtml(core.formatPercent(row.legal_buy_pct, 0))}</td><td>${escapeHtml(core.formatPercent(row.legal_sell_pct, 0))}</td></tr>`; }).join("") || parityEmpty;
+    const fundRows = $("#fundRows"), funds = data.fund_report && Array.isArray(data.fund_report.rows) ? data.fund_report.rows.filter(row => numeric(row.portfolio_score) !== null && numeric(row.board_score) !== null && numeric(row.score_diff) !== null) : [];
+    if (fundRows) fundRows.innerHTML = funds.map((row,index) => `<tr><td>${core.faDigits(index + 1)}</td><td>${escapeHtml(row.symbol)}</td><td>${escapeHtml(core.formatPercent(row.bubble_pct, 1))}</td><td>${escapeHtml(core.formatBillionToman(row.avg_daily_value_toman))}</td><td>${escapeHtml(signed(row.portfolio_score, 1))}</td><td>${escapeHtml(signed(row.board_score, 1))}</td><td>${escapeHtml(signed(row.score_diff, 1))}</td><td>${escapeHtml(core.faDigits(row.display_portfolio_date || row.portfolio_last_update || "—"))}</td></tr>`).join("") || '<tr><td colspan="8" class="parity-empty">صندوقی با سه امتیاز معتبر برای نمایش نیست.</td></tr>';
     const payload = options && typeof options === "object" ? options : data.options || {};
     const pairs = Array.isArray(payload.pairs) ? payload.pairs.filter(pair => pair.eligible === true) : [];
     setText("#optionsState", payload.message || (pairs.length ? "جفت‌های واجد شرایط نمایش داده می‌شوند." : "فعلاً جفت واجد شرایطی برای نمایش نیست."));
@@ -148,6 +148,66 @@
     const optionRows = $("#optionsRows"); if (optionRows) optionRows.innerHTML = pairs.slice(0,20).map(pair => `<tr><td>${escapeHtml(pair.underlying)}</td><td>${escapeHtml(pair.expiry)}<small>${escapeHtml(integer(pair.dte))} روز</small></td><td>${escapeHtml(core.formatNumber(pair.net_debit_toman, 1))}</td><td class="positive">${escapeHtml(core.formatPercent(pair.monthly_return_pct, 1))}</td></tr>`).join("") || '<tr><td colspan="4" class="parity-empty">جفت واجد شرایطی برای نمایش نیست.</td></tr>';
   }
   function render(data, options) { currentData = data; renderSummary(data); renderChart(data); renderLists(data); renderParity(data, options); }
+
+  const normalizeSortable = (value) => String(value === null || value === undefined ? "" : value)
+    .replace(/[۰-۹]/g, digit => String("۰۱۲۳۴۵۶۷۸۹".indexOf(digit)))
+    .replace(/[٠-٩]/g, digit => String("٠١٢٣٤٥٦٧٨٩".indexOf(digit)));
+  const sortValue = (value) => {
+    const normalized = normalizeSortable(value).replace(/[٪%]/g, "").replace(/[٬،,]/g, "").replace(/−/g, "-").replace(/٫/g, ".").trim();
+    if (!normalized || normalized === "—" || normalized === "-") return {type: "missing", value: null};
+    const numberValue = Number(normalized.replace(/[^0-9.+-].*$/g, ""));
+    return Number.isFinite(numberValue) && /^[-+]?\d/.test(normalized) ? {type: "number", value: numberValue} : {type: "text", value: normalized};
+  };
+  function applyTableFilter(table) {
+    const queries = (table._overviewFilters || []).map(input => normalizeSortable(input.value).toLocaleLowerCase("fa"));
+    Array.from(table.tBodies[0] ? table.tBodies[0].rows : []).forEach(row => { row.hidden = queries.some((query, index) => query && !normalizeSortable(row.cells[index] && row.cells[index].textContent).toLocaleLowerCase("fa").includes(query)); });
+  }
+  function applyTableSort(table) {
+    const state = table._overviewSort;
+    const tbody = table.tBodies[0];
+    if (!tbody) return;
+    if (state.direction === "none") state.defaultRows.forEach(row => tbody.appendChild(row));
+    else {
+      const rows = Array.from(tbody.rows).sort((left, right) => {
+        const a = sortValue(left.cells[state.column] && left.cells[state.column].textContent);
+        const b = sortValue(right.cells[state.column] && right.cells[state.column].textContent);
+        if (a.type === "missing" && b.type === "missing") return Number(left.dataset.defaultIndex) - Number(right.dataset.defaultIndex);
+        if (a.type === "missing") return 1;
+        if (b.type === "missing") return -1;
+        const result = a.type === "number" && b.type === "number" ? a.value - b.value : String(a.value).localeCompare(String(b.value), "fa");
+        return (state.direction === "asc" ? result : -result) || (Number(left.dataset.defaultIndex) - Number(right.dataset.defaultIndex));
+      });
+      rows.forEach(row => tbody.appendChild(row));
+    }
+    Array.from(table.tHead ? table.tHead.rows[0].cells : []).forEach((header, index) => header.setAttribute("aria-sort", state.column === index && state.direction !== "none" ? state.direction === "asc" ? "ascending" : "descending" : "none"));
+    applyTableFilter(table);
+  }
+  function enhanceTables() {
+    document.querySelectorAll(".parity-card table, .compact-table").forEach(table => {
+      const tbody = table.tBodies[0];
+      const headers = table.tHead && table.tHead.rows[0] ? Array.from(table.tHead.rows[0].cells) : [];
+      if (!tbody || !headers.length) return;
+      table.classList.add("sortable-table");
+      if (!table._overviewInitialized) {
+        const tools = document.createElement("div"); tools.className = "table-tools";
+        table._overviewFilters = headers.map(header => { const input = document.createElement("input"); input.type = "search"; input.placeholder = `فیلتر ${header.textContent.trim()}`; input.setAttribute("aria-label", `فیلتر ستون ${header.textContent.trim()}`); input.addEventListener("input", () => applyTableFilter(table)); tools.appendChild(input); return input; });
+        table.closest(".parity-card, .data-card").insertBefore(tools, table.closest(".table-scroll, .compact-table-wrap") || table);
+        table._overviewSort = {column: -1, direction: "none", defaultRows: []};
+        headers.forEach((header, index) => {
+          header.tabIndex = 0; header.setAttribute("role", "button"); header.setAttribute("aria-sort", "none"); header.title = "کلیک برای مرتب‌سازی؛ سه حالت";
+          const toggle = () => { const state = table._overviewSort; if (state.column !== index) { state.column = index; state.direction = "asc"; } else if (state.direction === "asc") state.direction = "desc"; else if (state.direction === "desc") state.direction = "none"; else state.direction = "asc"; applyTableSort(table); };
+          header.addEventListener("click", toggle); header.addEventListener("keydown", event => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); toggle(); } });
+        });
+        table._overviewInitialized = true;
+      }
+      table._overviewSort.column = -1; table._overviewSort.direction = "none";
+      table._overviewSort.defaultRows = Array.from(tbody.rows);
+      table._overviewSort.defaultRows.forEach((row, index) => { row.dataset.defaultIndex = String(index); row.hidden = false; });
+      applyTableSort(table);
+    });
+  }
+  const renderWithTables = render;
+  render = function(data, options) { renderWithTables(data, options); enhanceTables(); };
 
   async function fetchJson(path) {
     const controller = new AbortController();
