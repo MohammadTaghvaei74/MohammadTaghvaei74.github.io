@@ -9,7 +9,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="overview-2.css?v=apple-design-1" />
+    <link rel="stylesheet" href="overview-2.css?v=apple-design-2" />
     <title>نمای کلی ۲ | نبض بازار</title>
   </head>
   <body>
@@ -66,6 +66,18 @@
             <article class="data-card top-card"><div class="data-card-head"><h3>برترین امتیازها</h3><span>TOP SCORES</span></div><div class="compact-list" id="topStocks"></div></article>
             <article class="data-card leveraged-card"><div class="data-card-head"><h3>صندوق‌های اهرمی</h3><span>LEVERAGED</span></div><div class="compact-list" id="leveragedStocks"></div></article>
             <article class="data-card industry-card"><div class="data-card-head"><h3>سه صنعت برتر</h3><span>SECTORS</span></div><div class="compact-list" id="topIndustries"></div></article>
+          </div>
+        </section>
+
+        <section class="parity-section" aria-labelledby="parityTitle">
+          <div class="section-head"><div><span class="card-kicker">04 / FULL MARKET READ</span><h2 id="parityTitle">نمای کامل بازار</h2></div><p>همان داده‌ی پذیرفته‌شده‌ی نمای اصلی، با خوانش فشرده‌تر و مستقل.</p></div>
+          <div class="parity-grid">
+            <article class="parity-card"><span class="card-kicker">INTRADAY PULSE</span><h3>حرکت درون‌روزی امتیاز</h3><svg id="intradayChart" viewBox="0 0 760 210" role="img" aria-label="روند درون‌روزی امتیاز بازار"></svg><div class="legend"><span>کل بازار</span><span>لیدرها</span><span>سایر بازار</span></div></article>
+            <article class="parity-card"><span class="card-kicker">QUEUE FLOW</span><h3>جریان صف‌ها</h3><svg id="queueChart" viewBox="0 0 760 210" role="img" aria-label="روند درون‌روزی ارزش صف‌ها"></svg><div class="legend"><span>صف خرید</span><span>صف فروش</span></div></article>
+            <article class="parity-card parity-wide"><span class="card-kicker">TOP BUY QUEUE</span><h3>صف خریدهای برتر</h3><div class="table-scroll"><table><thead><tr><th>رتبه</th><th>نماد</th><th>امتیاز</th><th>ارزش صف</th><th>سرانه خرید</th><th>قدرت خریدار</th></tr></thead><tbody id="topBuyQueueRows"></tbody></table></div></article>
+            <article class="parity-card"><span class="card-kicker">LEADERS</span><h3>لیدرهای بازار</h3><div class="table-scroll"><table><thead><tr><th>نماد</th><th>امتیاز</th><th>صف</th></tr></thead><tbody id="leaderRows"></tbody></table></div></article>
+            <article class="parity-card"><span class="card-kicker">INDUSTRY TABLE</span><h3>جدول صنایع</h3><div class="table-scroll"><table><thead><tr><th>صنعت</th><th>تعداد</th><th>میانه</th><th>صف خرید</th></tr></thead><tbody id="industryRows"></tbody></table></div></article>
+            <article class="parity-card parity-wide"><span class="card-kicker">OPTIONS DESK</span><h3>اتاق آپشن</h3><p id="optionsState" class="muted">در حال دریافت snapshot آپشن…</p><div class="parity-kpis"><div><span>جفت واجد شرایط</span><strong id="optionsEligible">—</strong></div><div><span>قراردادهای رصدشده</span><strong id="optionsContracts">—</strong></div><div><span>منبع و زمان</span><strong id="optionsSourceTime">—</strong></div></div><div class="table-scroll"><table><thead><tr><th>پایه</th><th>سررسید</th><th>Debit</th><th>بازده ماهانه</th></tr></thead><tbody id="optionsRows"></tbody></table></div></article>
           </div>
         </section>
 
