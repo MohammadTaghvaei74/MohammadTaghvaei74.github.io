@@ -220,9 +220,16 @@ def publish(repo, source, attempts=3):
                 print('PUBLISHED', commit, flush=True)
                 return commit
             output = (result.stdout + result.stderr).decode()
-            if not any(marker in output for marker in ('[rejected]', 'non-fast-forward', '(fetch first)', 'cannot lock ref')) or attempt + 1 == attempts:
+            rejected = any(marker in output for marker in ('[rejected]', 'non-fast-forward', '(fetch first)', 'cannot lock ref'))
+            if not rejected or attempt + 1 == attempts:
                 raise RuntimeError('publication push failed: ' + output)
-            print('RETRY_NON_FAST_FORWARD', attempt + 1, flush=True)
+            remote_probe = run(repo, 'ls-remote', 'origin', 'refs/heads/main', env=env, check=False)
+            remote = remote_probe.stdout.decode().split()[0] if remote_probe.returncode == 0 and remote_probe.stdout else ''
+            if remote and run(repo, 'cat-file', '-e', f'{remote}^{{commit}}', env=env, check=False).returncode == 0:
+                run(repo, 'update-ref', 'refs/canonical-publisher/main', remote, env=env)
+                print('RETRY_NON_FAST_FORWARD_REMOTE_REF_UPDATED', remote, flush=True)
+            else:
+                raise RuntimeError('publication push rejected and remote ref unavailable: ' + output)
     raise RuntimeError('no publication attempts')
 
 
