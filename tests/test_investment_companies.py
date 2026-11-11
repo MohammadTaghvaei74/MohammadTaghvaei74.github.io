@@ -62,6 +62,24 @@ class InvestmentCompanyContractTests(unittest.TestCase):
         self.assertIsNone(data["rows"][0]["portfolio_score"])
         self.assertTrue(data["portfolio_contract"]["no_renormalization"])
 
+    def test_real_codal_checkpoint_is_present_and_fars_keeps_missing_score_honest(self):
+        raw = json.loads((ROOT / "market/data/investment-codal-raw.json").read_text(encoding="utf-8"))
+        verified = [row for row in raw["reports"].values() if row.get("status") == "verified"]
+        self.assertGreaterEqual(len(verified), 1)
+        fars = raw["reports"].get("فارس")
+        self.assertEqual(fars["status"], "verified")
+        self.assertGreater(len(fars["listed_holdings"]), 0)
+        public = json.loads((ROOT / "market/data/investment-companies.json").read_text(encoding="utf-8"))
+        fars_public = next(row for row in public["rows"] if row["symbol"] == "فارس")
+        self.assertIsNotNone(fars_public["portfolio_report_date"])
+        self.assertIsNotNone(fars_public["portfolio_score"])
+        self.assertEqual(fars_public["portfolio_status"], "محاسبه شد")
+        self.assertGreater(fars_public["total_investment_assets_million_rial"], 0)
+
+    def test_report_age_uses_jalali_date_without_fabricating(self):
+        self.assertEqual(MODULE.report_age_days("1405/07/30", date(2026, 11, 8)), 17)
+        self.assertIsNone(MODULE.report_age_days("not-a-date", date(2026, 11, 8)))
+
 
 if __name__ == "__main__":
     unittest.main()

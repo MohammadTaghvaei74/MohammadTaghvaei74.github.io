@@ -1,0 +1,544 @@
+{
+  "rows": [
+    {
+      "symbol": "ارمغان",
+      "company_name": "ص سرمایه گذاری ارمغان ایرانیان",
+      "industry": "صندوق سرمایه گذاری قابل معامله",
+      "board_score": 0.12
+    },
+    {
+      "symbol": "اعتلا",
+      "company_name": "شرکت سرمایه گذاری اعتلاء البرز",
+      "industry": "سرمایه گذاریها",
+      "board_score": -0.2
+    },
+    {
+      "symbol": "بمیلا",
+      "company_name": "توسعه سرمایه گذاری میلاد پارس",
+      "industry": "تجارت عمده فروشی به جز وسایل نقلیه موتور",
+      "board_score": 2.14
+    },
+    {
+      "symbol": "بهیر",
+      "company_name": "س. توسعه تجارت هیرمند",
+      "industry": "سرمایه گذاریها",
+      "board_score": 0.84
+    },
+    {
+      "symbol": "تاصیکو",
+      "company_name": "سرمایه گذاری صدرتامین",
+      "industry": "استخراج کانه فلزی",
+      "board_score": -3.0
+    },
+    {
+      "symbol": "تیپیکو",
+      "company_name": "سرمایه گذاری دارویی تامین",
+      "industry": "محصولات دارویی",
+      "board_score": -2.99
+    },
+    {
+      "symbol": "ثتران",
+      "company_name": "سرمایه گذاری مسکن تهران",
+      "industry": "انبوه سازی، املاک و مستغلات",
+      "board_score": 2.97
+    },
+    {
+      "symbol": "ثجنوب",
+      "company_name": "سرمایه گذاری مسکن جنوب",
+      "industry": "انبوه سازی، املاک و مستغلات",
+      "board_score": 2.96
+    },
+    {
+      "symbol": "ثزاگرس",
+      "company_name": "سرمایه گذاری توسعه عمران زاگرس",
+      "industry": "انبوه سازی، املاک و مستغلات",
+      "board_score": -2.97
+    },
+    {
+      "symbol": "ثشرق",
+      "company_name": "سرمایه گذاری مسکن شمال شرق",
+      "industry": "انبوه سازی، املاک و مستغلات",
+      "board_score": -1.21
+    },
+    {
+      "symbol": "ثپردیس",
+      "company_name": "سرمایه گذاری مسکن پردیس",
+      "industry": "انبوه سازی، املاک و مستغلات",
+      "board_score": 2.87
+    },
+    {
+      "symbol": "خکرمان",
+      "company_name": "سرمایه گذاری آرمان گستر پاریز",
+      "industry": "خودرو",
+      "board_score": -2.99
+    },
+    {
+      "symbol": "داتام",
+      "company_name": "گروه مالی داتام",
+      "industry": "سرمایه گذاریها",
+      "board_score": 2.96
+    },
+    {
+      "symbol": "سدبیر",
+      "company_name": "س. تدبیرگران فارس وخوزستان",
+      "industry": "سرمایه گذاریها",
+      "board_score": 0.11
+    },
+    {
+      "symbol": "سرچشمه",
+      "company_name": "سرمایه گذاری مس سرچشمه",
+      "industry": "سرمایه گذاریها",
+      "board_score": 0.36
+    },
+    {
+      "symbol": "سلیم",
+      "company_name": "سرمایه گذاری سلیم",
+      "industry": "سرمایه گذاریها",
+      "board_score": -1.14
+    },
+    {
+      "symbol": "سمگا",
+      "company_name": "گروه سرمایه گذاری میراث فرهنگی",
+      "industry": "هتل و رستوران",
+      "board_score": -1.54
+    },
+    {
+      "symbol": "سنوین",
+      "company_name": "سرمایه گذاری اقتصاد نوین",
+      "industry": "سرمایه گذاریها",
+      "board_score": 2.99
+    },
+    {
+      "symbol": "سیتا",
+      "company_name": "سرمایه گذاری سیمان تامین",
+      "industry": "سیمان",
+      "board_score": -2.99
+    },
+    {
+      "symbol": "سیدکو",
+      "company_name": "سرمایه گذاری توسعه صنایع سیمان",
+      "industry": "سیمان",
+      "board_score": -0.17
+    },
+    {
+      "symbol": "شستا",
+      "company_name": "سرمایه گذاری تامین اجتماعی",
+      "industry": "شرکتهای چند رشته ای",
+      "board_score": 0.0
+    },
+    {
+      "symbol": "شهر",
+      "company_name": "گروه مالی شهر",
+      "industry": "سرمایه گذاریها",
+      "board_score": 2.67
+    },
+    {
+      "symbol": "صبا",
+      "company_name": "گروه مالی صبا تامین",
+      "industry": "سرمایه گذاریها",
+      "board_score": -2.92
+    },
+    {
+      "symbol": "فارس",
+      "company_name": "صنایع پتروشیمی خلیج فارس",
+      "industry": "شیمیایی",
+      "board_score": 2.97
+    },
+    {
+      "symbol": "فلات",
+      "company_name": "گروه صنایع معادن فلات ایرانیان",
+      "industry": "سرمایه گذاریها",
+      "board_score": 2.97
+    },
+    {
+      "symbol": "مدیریت",
+      "company_name": "س. و خدمات مدیریت صند. ب کشوری",
+      "industry": "سرمایه گذاریها",
+      "board_score": -1.61
+    },
+    {
+      "symbol": "معیار",
+      "company_name": "سرمایه گذاری معیار صنعت پارس",
+      "industry": "سرمایه گذاریها",
+      "board_score": 2.97
+    },
+    {
+      "symbol": "مهر",
+      "company_name": "سرمایه گذاری مهر",
+      "industry": "سرمایه گذاریها",
+      "board_score": -2.05
+    },
+    {
+      "symbol": "مهرگان",
+      "company_name": "گروه مالی مهرگان تامین پارس",
+      "industry": "سرمایه گذاریها",
+      "board_score": -0.16
+    },
+    {
+      "symbol": "نماد",
+      "company_name": "گروه مالی نماد غدیر",
+      "industry": "سرمایه گذاریها",
+      "board_score": -1.58
+    },
+    {
+      "symbol": "وآتوس",
+      "company_name": "گروه سرمایه گذاری توسکا",
+      "industry": "سرمایه گذاریها",
+      "board_score": -2.98
+    },
+    {
+      "symbol": "وآرین",
+      "company_name": "گروه توسعه اقتصادی آرین",
+      "industry": "سرمایه گذاریها",
+      "board_score": 2.74
+    },
+    {
+      "symbol": "وآفر",
+      "company_name": "سرمایه گذاری ارزش آفرینان",
+      "industry": "سرمایه گذاریها",
+      "board_score": -2.76
+    },
+    {
+      "symbol": "وآوا",
+      "company_name": "سرمایه گذاری آوا نوین",
+      "industry": "سرمایه گذاریها",
+      "board_score": 2.72
+    },
+    {
+      "symbol": "واحصا",
+      "company_name": "احیاء صنایع خراسان",
+      "industry": "سرمایه گذاریها",
+      "board_score": 2.92
+    },
+    {
+      "symbol": "واحیا",
+      "company_name": "م .صنایع و معادن احیاء سپاهان",
+      "industry": "سرمایه گذاریها",
+      "board_score": -3.0
+    },
+    {
+      "symbol": "وارس",
+      "company_name": "سرمایه گذاری ارس صبا",
+      "industry": "سرمایه گذاریها",
+      "board_score": -2.98
+    },
+    {
+      "symbol": "واعتبار",
+      "company_name": "سرمایه گذاری اعتبار ایران",
+      "industry": "سرمایه گذاریها",
+      "board_score": -2.56
+    },
+    {
+      "symbol": "والبر",
+      "company_name": "سرمایه‌ گذاری‌ البرز(هلدینگ‌",
+      "industry": "محصولات دارویی",
+      "board_score": -2.89
+    },
+    {
+      "symbol": "والماس",
+      "company_name": "س. الماس حکمت ایرانیان",
+      "industry": "سرمایه گذاریها",
+      "board_score": -2.54
+    },
+    {
+      "symbol": "وامید",
+      "company_name": "گروه مدیریت سرمایه گذاری امید",
+      "industry": "شرکتهای چند رشته ای",
+      "board_score": -2.88
+    },
+    {
+      "symbol": "وامین",
+      "company_name": "سرمایه گذاری امین مهرگان",
+      "industry": "سرمایه گذاریها",
+      "board_score": 1.12
+    },
+    {
+      "symbol": "وایرا",
+      "company_name": "سرمایه گذاری صنایع ایران",
+      "industry": "سرمایه گذاریها",
+      "board_score": -0.72
+    },
+    {
+      "symbol": "وبانک",
+      "company_name": "سرمایه گذاری گروه توسعه ملی",
+      "industry": "شرکتهای چند رشته ای",
+      "board_score": 2.96
+    },
+    {
+      "symbol": "وبرق",
+      "company_name": "س.کارکنان صنعت برق زنجان وقزوی",
+      "industry": "سرمایه گذاریها",
+      "board_score": 2.99
+    },
+    {
+      "symbol": "وبشهر",
+      "company_name": "توسعه‌ صنایع‌ بهشهر(هلدینگ",
+      "industry": "محصولات غذایی",
+      "board_score": -2.93
+    },
+    {
+      "symbol": "وبهمن",
+      "company_name": "سرمایه‌گذاری‌بهمن‌",
+      "industry": "سرمایه گذاریها",
+      "board_score": -0.94
+    },
+    {
+      "symbol": "وبوعلی",
+      "company_name": "سرمایه‌گذاری‌بوعلی‌",
+      "industry": "سرمایه گذاریها",
+      "board_score": 0.0
+    },
+    {
+      "symbol": "وبیمه",
+      "company_name": "سرمایه‌ گذاری‌ صنعت‌ بیمه‌",
+      "industry": "سرمایه گذاریها",
+      "board_score": 0.93
+    },
+    {
+      "symbol": "وتوسم",
+      "company_name": "سرمایه‌گذاری‌توسعه‌ملی‌",
+      "industry": "سرمایه گذاریها",
+      "board_score": 0.0
+    },
+    {
+      "symbol": "وتوسکا",
+      "company_name": "سرمایه گذاری توسعه توکا",
+      "industry": "سرمایه گذاریها",
+      "board_score": 2.95
+    },
+    {
+      "symbol": "وتوصا",
+      "company_name": "گروه س توسعه صنعتی ایران",
+      "industry": "سرمایه گذاریها",
+      "board_score": 2.91
+    },
+    {
+      "symbol": "وتوکا",
+      "company_name": "سرمایه‌گذاری‌توکافولاد(هلدینگ",
+      "industry": "فلزات اساسی",
+      "board_score": -1.72
+    },
+    {
+      "symbol": "وثخوز",
+      "company_name": "سرمایه گذاری و توسعه خوزستان",
+      "industry": "انبوه سازی، املاک و مستغلات",
+      "board_score": -2.87
+    },
+    {
+      "symbol": "وثنو",
+      "company_name": "سرمایه گذاری ساختمانی نوین",
+      "industry": "سرمایه گذاریها",
+      "board_score": -2.96
+    },
+    {
+      "symbol": "وثوق",
+      "company_name": "سرمایه گذاری وثوق امین",
+      "industry": "سرمایه گذاریها",
+      "board_score": 3.0
+    },
+    {
+      "symbol": "وجامی",
+      "company_name": "سرمایه گذاری جامی",
+      "industry": "سرمایه گذاریها",
+      "board_score": -0.3
+    },
+    {
+      "symbol": "وخارزم",
+      "company_name": "سرمایه گذاری خوارزمی",
+      "industry": "سرمایه گذاریها",
+      "board_score": 1.0
+    },
+    {
+      "symbol": "ورنا",
+      "company_name": "سرمایه‌گذاری‌ رنا(هلدینگ‌",
+      "industry": "خودرو",
+      "board_score": -2.98
+    },
+    {
+      "symbol": "وساپا",
+      "company_name": "سرمایه‌گذاری‌ سایپا",
+      "industry": "سرمایه گذاریها",
+      "board_score": -2.96
+    },
+    {
+      "symbol": "وسبحان",
+      "company_name": "سرمایه گذاری سبحان",
+      "industry": "سرمایه گذاریها",
+      "board_score": 0.0
+    },
+    {
+      "symbol": "وسرمایه",
+      "company_name": "سرمایه گذاری دنیای سرمایه",
+      "industry": "سرمایه گذاریها",
+      "board_score": -2.42
+    },
+    {
+      "symbol": "وسنا",
+      "company_name": "سرمایه گذاری نیروگاهی ایران",
+      "industry": "سرمایه گذاریها",
+      "board_score": -2.98
+    },
+    {
+      "symbol": "وسپه",
+      "company_name": "سرمایه‌گذاری‌ سپه‌",
+      "industry": "سرمایه گذاریها",
+      "board_score": -2.93
+    },
+    {
+      "symbol": "وسپهر",
+      "company_name": "گروه سرمایه گذاری سپهر صادرات",
+      "industry": "شرکتهای چند رشته ای",
+      "board_score": 2.94
+    },
+    {
+      "symbol": "وسکاب",
+      "company_name": "س.ص.بازنشستگی کارکنان بانکها",
+      "industry": "سرمایه گذاریها",
+      "board_score": 2.71
+    },
+    {
+      "symbol": "وصنا",
+      "company_name": "گروه‌صنایع‌بهشهرایران‌",
+      "industry": "سرمایه گذاریها",
+      "board_score": -2.38
+    },
+    {
+      "symbol": "وصنعت",
+      "company_name": "سرمایه گذاری توسعه صنعت وتجارت",
+      "industry": "سرمایه گذاریها",
+      "board_score": 0.56
+    },
+    {
+      "symbol": "وطوبی",
+      "company_name": "سرمایه گذاری اقتصاد شهر طوبی",
+      "industry": "سرمایه گذاریها",
+      "board_score": 2.95
+    },
+    {
+      "symbol": "وغدیر",
+      "company_name": "سرمایه‌گذاری‌غدیر(هلدینگ‌",
+      "industry": "شرکتهای چند رشته ای",
+      "board_score": 2.99
+    },
+    {
+      "symbol": "وفتخار",
+      "company_name": "سرمایه گذاری افتخار سهام",
+      "industry": "سرمایه گذاریها",
+      "board_score": 1.82
+    },
+    {
+      "symbol": "وفیروزه",
+      "company_name": "گروه توسعه مالی فیروزه",
+      "industry": "سرمایه گذاریها",
+      "board_score": 0.0
+    },
+    {
+      "symbol": "ولقمان",
+      "company_name": "گروه سرمایه گذاری لقمان",
+      "industry": "سرمایه گذاریها",
+      "board_score": -0.5
+    },
+    {
+      "symbol": "ومدیر",
+      "company_name": "گ.مدیریت ارزش سرمایه ص ب کشوری",
+      "industry": "سرمایه گذاریها",
+      "board_score": -2.9
+    },
+    {
+      "symbol": "ومشان",
+      "company_name": "سرمایه گذاری مشانیر",
+      "industry": "سرمایه گذاریها",
+      "board_score": -3.0
+    },
+    {
+      "symbol": "وملت",
+      "company_name": "سرمایه گذاری ملت",
+      "industry": "سرمایه گذاریها",
+      "board_score": 0.9
+    },
+    {
+      "symbol": "وملی",
+      "company_name": "گروه‌ صنعتی‌ ملی‌ (هلدینگ‌",
+      "industry": "دباغی، پرداخت چرم و ساخت انواع پاپوش",
+      "board_score": 0.79
+    },
+    {
+      "symbol": "ومهان",
+      "company_name": "گروه توسعه مالی مهرآیندگان",
+      "industry": "سرمایه گذاریها",
+      "board_score": -2.95
+    },
+    {
+      "symbol": "ونیکی",
+      "company_name": "سرمایه‌گذاری‌ ملی‌ایران‌",
+      "industry": "شرکتهای چند رشته ای",
+      "board_score": -2.37
+    },
+    {
+      "symbol": "وهامون",
+      "company_name": "سرمایه گذاری هامون صبا",
+      "industry": "سرمایه گذاریها",
+      "board_score": 2.96
+    },
+    {
+      "symbol": "وپخش",
+      "company_name": "داروپخش‌ (هلدینگ‌",
+      "industry": "محصولات دارویی",
+      "board_score": -0.45
+    },
+    {
+      "symbol": "وپویا",
+      "company_name": "سرمایه گذاری پویا",
+      "industry": "سرمایه گذاریها",
+      "board_score": 1.13
+    },
+    {
+      "symbol": "وکبهمن",
+      "company_name": "مدیریت سرمایه گذاری کوثربهمن",
+      "industry": "سرمایه گذاریها",
+      "board_score": -2.75
+    },
+    {
+      "symbol": "وکغدیر",
+      "company_name": "بین المللی توسعه ص. معادن غدیر",
+      "industry": "شرکتهای چند رشته ای",
+      "board_score": -2.91
+    },
+    {
+      "symbol": "وگستر",
+      "company_name": "گسترش سرمایه گذاری ایرانیان",
+      "industry": "سرمایه گذاریها",
+      "board_score": -2.98
+    },
+    {
+      "symbol": "ویسا",
+      "company_name": "سرمایه گذاری ایساتیس پویا",
+      "industry": "سرمایه گذاریها",
+      "board_score": -2.5
+    },
+    {
+      "symbol": "پردیس",
+      "company_name": "سرمایه گذاری پردیس",
+      "industry": "سرمایه گذاریها",
+      "board_score": -1.76
+    },
+    {
+      "symbol": "کیانا",
+      "company_name": "گروه مالی کیان",
+      "industry": "سرمایه گذاریها",
+      "board_score": 1.09
+    },
+    {
+      "symbol": "گنگین",
+      "company_name": "گروه اقتصادی مالی نگین",
+      "industry": "شرکتهای چند رشته ای",
+      "board_score": 0.24
+    },
+    {
+      "symbol": "گوهران",
+      "company_name": "سرمایه گذاری توسعه گوهران امید",
+      "industry": "سرمایه گذاریها",
+      "board_score": 0.13
+    }
+  ]
+}

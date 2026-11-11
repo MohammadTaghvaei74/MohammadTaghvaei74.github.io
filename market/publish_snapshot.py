@@ -31,6 +31,7 @@ if __package__:
     from .export_options import export_from_scores_db
     from .score_candles import build_candles
     from .tsetmc_enrichment import enrich_stocks
+    from .build_investment_companies import build_payload as build_investment_payload
 else:
     from export_signals import export as export_signals
     from leveraged_snapshots import read_latest as read_leveraged
@@ -38,11 +39,14 @@ else:
     from export_options import export_from_scores_db
     from score_candles import build_candles
     from tsetmc_enrichment import enrich_stocks
+    from build_investment_companies import build_payload as build_investment_payload
 
 PUBLISHED_FILES = (
     "market/data/market.json",
     "market/data/signals.json",
     "market/data/options.json",
+    "market/data/investment-companies.json",
+    "market/data/investment-portfolio-reports.json",
     "market/history/data/history.json",
     "market/history/data/score-candles.json",
     "market/history/data/market-score-history.xlsx",
@@ -429,15 +433,20 @@ def main() -> None:
     HISTORY_OUT = SITE / "market/history/data/history.json"
     XLSX_OUT = SITE / "market/history/data/market-score-history.xlsx"
     OPTIONS_OUT = SITE / "market/data/options.json"
+    INVESTMENTS_OUT = SITE / "market/data/investment-companies.json"
+    INVESTMENT_REPORTS_OUT = SITE / "market/data/investment-portfolio-reports.json"
     with connect() as conn:
         market = build_market(conn)
         history = build_history(conn)
         candles = build_candles(conn)
     signal_payload = export_signals(event_db, SIGNALS_OUT)
     options_payload = export_from_scores_db(DB, OPTIONS_OUT)
+    investment_payload = build_investment_payload(market)
     atomic_json(MARKET_OUT, market)
     atomic_json(HISTORY_OUT, history)
     atomic_json(SITE / "market/history/data/score-candles.json", candles)
+    atomic_json(INVESTMENTS_OUT, investment_payload)
+    atomic_json(INVESTMENT_REPORTS_OUT, investment_payload["collection"])
     build_xlsx(history)
     changed = git_publish(SITE, list(PUBLISHED_FILES))
     print("PUBLISHED" if changed else "NO_CHANGE", market["generated_at"], history["valid_day_count"], history["row_count"], signal_payload["status"], options_payload["status"], options_payload["counts"])

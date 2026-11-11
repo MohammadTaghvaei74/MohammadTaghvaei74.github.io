@@ -1,0 +1,12 @@
+[Unit]
+Description=Refresh investment-company monthly Codal reports
+
+[Timer]
+OnCalendar=*-*-01 13:15:00 Asia/Tehran
+Persistent=true
+AccuracySec=5m
+Unit=bourse-investment-reports.service
+
+[Install]
+WantedBy=timers.target
+
