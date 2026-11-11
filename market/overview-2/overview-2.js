@@ -84,7 +84,7 @@
     const x = (index) => pad.left + index * (width - pad.left - pad.right) / Math.max(days.length - 1, 1);
     const y = (value) => pad.top + (max - value) * (height - pad.top - pad.bottom) / (max - min);
     const grid = [-3, 0, 3].map((tick) => `<line class="chart-grid ${tick === 0 ? "zero" : ""}" x1="${pad.left}" x2="${width - pad.right}" y1="${y(tick)}" y2="${y(tick)}"/><text class="chart-axis" x="${pad.left - 10}" y="${y(tick) + 4}" text-anchor="end">${core.faDigits(tick)}</text>`).join("");
-    const labels = days.map((day, index) => index === 0 || index === days.length - 1 || index % 5 === 0 ? `<text class="chart-axis" x="${x(index)}" y="${height - 8}" text-anchor="middle">${escapeHtml(core.faDigits(String(day.trading_date || "").slice(5)))}</text>` : "").join("");
+    const labelIndexes = days.length <= 6 ? days.map((_, index) => index) : [0, Math.round((days.length - 1) / 4), Math.round((days.length - 1) / 2), Math.round(3 * (days.length - 1) / 4), days.length - 1].filter((index, position, all) => all.indexOf(index) === position); const labels = labelIndexes.map(index => { const day = days[index]; return `<text class="chart-axis" x="${x(index)}" y="${height - 8}" text-anchor="middle">${escapeHtml(core.faDigits(String(day.trading_date || "").slice(5)))}</text>`; }).join("");
     svg.innerHTML = `${grid}${labels}<path class="chart-path rest-path" d="${chartPath(series.rest, x, y)}"/><path class="chart-path leader-path" d="${chartPath(series.leaders, x, y)}"/><path class="chart-path market-path" d="${chartPath(series.market, x, y)}"/>`;
   }
 
@@ -123,8 +123,8 @@
   function renderParity(data, options) {
     const intraday = Array.isArray(data.intraday) && data.intraday.length ? data.intraday.slice(-80) : (Array.isArray(data.daily) ? data.daily.slice(-80).map(row => ({...row, time: row.trading_date})) : []);
     renderParityChart("#intradayChart", intraday, [intraday.map(row => row.median_score), intraday.map(row => row.leader_median_score), intraday.map(row => row.rest_median_score)], ["#3f735b","#e87958","#8bb8c9"]);
-    const queueSource = Array.isArray(data.queue_intraday) && data.queue_intraday.length ? data.queue_intraday.slice(-80) : [{time: core.formatDate(core.sourceTimestamp(data)), buy_value_hmt: numeric(data.market && data.market.buy_value_hmt) || 0, sell_value_hmt: numeric(data.market && data.market.sell_value_hmt) || 0}];
-    renderParityChart("#queueChart", queueSource, [queueSource.map(row => row.buy_value_hmt), queueSource.map(row => row.sell_value_hmt)], ["#3f735b","#e87958"], true);
+    const queueValues = Array.isArray(data.queue_intraday) && data.queue_intraday.length ? data.queue_intraday.slice(-80).map(row => ({...row, buy_value_hmt: row.buy_value_hmt, sell_value_hmt: row.sell_value_hmt})) : Array.isArray(data.queue_count_intraday) && data.queue_count_intraday.length ? data.queue_count_intraday.slice(-80).map(row => ({...row, buy_value_hmt: row.buy_queue_count, sell_value_hmt: row.sell_queue_count})) : [{time: core.formatDate(core.sourceTimestamp(data)), buy_value_hmt: numeric(data.market && data.market.buy_value_hmt) || 0, sell_value_hmt: numeric(data.market && data.market.sell_value_hmt) || 0}];
+    renderParityChart("#queueChart", queueValues, [queueValues.map(row => row.buy_value_hmt), queueValues.map(row => row.sell_value_hmt)], ["#3f735b","#e87958"], true);
     const topQueue = Array.isArray(data.top_buy_queue) ? data.top_buy_queue : [];
     const queueRows = $("#topBuyQueueRows"); if (queueRows) queueRows.innerHTML = topQueue.map(row => `<tr><td>${escapeHtml(row.symbol)}</td><td class="${numeric(row.score) >= 0 ? "positive" : "negative"}">${escapeHtml(signed(row.score, 1))}</td><td>${escapeHtml(core.formatQueueBillion(row.buy_queue_value_toman))}</td><td>${escapeHtml(core.formatBillionToman(row.avg15_trade_value_toman))}</td><td>${escapeHtml(core.formatPercent(row.legal_sell_pct, 0))}</td></tr>`).join("") || '<tr><td colspan="5" class="parity-empty">صف خرید معتبر برای نمایش نیست.</td></tr>';
     const stockMap = new Map((Array.isArray(data.stocks) ? data.stocks : []).map(row => [row.symbol, row]));
@@ -158,9 +158,31 @@
     const numberValue = Number(normalized.replace(/[^0-9.+-].*$/g, ""));
     return Number.isFinite(numberValue) && /^[-+]?\d/.test(normalized) ? {type: "number", value: numberValue} : {type: "text", value: normalized};
   };
+  function parseFilter(input, selectedOperator) {
+    const raw = normalizeSortable(input).replace(/٪/g, "%").trim();
+    const match = raw.match(/^(>=|<=|!=|>|<|=)\s*(.+)$/);
+    const operator = selectedOperator && selectedOperator !== "contains" ? selectedOperator : (match ? match[1] : "contains");
+    const value = (match && (!selectedOperator || selectedOperator === "contains") ? match[2] : raw).trim();
+    const number = Number(value.replace(/[%٬،,]/g, "").replace(/٫/g, "."));
+    return {operator, value, number: Number.isFinite(number) ? number : null};
+  }
   function applyTableFilter(table) {
-    const queries = (table._overviewFilters || []).map(input => normalizeSortable(input.value).toLocaleLowerCase("fa"));
-    Array.from(table.tBodies[0] ? table.tBodies[0].rows : []).forEach(row => { row.hidden = queries.some((query, index) => query && !normalizeSortable(row.cells[index] && row.cells[index].textContent).toLocaleLowerCase("fa").includes(query)); });
+    const filters = (table._overviewFilters || []).map(filter => parseFilter(filter.input.value, filter.operator.value));
+    Array.from(table.tBodies[0] ? table.tBodies[0].rows : []).forEach(row => {
+      row.hidden = filters.some((filter, index) => {
+        if (!filter.value) return false;
+        const cell = row.cells[index] && row.cells[index].textContent;
+        const parsed = sortValue(cell);
+        if (filter.operator === "contains") return !normalizeSortable(cell).toLocaleLowerCase("fa").includes(filter.value.toLocaleLowerCase("fa"));
+        if (filter.number === null || parsed.type !== "number") return true;
+        if (filter.operator === ">") return !(parsed.value > filter.number);
+        if (filter.operator === ">=") return !(parsed.value >= filter.number);
+        if (filter.operator === "<") return !(parsed.value < filter.number);
+        if (filter.operator === "<=") return !(parsed.value <= filter.number);
+        if (filter.operator === "!=") return parsed.value === filter.number;
+        return parsed.value !== filter.number;
+      });
+    });
   }
   function applyTableSort(table) {
     const state = table._overviewSort;
@@ -190,7 +212,7 @@
       table.classList.add("sortable-table");
       if (!table._overviewInitialized) {
         const tools = document.createElement("div"); tools.className = "table-tools";
-        table._overviewFilters = headers.map(header => { const input = document.createElement("input"); input.type = "search"; input.placeholder = `فیلتر ${header.textContent.trim()}`; input.setAttribute("aria-label", `فیلتر ستون ${header.textContent.trim()}`); input.addEventListener("input", () => applyTableFilter(table)); tools.appendChild(input); return input; });
+        table._overviewFilters = headers.map(header => { const field = document.createElement("span"); field.className = "table-filter-field"; const operator = document.createElement("select"); operator.setAttribute("aria-label", `عملگر فیلتر ${header.textContent.trim()}`); [["contains","شامل"],[">","بیشتر از"],[">=","حداقل"],["<","کمتر از"],["<=","حداکثر"],["=","برابر"],["!=","نابرابر"]].forEach(([value,label]) => { const option = document.createElement("option"); option.value = value; option.textContent = label; operator.appendChild(option); }); const input = document.createElement("input"); input.type = "search"; input.inputMode = "text"; input.placeholder = `فیلتر ${header.textContent.trim()}`; input.setAttribute("aria-label", `مقدار فیلتر ستون ${header.textContent.trim()}`); input.addEventListener("input", () => applyTableFilter(table)); operator.addEventListener("change", () => applyTableFilter(table)); field.appendChild(operator); field.appendChild(input); tools.appendChild(field); return {input, operator}; });
         table.closest(".parity-card, .data-card").insertBefore(tools, table.closest(".table-scroll, .compact-table-wrap") || table);
         table._overviewSort = {column: -1, direction: "none", defaultRows: []};
         headers.forEach((header, index) => {
