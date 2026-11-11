@@ -19,33 +19,22 @@
           <span class="brand-mark">mt<span>.</span></span>
           <span class="brand-copy"><b>نبض بازار</b><small>MARKET PULSE / DATA DESK</small></span>
         </a>
-        <nav class="main-nav" aria-label="ناوبری اصلی؛ ده مقصد"><a href="../#overview">نمای کلی</a><a class="active" aria-current="page" href="../overview-2/">نمای کلی ۲</a><a href="../signals/">سیگنال‌ها</a><a href="../symbols/">سهام</a><a href="../industries/">صنایع</a><a href="../options/">آپشن</a><a href="/market/funds/">صندوق‌ها</a><a href="../investments/">هلدینگ‌ها</a><a href="../portfolio/">امتیاز پرتفو</a><a href="../#history">تاریخچه</a></nav>
+        <nav class="main-nav" aria-label="ناوبری اصلی">
+          <a href="../">نمای کلی</a>
+          <a class="active" aria-current="page" href="./">نمای کلی ۲</a>
+          <a href="../signals/">سیگنال‌ها</a>
+          <a href="../history/">آرشیو امتیاز</a>
+          <a href="../symbols/">کاوش نماد</a>
+          <a href="../industries/">صنایع</a>
+        </nav>
         <div class="header-actions">
           <span class="live-state" data-state="loading"><i></i><span id="marketState">در حال دریافت</span></span>
+          <button class="theme-toggle" id="themeToggle" type="button" aria-label="تغییر حالت روشن و تاریک"><span aria-hidden="true">◐</span><b>دارک</b></button>
           <button class="refresh-button" id="refreshButton" type="button" aria-label="به‌روزرسانی داده">↻</button>
         </div>
       </header>
 
       <main>
-        <section class="hero" aria-labelledby="heroTitle">
-          <div class="eyebrow"><span class="eyebrow-dot"></span> MARKET PULSE / OVERVIEW 02</div>
-          <div class="hero-grid">
-            <div class="hero-copy">
-              <h1 id="heroTitle">بازار را<br /><em>مثل یک جریان</em> ببین.</h1>
-              <p>یک نمای آرام‌تر برای دیدن چیزی که پشت عددها اتفاق می‌افتد؛ تعادل تقاضا، حرکت لیدرها و کیفیت داده در یک نگاه.</p>
-              <div class="hero-meta"><span>آخرین snapshot</span><strong id="updatedAt">—</strong><small id="sourceStatus">در حال اتصال به منبع داده…</small></div>
-            </div>
-            <div class="hero-orbit" aria-hidden="true"><div class="orbit-ring ring-one"></div><div class="orbit-ring ring-two"></div><div class="orbit-core"><span>MARKET</span><b id="heroScore">—</b><small>امتیاز کل</small></div><span class="orbit-pill pill-one">LIVE</span><span class="orbit-pill pill-two">TEHRAN</span></div>
-          </div>
-        </section>
-
-        <section class="signal-strip" aria-label="خلاصه بازار">
-          <article class="signal-card featured"><span class="signal-kicker">خوانش امروز</span><strong id="marketMood">در حال تحلیل</strong><span id="allocationLabel">داده تخصیص کافی نیست</span></article>
-          <article class="signal-card"><span class="signal-kicker">میانه بازار</span><strong id="marketMedian">—</strong><span>امتیاز snapshot</span></article>
-          <article class="signal-card"><span class="signal-kicker">میانه لیدرها</span><strong id="leaderMedian">—</strong><span id="allocationGap">فاصله با بازار: —</span></article>
-          <article class="signal-card"><span class="signal-kicker">نمادهای معتبر</span><strong id="tradedCount">—</strong><span>در snapshot فعلی</span></article>
-        </section>
-
         <section class="story-grid">
           <article class="story-card chart-card">
             <div class="card-head"><div><span class="card-kicker">01 / MARKET RHYTHM</span><h2>ریتم بازار</h2></div><span class="quiet-label">روند روزانه</span></div>
@@ -63,9 +52,7 @@
         <section class="section-block" aria-labelledby="focusTitle">
           <div class="section-head"><div><span class="card-kicker">03 / FOCUS</span><h2 id="focusTitle">جاهایی که ارزش نگاه دارند</h2></div><p>برترین‌های snapshot فعلی؛ رتبه‌بندی به‌تنهایی توصیه خرید نیست.</p></div>
           <div class="focus-grid">
-            <article class="data-card top-card"><div class="data-card-head"><h3>برترین امتیازها</h3><span>TOP SCORES</span></div><div class="compact-list" id="topStocks"></div></article>
-            <article class="data-card leveraged-card"><div class="data-card-head"><h3>صندوق‌های اهرمی</h3><span>LEVERAGED</span></div><div class="compact-list" id="leveragedStocks"></div></article>
-            <article class="data-card industry-card"><div class="data-card-head"><h3>سه صنعت برتر</h3><span>SECTORS</span></div><div class="compact-list" id="topIndustries"></div></article>
+            <article class="data-card leveraged-card"><div class="data-card-head"><h3>صندوق‌های اهرمی</h3><span>LEVERAGED · همه موارد</span></div><div class="compact-table-wrap"><table class="compact-table"><thead><tr><th>نماد</th><th>امتیاز</th><th>صف</th></tr></thead><tbody id="leveragedStocks"></tbody></table></div></article>
           </div>
         </section>
 
@@ -74,9 +61,11 @@
           <div class="parity-grid">
             <article class="parity-card"><span class="card-kicker">INTRADAY PULSE</span><h3>حرکت درون‌روزی امتیاز</h3><svg id="intradayChart" viewBox="0 0 760 210" role="img" aria-label="روند درون‌روزی امتیاز بازار"></svg><div class="legend"><span>کل بازار</span><span>لیدرها</span><span>سایر بازار</span></div></article>
             <article class="parity-card"><span class="card-kicker">QUEUE FLOW</span><h3>جریان صف‌ها</h3><svg id="queueChart" viewBox="0 0 760 210" role="img" aria-label="روند درون‌روزی ارزش صف‌ها"></svg><div class="legend"><span>صف خرید</span><span>صف فروش</span></div></article>
-            <article class="parity-card parity-wide"><span class="card-kicker">TOP BUY QUEUE</span><h3>صف خریدهای برتر</h3><div class="table-scroll"><table><thead><tr><th>رتبه</th><th>نماد</th><th>امتیاز</th><th>ارزش صف</th><th>سرانه خرید</th><th>قدرت خریدار</th></tr></thead><tbody id="topBuyQueueRows"></tbody></table></div></article>
-            <article class="parity-card"><span class="card-kicker">LEADERS</span><h3>لیدرهای بازار</h3><div class="table-scroll"><table><thead><tr><th>نماد</th><th>امتیاز</th><th>صف</th></tr></thead><tbody id="leaderRows"></tbody></table></div></article>
-            <article class="parity-card"><span class="card-kicker">INDUSTRY TABLE</span><h3>جدول صنایع</h3><div class="table-scroll"><table><thead><tr><th>صنعت</th><th>تعداد</th><th>میانه</th><th>صف خرید</th></tr></thead><tbody id="industryRows"></tbody></table></div></article>
+            <article class="parity-card parity-wide"><span class="card-kicker">TOP BUY QUEUE</span><h3>صف خریدهای برتر</h3><div class="table-scroll"><table><thead><tr><th>نماد</th><th>امتیاز</th><th>صف</th><th>میانگین ارزش معاملات ۱۵ روز اخیر</th><th>سهم حقوقی از فروش</th></tr></thead><tbody id="topBuyQueueRows"></tbody></table></div></article>
+            <article class="parity-card"><span class="card-kicker">LEADERS</span><h3>لیدرهای بازار</h3><div class="table-scroll"><table><thead><tr><th>نماد</th><th>امتیاز</th><th>جایگاه</th><th>صف</th></tr></thead><tbody id="leaderRows"></tbody></table></div></article>
+            <article class="parity-card"><span class="card-kicker">INDUSTRY TABLE</span><h3>جدول صنایع</h3><div class="table-scroll"><table><thead><tr><th>صنعت</th><th>امتیاز (میانه)</th><th>ارزش معاملات</th><th>میانگین ارزش معاملات ۱۵ روز اخیر</th></tr></thead><tbody id="industryRows"></tbody></table></div></article>
+            <article class="parity-card parity-wide"><span class="card-kicker">COMPREHENSIVE MARKET</span><h3>جدول جامع بازار</h3><div class="table-scroll"><table><thead><tr><th>نماد</th><th>صنعت</th><th>امتیاز</th><th>مجموع امتیاز ۱۰ روز اخیر</th><th>جایگاه بازار</th><th>جایگاه در صنعت</th><th>میانگین ارزش</th><th>اختلاف آخرین و پایانی</th><th>صف</th><th>سرانه خرید</th><th>قدرت</th><th>خ حقوقی</th><th>ف حقوقی</th></tr></thead><tbody id="comprehensiveRows"></tbody></table></div></article>
+            <article class="parity-card parity-wide"><span class="card-kicker">EQUITY FUNDS</span><h3>صندوق‌های سهامی</h3><div class="table-scroll"><table><thead><tr><th>رتبه</th><th>صندوق</th><th>حباب</th><th>میانگین ارزش روزانه</th><th>امتیاز پرتفو</th><th>امتیاز تابلو</th><th>اختلاف</th><th>آخرین به‌روزرسانی پرتفو</th></tr></thead><tbody id="fundRows"></tbody></table></div></article>
             <article class="parity-card parity-wide"><span class="card-kicker">OPTIONS DESK</span><h3>اتاق آپشن</h3><p id="optionsState" class="muted">در حال دریافت snapshot آپشن…</p><div class="parity-kpis"><div><span>جفت واجد شرایط</span><strong id="optionsEligible">—</strong></div><div><span>قراردادهای رصدشده</span><strong id="optionsContracts">—</strong></div><div><span>منبع و زمان</span><strong id="optionsSourceTime">—</strong></div></div><div class="table-scroll"><table><thead><tr><th>پایه</th><th>سررسید</th><th>Debit</th><th>بازده ماهانه</th></tr></thead><tbody id="optionsRows"></tbody></table></div></article>
           </div>
         </section>

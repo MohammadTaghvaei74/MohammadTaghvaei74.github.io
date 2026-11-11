@@ -95,16 +95,10 @@
   }
 
   function renderLists(data) {
-    const top = Array.isArray(data.top_stocks) ? data.top_stocks.slice(0, 5) : [];
-    const leveraged = Array.isArray(data.leveraged) ? data.leveraged.slice(0, 5) : [];
-    const industries = Array.isArray(data.industries) ? [...data.industries].slice(0, 3) : [];
-    const empty = '<div class="empty-row">داده‌ای برای نمایش نیست.</div>';
-    const topElement = $("#topStocks");
+    const leveraged = Array.isArray(data.leveraged) ? data.leveraged : [];
     const leveragedElement = $("#leveragedStocks");
-    const industryElement = $("#topIndustries");
-    if (topElement) topElement.innerHTML = top.map(scoreRow).join("") || empty;
-    if (leveragedElement) leveragedElement.innerHTML = leveraged.map(scoreRow).join("") || empty;
-    if (industryElement) industryElement.innerHTML = industries.map((row, index) => `<div class="compact-row"><span class="row-symbol"><i>${core.faDigits(index + 1)}</i>${escapeHtml(row.industry || "بدون صنعت")}</span><span class="row-score ${numeric(row.median) >= 0 ? "positive" : "negative"}">${escapeHtml(signed(row.median))}</span></div>`).join("") || empty;
+    const empty = '<tr><td colspan="3" class="parity-empty">داده‌ای برای نمایش نیست.</td></tr>';
+    if (leveragedElement) leveragedElement.innerHTML = leveraged.map(row => `<tr><td>${escapeHtml(row.symbol)}</td><td class="${numeric(row.score) >= 0 ? "positive" : "negative"}">${escapeHtml(signed(row.score, 1))}</td><td>${escapeHtml(core.formatQueueBillion(row.buy_queue_value_toman || row.sell_queue_value_toman))}</td></tr>`).join("") || empty;
   }
 
   const leaderSymbols = ["وبملت","فملی","فولاد","وتجارت","فزر","خودرو","شستا","شپدیس","فارس","ومعادن","تاپیکو","خساپا","وبصادر","وپارس","نوری","وپاسار","ونوین","کگل","رمپنا","ذوب","وغدیر","فخوز","خگستر","صبا","وساپا","کالا","اخابر","سپید","شسپا","پارسان","تیپیکو","دزاگرس","مبین","کاما","کچاد","دعبید","خبهمن","اروند","دی","خزامیا"];
@@ -115,7 +109,8 @@
     const y = value => pad.top + (max - value) * (height - pad.top - pad.bottom) / Math.max(max - min, 1);
     let path = "";
     clean.forEach((value, index) => { if (value === null) return; path += `${path && clean[index - 1] !== null ? "L" : "M"}${x(index).toFixed(1)},${y(value).toFixed(1)} `; });
-    return path ? `<path d="${path}" fill="none" stroke="${color}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>` : "";
+    const points = clean.map((value, index) => value === null ? "" : `<circle cx="${x(index).toFixed(1)}" cy="${y(value).toFixed(1)}" r="3.5" fill="${color}"/>`).join("");
+    return path ? `<path d="${path}" fill="none" stroke="${color}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>${points}` : "";
   };
   function renderParityChart(id, rows, series, colors, queue = false) {
     const svg = $(id); if (!svg) return;
@@ -126,17 +121,24 @@
     svg.innerHTML = `${grid}${series.map((values, index) => parityLine(values, 760, 210, colors[index], min, max)).join("")}<text class="chart-axis" x="30" y="202">${escapeHtml(rows[0] && (rows[0].time || rows[0].timestamp || ""))}</text><text class="chart-axis" x="748" y="202" text-anchor="end">${escapeHtml(rows[rows.length - 1] && (rows[rows.length - 1].time || rows[rows.length - 1].timestamp || ""))}</text>`;
   }
   function renderParity(data, options) {
-    const intraday = Array.isArray(data.intraday) ? data.intraday.slice(-80) : [];
+    const intraday = Array.isArray(data.intraday) && data.intraday.length ? data.intraday.slice(-80) : (Array.isArray(data.daily) ? data.daily.slice(-80).map(row => ({...row, time: row.trading_date})) : []);
     renderParityChart("#intradayChart", intraday, [intraday.map(row => row.median_score), intraday.map(row => row.leader_median_score), intraday.map(row => row.rest_median_score)], ["#3f735b","#e87958","#8bb8c9"]);
-    const queues = Array.isArray(data.queue_intraday) ? data.queue_intraday.slice(-80) : [];
-    renderParityChart("#queueChart", queues, [queues.map(row => row.buy_value_hmt), queues.map(row => row.sell_value_hmt)], ["#3f735b","#e87958"], true);
+    const queueSource = Array.isArray(data.queue_intraday) && data.queue_intraday.length ? data.queue_intraday.slice(-80) : [{time: "snapshot فعلی", buy_value_hmt: data.market && data.market.buy_value_hmt, sell_value_hmt: data.market && data.market.sell_value_hmt}];
+    renderParityChart("#queueChart", queueSource, [queueSource.map(row => row.buy_value_hmt), queueSource.map(row => row.sell_value_hmt)], ["#3f735b","#e87958"], true);
     const topQueue = Array.isArray(data.top_buy_queue) ? data.top_buy_queue : [];
-    const queueRows = $("#topBuyQueueRows"); if (queueRows) queueRows.innerHTML = topQueue.map((row,index) => `<tr><td>${core.faDigits(index + 1)}</td><td>${escapeHtml(row.symbol)}</td><td class="${numeric(row.score) >= 0 ? "positive" : "negative"}">${escapeHtml(signed(row.score))}</td><td>${escapeHtml(core.formatQueueBillion(row.buy_queue_value_toman))}</td><td>${escapeHtml(core.formatMillionToman(row.buy_per_capita_toman))}</td><td>${escapeHtml(core.formatNumber(row.buyer_power, 1))}</td></tr>`).join("") || parityEmpty;
+    const queueRows = $("#topBuyQueueRows"); if (queueRows) queueRows.innerHTML = topQueue.map(row => `<tr><td>${escapeHtml(row.symbol)}</td><td class="${numeric(row.score) >= 0 ? "positive" : "negative"}">${escapeHtml(signed(row.score, 1))}</td><td>${escapeHtml(core.formatQueueBillion(row.buy_queue_value_toman))}</td><td>${escapeHtml(core.formatBillionToman(row.avg15_trade_value_toman))}</td><td>${escapeHtml(core.formatPercent(row.legal_sell_pct, 1))}</td></tr>`).join("") || '<tr><td colspan="5" class="parity-empty">صف خرید معتبر برای نمایش نیست.</td></tr>';
     const stockMap = new Map((Array.isArray(data.stocks) ? data.stocks : []).map(row => [row.symbol, row]));
-    const leaders = leaderSymbols.map(symbol => stockMap.get(symbol) || {symbol, score:null, buy_queue_value_toman:null}).sort((a,b) => (numeric(b.score) || -Infinity) - (numeric(a.score) || -Infinity));
-    const leaderRows = $("#leaderRows"); if (leaderRows) leaderRows.innerHTML = leaders.map(row => `<tr><td>${escapeHtml(row.symbol)}</td><td class="${numeric(row.score) >= 0 ? "positive" : "negative"}">${escapeHtml(signed(row.score))}</td><td>${escapeHtml(core.formatQueueBillion(row.buy_queue_value_toman))}</td></tr>`).join("") || parityEmpty;
-    const industries = Array.isArray(data.industry_table) ? data.industry_table.slice(0,48) : (Array.isArray(data.industries) ? data.industries : []);
-    const industryRows = $("#industryRows"); if (industryRows) industryRows.innerHTML = industries.map(row => `<tr><td>${escapeHtml(row.industry)}</td><td>${escapeHtml(integer(row.stock_count !== undefined ? row.stock_count : row.count))}</td><td>${escapeHtml(signed(row.median_score !== undefined ? row.median_score : row.median))}</td><td>${escapeHtml(core.formatBillionToman(row.buy_queue_value_toman))}</td></tr>`).join("") || parityEmpty;
+    const ranking = [...(Array.isArray(data.stocks) ? data.stocks : [])].filter(row => numeric(row.score) !== null).sort((a,b) => numeric(b.score) - numeric(a.score));
+    const leaders = leaderSymbols.map(symbol => stockMap.get(symbol) || {symbol, score:null, score_rank:null, score_rank_total:null, buy_queue_value_toman:null}).sort((a,b) => (numeric(b.score) || -Infinity) - (numeric(a.score) || -Infinity));
+    const position = row => numeric(row.score_rank) !== null && numeric(row.score_rank_total) ? `${core.faDigits(Math.round((row.score_rank / row.score_rank_total) * 100))}٪` : (numeric(row.score) === null ? "—" : `${core.faDigits(ranking.findIndex(item => item.symbol === row.symbol) + 1)} / ${core.faDigits(ranking.length)}`);
+    const leaderRows = $("#leaderRows"); if (leaderRows) leaderRows.innerHTML = leaders.map(row => `<tr><td>${escapeHtml(row.symbol)}</td><td class="${numeric(row.score) >= 0 ? "positive" : "negative"}">${escapeHtml(signed(row.score, 1))}</td><td>${escapeHtml(position(row))}</td><td>${escapeHtml(core.formatQueueBillion(row.buy_queue_value_toman))}</td>`).join("") || parityEmpty;
+    const industries = Array.isArray(data.industry_table) ? data.industry_table : (Array.isArray(data.industries) ? data.industries : []);
+    const industryAverages = new Map();
+    (Array.isArray(data.stocks) ? data.stocks : []).forEach(row => { const value = numeric(row.avg15_trade_value_toman); if (!row.industry || value === null) return; const item = industryAverages.get(row.industry) || {sum: 0, count: 0}; item.sum += value; item.count += 1; industryAverages.set(row.industry, item); });
+    const industryRows = $("#industryRows"); if (industryRows) industryRows.innerHTML = industries.map(row => { const avg = row.avg_trade_value_15d_toman !== undefined ? row.avg_trade_value_15d_toman : (industryAverages.has(row.industry) ? industryAverages.get(row.industry).sum / industryAverages.get(row.industry).count : null); return `<tr><td>${escapeHtml(row.industry)}</td><td>${escapeHtml(signed(row.median_score !== undefined ? row.median_score : row.median, 1))}</td><td>${escapeHtml(core.formatBillionToman(row.trade_value_toman !== undefined ? row.trade_value_toman : row.turnover_toman))}</td><td>${escapeHtml(core.formatBillionToman(avg))}</td></tr>`; }).join("") || '<tr><td colspan="4" class="parity-empty">داده صنعت برای نمایش نیست.</td></tr>';
+    const comprehensiveRows = $("#comprehensiveRows"); if (comprehensiveRows) comprehensiveRows.innerHTML = (Array.isArray(data.stocks) ? data.stocks : []).map(row => `<tr><td>${escapeHtml(row.symbol)}</td><td>${escapeHtml(row.industry)}</td><td>${escapeHtml(signed(row.score, 1))}</td><td>—</td><td>${escapeHtml(row.score_position_pct === null || row.score_position_pct === undefined ? "—" : core.formatPercent(row.score_position_pct, 0))}</td><td>—</td><td>${escapeHtml(core.formatBillionToman(row.avg15_trade_value_toman))}</td><td>${escapeHtml(core.formatPercent(core.number(row.last_price) === null || core.number(row.close_price) === null || core.number(row.close_price) === 0 ? null : ((row.last_price - row.close_price) / row.close_price) * 100, 1))}</td><td>${escapeHtml(core.formatQueueBillion(row.buy_queue_value_toman || row.sell_queue_value_toman))}</td><td>${escapeHtml(core.formatMillionToman(row.buy_per_capita_toman))}</td><td>${escapeHtml(core.formatNumber(row.buyer_power, 1))}</td><td>${escapeHtml(core.formatPercent(row.legal_buy_pct, 1))}</td><td>${escapeHtml(core.formatPercent(row.legal_sell_pct, 1))}</td></tr>`).join("") || parityEmpty;
+    const fundRows = $("#fundRows"), funds = data.fund_report && Array.isArray(data.fund_report.rows) ? data.fund_report.rows : [];
+    if (fundRows) fundRows.innerHTML = funds.map((row,index) => `<tr><td>${core.faDigits(index + 1)}</td><td>${escapeHtml(row.symbol)}</td><td>${escapeHtml(core.formatPercent(row.bubble_pct, 1))}</td><td>${escapeHtml(core.formatBillionToman(row.avg_daily_value_toman))}</td><td>${escapeHtml(signed(row.portfolio_score, 1))}</td><td>${escapeHtml(signed(row.board_score, 1))}</td><td>${escapeHtml(signed(row.score_diff, 1))}</td><td>${escapeHtml(row.display_portfolio_date || row.portfolio_last_update || "—")}</td></tr>`).join("") || '<tr><td colspan="8" class="parity-empty">داده صندوق‌های سهامی موجود نیست.</td></tr>';
     const payload = options && typeof options === "object" ? options : data.options || {};
     const pairs = Array.isArray(payload.pairs) ? payload.pairs.filter(pair => pair.eligible === true) : [];
     setText("#optionsState", payload.message || (pairs.length ? "جفت‌های واجد شرایط نمایش داده می‌شوند." : "فعلاً جفت واجد شرایطی برای نمایش نیست."));
@@ -172,6 +174,15 @@
     } finally { loading = false; }
   }
 
+  const themeToggle = $("#themeToggle");
+  const applyTheme = (dark) => {
+    document.documentElement.classList.toggle("dark-mode", dark);
+    if (themeToggle) { themeToggle.querySelector("b").textContent = dark ? "لایت" : "دارک"; themeToggle.setAttribute("aria-pressed", String(dark)); }
+  };
+  const savedTheme = window.localStorage ? window.localStorage.getItem("overview-2-theme") : null;
+  const systemDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+  applyTheme(savedTheme === "dark" || (savedTheme === null && systemDark));
+  if (themeToggle) themeToggle.addEventListener("click", () => { const dark = !document.documentElement.classList.contains("dark-mode"); applyTheme(dark); if (window.localStorage) window.localStorage.setItem("overview-2-theme", dark ? "dark" : "light"); });
   const refreshButton = $("#refreshButton");
   if (refreshButton) refreshButton.addEventListener("click", () => loadData(true));
   document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") loadData(); });

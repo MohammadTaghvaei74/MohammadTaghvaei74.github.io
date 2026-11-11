@@ -57,11 +57,11 @@ def build_queue_rows(stocks, now, conn, limit=10):
         avg = averages.get(symbol)
         queue = stock.get("buy_queue_value_toman")
         clean_stock = dict(stock)
-        clean_stock.pop("avg15_trade_value_toman", None)
-        clean_stock.pop("queue_to_avg15", None)
         output.append({**clean_stock,
             "avg_trade_value_toman": avg,
             "avg_trade_value_billion": None if avg is None else avg / 1e9,
+            "avg15_trade_value_toman": clean_stock.get("avg15_trade_value_toman"),
+            "avg15_trade_value_billion": None if clean_stock.get("avg15_trade_value_toman") is None else float(clean_stock["avg15_trade_value_toman"]) / 1e9,
             "queue_value_billion": None if queue is None else float(queue) / 1e9,
             "queue_to_avg": None if avg in (None, 0) else float(queue) / avg,
             "legal_buy_value_toman": None,
