@@ -366,3 +366,8 @@ html[data-theme="light"] main :where(.table-scroll table tbody td,.table-wrap ta
 html[data-theme="light"] main :where(.table-scroll table tbody tr:hover,.table-wrap table tbody tr:hover,.industry-table tbody tr:hover,.fund-report-table tbody tr:hover,.comprehensive-table tbody tr:hover) {
   background:#f0f7e8!important;
 }
+/* Signed metrics use semantic colors; inherently positive values keep text color. */
+:where(.score,.industry-score,.industry-median,.industry-signed-value,.positive,.up,.trend.positive){color:var(--theme-positive)!important}
+:where(.score.low,.industry-score.negative,.industry-median.negative,.negative,.down,.trend.negative){color:var(--theme-negative)!important}
+:where(.metric-value,.queue-number,.queue-buy,.queue-sell,.per-capita,.turnover-value,.avg-turnover,.money-value){color:var(--ink)!important}
+html[data-theme="dark"] :where(.metric-value,.queue-number,.queue-buy,.queue-sell,.per-capita,.turnover-value,.avg-turnover,.money-value){color:var(--ink)!important}

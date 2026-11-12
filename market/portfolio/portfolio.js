@@ -30,7 +30,7 @@
   const escapeHtml = (value) => String(value === null || value === undefined ? "—" : value).replace(/[&<>"']/g, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[character]));
   const money = (value) => { const parsed = portfolio.num(value); return parsed === null ? "—" : core.faDigits(parsed.toLocaleString("fa-IR", {maximumFractionDigits: 2, minimumFractionDigits: 0})); };
   const score = (value) => core.formatSigned(value, 1);
-  const percent = (value) => { const parsed = portfolio.num(value); return parsed === null ? "—" : `${core.faDigits((parsed * 100).toLocaleString("fa-IR", {maximumFractionDigits: 1, minimumFractionDigits: 1}))}٪`; };
+  const percent = (value) => { const parsed = portfolio.num(value); return parsed === null ? "—" : core.faDigits((parsed * 100).toLocaleString("fa-IR", {maximumFractionDigits: 1, minimumFractionDigits: 1})); };
   const rankMarkup = (rank) => rank ? `<bdi class="rank-value" dir="ltr">${core.faDigits(rank.rank)} از ${core.faDigits(rank.total)}</bdi>` : "—";
   const toast = (message) => { const node = $("#toast"); if (!node) return; node.textContent = message; node.classList.add("show"); clearTimeout(toast.timer); toast.timer = setTimeout(() => node.classList.remove("show"), 2400); };
 

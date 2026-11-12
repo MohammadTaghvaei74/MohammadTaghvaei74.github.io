@@ -241,19 +241,19 @@
   }
   function signedPercent(value) {
     var parsed = number(value);
-    return parsed === null ? "—" : (parsed > 0 ? "+" : parsed < 0 ? "−" : "") + formatNumber(Math.abs(parsed), 2) + "٪";
+    return parsed === null ? "—" : (parsed < 0 ? "−" : "") + formatNumber(Math.abs(parsed), 2);
   }
   function signedPercentOne(value) {
     var parsed = number(value);
-    return parsed === null ? "—" : (parsed > 0 ? "+" : parsed < 0 ? "−" : "") + formatNumber(Math.abs(parsed), 1) + "٪";
+    return parsed === null ? "—" : (parsed < 0 ? "−" : "") + formatNumber(Math.abs(parsed), 1);
   }
   function percentMarkup(value, digits) {
     var label = digits === 1 ? signedPercentOne(value) : signedPercent(value);
-    return label === "—" ? label : "<strong>" + escapeHtml(label.slice(0, -1)) + "</strong> <span class=\"percent-unit\">٪</span>";
+    return label === "—" ? label : "<strong>" + escapeHtml(label) + "</strong>";
   }
   function signedScore(value) {
     var parsed = number(value);
-    return parsed === null ? "—" : (parsed > 0 ? "+" : parsed < 0 ? "−" : "") + formatNumber(Math.abs(parsed), 2);
+    return parsed === null ? "—" : (parsed < 0 ? "−" : "") + formatNumber(Math.abs(parsed), 2);
   }
   function escapeHtml(value) {
     return String(value == null ? "" : value).replace(/[&<>"']/g, function (character) {
@@ -270,7 +270,7 @@
     median: median, buildIndustries: buildIndustries, filterIndustries: filterIndustries,
     searchSelection: searchSelection, sortStocks: sortStocks, parseComparison: parseComparison,
     filterSummary: filterSummary, formatNumber: formatNumber, formatBillion: formatBillion,
-    formatMillion: formatMillion, formatMillionBare: formatMillionBare, formatToman: function (value) { return number(value) === null ? "—" : formatBillion(value) + " میلیارد"; },
+    formatMillion: formatMillion, formatMillionBare: formatMillionBare, formatToman: function (value) { return number(value) === null ? "—" : formatBillion(value); },
     signedPct: signedPercent, signedPct1: signedPercentOne, signedScore: signedScore,
     summaryColumns: SUMMARY_COLUMNS, operatorOptions: OPERATOR_OPTIONS,
     textOperatorOptions: TEXT_OPERATOR_OPTIONS,

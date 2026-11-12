@@ -43,7 +43,7 @@
   const formatValueBillion = (value) => { const parsed = numeric(value); return parsed === null ? "—" : core.faDigits(Math.round(parsed / 1e9).toLocaleString("fa-IR")); };
   const signed = (value, digits = 1) => core.formatSigned(value, digits);
   const pct = (value) => core.formatPercent(value, 1);
-  const percentMarkup = (value) => { const label = pct(value); return label === "—" ? label : `<strong>${escapeHtml(label.slice(0, -1))}</strong> <span class="percent-unit">٪</span>`; };
+  const percentMarkup = (value) => { const label = pct(value); return label === "—" ? label : `<strong>${escapeHtml(label)}</strong>`; };
   const integer = (value) => core.formatInteger(value);
   const closePct = (row) => core.closePercent(row.close_price, row.yesterday_price);
   const lastCloseDiffPct = (row) => {
@@ -66,7 +66,7 @@
     const position = scorePosition(row, ranking);
     if (!position) return "<span class=\"market-position missing\">—</span>";
     const percentage = Math.round((position.rank / position.total) * 100);
-    return `<span class="market-position" title="رتبه ${core.faDigits(position.rank)} از ${core.faDigits(position.total)}"><strong>${core.faDigits(percentage)}</strong> <span class="percent-unit">٪</span></span>`;
+    return `<span class="market-position" title="رتبه ${core.faDigits(position.rank)} از ${core.faDigits(position.total)}"><strong>${core.faDigits(percentage)}</strong></span>`;
   }
 
   function toast(message) {
@@ -547,14 +547,14 @@
     const element = $("#topBuyQueue");
     if (!element) return;
     const valueB = (v) => numeric(v) === null ? "—" : escapeHtml(core.formatNumber(numeric(v) / 1000000000, 0));
-    const valuePct = (v) => numeric(v) === null ? "—" : escapeHtml(core.formatNumber(v, 0) + "%");
+    const valuePct = (v) => numeric(v) === null ? "—" : escapeHtml(core.formatNumber(v, 0));
     const valueM = (v) => numeric(v) === null ? "—" : escapeHtml(core.formatNumber(numeric(v) / 1000000, 0));
     const valuePower = (v) => numeric(v) === null ? "—" : escapeHtml(core.formatNumber(v, 0));
     const legalPct = (v, kind) => {
       const parsed = numeric(v);
       if (parsed === null) return `<span class="legal-pct">—</span>`;
       const qualified = kind === "buy" ? parsed > 20 : parsed > 40;
-      return `<span class="legal-pct ${kind} ${qualified ? "qualified" : ""}">${escapeHtml(core.formatNumber(parsed, 0) + "%")}</span>`;
+      return `<span class="legal-pct ${kind} ${qualified ? "qualified" : ""}">${escapeHtml(core.formatNumber(parsed, 0))}</span>`;
     };
     element.innerHTML = rows.map((row, index) => `<tr><td>${core.faDigits(index + 1)}</td><td><a class="ranking-symbol" href="symbols/?symbol=${encodeURIComponent(row.symbol || "")}">${escapeHtml(row.symbol)}</a></td><td><span class="queue-number">${escapeHtml(signed(row.score))}</span></td><td><span class="queue-number">${valueB(row.avg_trade_value_toman !== null && row.avg_trade_value_toman !== undefined ? row.avg_trade_value_toman : row.avg15_trade_value_toman)}</span></td><td><span class="queue-number">${valueB(row.buy_queue_value_toman)}</span></td><td><span class="queue-number">${numeric(row.queue_to_avg !== null && row.queue_to_avg !== undefined ? row.queue_to_avg : row.queue_to_avg15) === null ? "—" : `${escapeHtml(core.formatNumber(row.queue_to_avg !== null && row.queue_to_avg !== undefined ? row.queue_to_avg : row.queue_to_avg15, 0))}×`}</span></td><td><span class="queue-number">${valueM(row.buy_per_capita_toman)}</span></td><td><span class="queue-number">${valuePower(row.buyer_power)}</span></td><td>${legalPct(row.legal_buy_pct, "buy")}</td><td>${legalPct(row.legal_sell_pct, "sell")}</td></tr>`).join("") || `<tr><td colspan="10">صف خرید معتبر برای نمایش نیست.</td></tr>`;
   }
@@ -648,7 +648,7 @@
       const industry = String(row.industry || "بدون صنعت");
       const rank = numeric(row.rank) || index + 1;
       const rankPercent = numeric(row.rank_position_pct) || Math.round(rank / totalIndustries * 100);
-      return `<tr><td class="industry-name-cell"><a href="industries/?industry=${encodeURIComponent(industry)}" aria-label="مشاهده سهام صنعت ${escapeHtml(industry)}">${escapeHtml(industry)}</a></td><td data-sort-value="${rank}"><bdi dir="ltr" title="رتبه ${escapeHtml(integer(rank))} از ${escapeHtml(integer(totalIndustries))}"><strong>${escapeHtml(integer(rankPercent))}</strong> <span class="percent-unit">٪</span></bdi></td><td>${escapeHtml(integer(row.count))}</td><td><span class="industry-median ${positive ? "" : "negative"}">${escapeHtml(signed(score))}</span></td><td data-sort-value="${numeric(row.turnover_toman) === null ? "" : row.turnover_toman}">${escapeHtml(formatValueBillion(row.turnover_toman))}</td><td data-sort-value="${numeric(row.avg_trade_value_15d_toman) === null ? "" : row.avg_trade_value_15d_toman}">${escapeHtml(formatValueBillion(row.avg_trade_value_15d_toman))}</td><td data-sort-value="${row.turnover_to_15d_ratio === null ? "" : row.turnover_to_15d_ratio}"><bdi dir="ltr">${row.turnover_to_15d_ratio === null ? "—" : escapeHtml(optionsNumber(row.turnover_to_15d_ratio, 2)) + "×"}</bdi></td><td data-sort-value="${numeric(row.avg_last_close_diff_pct) === null ? "" : row.avg_last_close_diff_pct}"><bdi dir="ltr" class="industry-signed-value">${percentMarkup(row.avg_last_close_diff_pct)}</bdi></td></tr>`;
+      return `<tr><td class="industry-name-cell"><a href="industries/?industry=${encodeURIComponent(industry)}" aria-label="مشاهده سهام صنعت ${escapeHtml(industry)}">${escapeHtml(industry)}</a></td><td data-sort-value="${rank}"><bdi dir="ltr" title="رتبه ${escapeHtml(integer(rank))} از ${escapeHtml(integer(totalIndustries))}"><strong>${escapeHtml(integer(rankPercent))}</strong></bdi></td><td>${escapeHtml(integer(row.count))}</td><td><span class="industry-median ${positive ? "" : "negative"}">${escapeHtml(signed(score))}</span></td><td data-sort-value="${numeric(row.turnover_toman) === null ? "" : row.turnover_toman}">${escapeHtml(formatValueBillion(row.turnover_toman))}</td><td data-sort-value="${numeric(row.avg_trade_value_15d_toman) === null ? "" : row.avg_trade_value_15d_toman}">${escapeHtml(formatValueBillion(row.avg_trade_value_15d_toman))}</td><td data-sort-value="${row.turnover_to_15d_ratio === null ? "" : row.turnover_to_15d_ratio}"><bdi dir="ltr">${row.turnover_to_15d_ratio === null ? "—" : escapeHtml(optionsNumber(row.turnover_to_15d_ratio, 2)) + "×"}</bdi></td><td data-sort-value="${numeric(row.avg_last_close_diff_pct) === null ? "" : row.avg_last_close_diff_pct}"><bdi dir="ltr" class="industry-signed-value">${percentMarkup(row.avg_last_close_diff_pct)}</bdi></td></tr>`;
     }).join("");
     const element = $("#industriesGrid");
     if (element) element.innerHTML = markup || `<tr><td colspan="8" class="industry-empty">هیچ صنعتی با فیلتر فعلی منطبق نیست؛ فیلترها را پاک کنید.</td></tr>`;
@@ -718,7 +718,7 @@
   bindIndustryColumnFilters();
 
   const optionsNumber = (value, digits = 0) => { const parsed = numeric(value); return parsed === null ? "—" : core.faDigits(parsed.toLocaleString("fa-IR", { maximumFractionDigits: digits, minimumFractionDigits: digits })); };
-  const optionsPercent = (value) => { const parsed = numeric(value); return parsed === null ? "—" : `<strong>${optionsNumber(parsed, 1)}</strong> <span class="percent-unit">٪</span>`; };
+  const optionsPercent = (value) => { const parsed = numeric(value); return parsed === null ? "—" : `<strong>${optionsNumber(parsed, 1)}</strong>`; };
   function optionsStatusLabel(status) { return ({ ready: "داده معتبر آماده است.", no_opportunity: "فعلاً جفت واجد شرایط پیدا نشد.", insufficient_data: "داده کافی برای محاسبه کامل نیست.", stale: "داده آپشن قدیمی است.", unavailable: "منبع داده آپشن در دسترس نیست." }[status] || "وضعیت داده نامشخص است."); }
   function renderFundReport(data) {
     const payload = data && data.fund_report || {};
@@ -733,8 +733,8 @@
     const n = (value, digits = 1) => numeric(value) === null ? "—" : core.faDigits(Number(value).toLocaleString("fa-IR", {minimumFractionDigits: digits, maximumFractionDigits: digits}));
     const faText = (value) => value === null || value === undefined || value === "" ? "—" : core.faDigits(String(value));
     const scoreMarkup = (value) => numeric(value) === null ? "—" : `<bdi dir="ltr">${escapeHtml(core.formatSigned(value, 1))}</bdi>`;
-    const bubbleMarkup = (value) => numeric(value) === null ? "—" : `<bdi dir="ltr">${escapeHtml(core.formatSigned(value, 1))}٪</bdi>`;
-    const historyBubbleMarkup = (value) => numeric(value) === null ? "—" : `<bdi dir="ltr">${escapeHtml(core.formatSigned(value, 2))}٪</bdi>`;
+    const bubbleMarkup = (value) => numeric(value) === null ? "—" : `<bdi dir="ltr">${escapeHtml(core.formatSigned(value, 1))}</bdi>`;
+    const historyBubbleMarkup = (value) => numeric(value) === null ? "—" : `<bdi dir="ltr">${escapeHtml(core.formatSigned(value, 2))}</bdi>`;
     const boardMarkup = (value) => numeric(value) === null ? "—" : `<bdi dir="ltr">${escapeHtml(core.formatSigned(value, 2))}</bdi>`;
     element.innerHTML = rows.map((row, index) => `<tr><td>${core.faDigits(index + 1)}</td><td><b>${escapeHtml(row.symbol || "—")}</b>${String(row.description || "").includes("اهرمی") ? ' <span class="fund-leveraged">🔥</span>' : ""}</td><td>${bubbleMarkup(row.bubble_pct)}</td><td>${n(row.liquidity, 1)}</td><td>${scoreMarkup(row.portfolio_score)}</td><td>${boardMarkup(row.board_score)}</td><td>${scoreMarkup(row.score_diff)}</td><td>${faText(row.portfolio_last_update || row.report_date)}</td></tr>`).join("") || `<tr><td colspan="8">گزارش صندوق‌ها هنوز آماده نیست.</td></tr>`;
   }

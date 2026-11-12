@@ -39,7 +39,7 @@
     const position = scorePosition(row, ranking);
     if (!position) return "<span class=\"market-position missing\">—</span>";
     const percentage = Math.round((position.rank / position.total) * 100);
-    return `<span class="market-position" title="رتبه ${core.faDigits(position.rank)} از ${core.faDigits(position.total)}">${core.faDigits(percentage)}٪</span>`;
+    return `<span class="market-position" title="رتبه ${core.faDigits(position.rank)} از ${core.faDigits(position.total)}">${core.faDigits(percentage)}</span>`;
   }
 
   function toast(message) {
@@ -159,7 +159,7 @@
     if (!element) return;
     const valueB = (v) => numeric(v) === null ? "—" : escapeHtml(core.formatNumber(numeric(v) / 1e9, 0));
     const valueQueueB = (v) => numeric(v) === null ? "—" : escapeHtml(core.formatQueueBillion(v));
-    const valuePct = (v) => numeric(v) === null ? "—" : escapeHtml(core.formatNumber(v, 0) + "%");
+    const valuePct = (v) => numeric(v) === null ? "—" : escapeHtml(core.formatNumber(v, 0));
     const valueM = (v) => numeric(v) === null ? "—" : escapeHtml(core.formatNumber(numeric(v) / 1e6, 0));
     const valuePower = (v) => numeric(v) === null ? "—" : escapeHtml(core.formatNumber(v, 1));
     element.innerHTML = rows.map((row, index) => `<tr><td>${core.faDigits(index + 1)}</td><td><a class="ranking-symbol" href="symbols/?symbol=${encodeURIComponent(row.symbol || "")}">${escapeHtml(row.symbol)}</a></td><td><span dir="ltr" class="score ${scoreClass(row.score)}">${escapeHtml(signed(row.score))}</span></td><td>${valueB(row.avg_trade_value_toman !== null && row.avg_trade_value_toman !== undefined ? row.avg_trade_value_toman : row.avg15_trade_value_toman)}</td><td><span class="queue-buy">${valueQueueB(row.buy_queue_value_toman)}</span></td><td>${numeric(row.queue_to_avg !== null && row.queue_to_avg !== undefined ? row.queue_to_avg : row.queue_to_avg15) === null ? "—" : `${escapeHtml(core.formatNumber(row.queue_to_avg !== null && row.queue_to_avg !== undefined ? row.queue_to_avg : row.queue_to_avg15, 1))}×`}</td><td>${valueM(row.buy_per_capita_toman)}</td><td>${valuePower(row.buyer_power)}</td><td>${valuePct(row.legal_buy_pct)}</td><td>${valuePct(row.legal_sell_pct)}</td></tr>`).join("") || `<tr><td colspan="10">صف خرید معتبر برای نمایش نیست.</td></tr>`;
@@ -217,7 +217,7 @@
   }
 
   const optionsNumber = (value, digits = 0) => { const parsed = numeric(value); return parsed === null ? "—" : core.faDigits(parsed.toLocaleString("fa-IR", { maximumFractionDigits: digits, minimumFractionDigits: digits })); };
-  const optionsPercent = (value) => { const parsed = numeric(value); return parsed === null ? "—" : `${optionsNumber(parsed, 1)}٪`; };
+  const optionsPercent = (value) => { const parsed = numeric(value); return parsed === null ? "—" : optionsNumber(parsed, 1); };
   function optionsStatusLabel(status) { return ({ ready: "داده معتبر آماده است.", no_opportunity: "فعلاً جفت واجد شرایط پیدا نشد.", insufficient_data: "داده کافی برای محاسبه کامل نیست.", stale: "داده آپشن قدیمی است.", unavailable: "منبع داده آپشن در دسترس نیست." }[status] || "وضعیت داده نامشخص است."); }
   function renderOptions(options) {
     const payload = options && typeof options === "object" ? options : {};

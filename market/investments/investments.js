@@ -3,8 +3,8 @@ const fa=v=>String(v==null?'—':v).replace(/[0-9]/g,d=>'۰۱۲۳۴۵۶۷۸۹'[+
 const esc=v=>String(v==null?'—':v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const num=v=>typeof v==='number'&&Number.isFinite(v)?v:null;
 const fmt=(v,d=2)=>num(v)==null?'—':fa(v.toLocaleString('fa-IR',{maximumFractionDigits:d}));
-const signed=v=>num(v)==null?'—':`${v>0?'+':''}${fmt(v,2)}`;
-const pct=v=>num(v)==null?'—':`${fmt(v,2)}٪`;
+const signed=v=>num(v)==null?'—':`${v<0?'−':''}${fmt(Math.abs(v),2)}`;
+const pct=v=>num(v)==null?'—':fmt(v,2);
 const money=v=>num(v)==null?'—':`${fmt(v,0)} میلیون ریال`;
 const dateText=v=>{if(v==null||v==='')return '—';const raw=String(v);if(/^\d{4}[-/]\d{2}[-/]\d{2}$/.test(raw))return fa(raw.replace(/-/g,'/'));try{return new Intl.DateTimeFormat('fa-IR-u-ca-persian',{year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date(raw));}catch(_){return fa(raw);}};
 let payload=null;

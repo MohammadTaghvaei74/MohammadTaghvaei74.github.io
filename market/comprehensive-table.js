@@ -48,9 +48,9 @@
   };
   const formatBillion = (value) => { const parsed = num(value); return parsed == null ? "—" : digits(Math.round(parsed / 1e9).toLocaleString("fa-IR")); };
   const formatMillion = (value) => { const parsed = num(value); return parsed == null ? "—" : `${digits((parsed / 1e6).toLocaleString("fa-IR", {maximumFractionDigits: 1}))} میلیون`; };
-  const signedPct = (value, fractionDigits) => { const parsed = num(value); return parsed == null ? "—" : `${parsed > 0 ? "+" : parsed < 0 ? "−" : ""}${format(Math.abs(parsed), fractionDigits)}٪`; };
-  const signedPctMarkup = (value, fractionDigits) => { const label = signedPct(value, fractionDigits); return label === "—" ? label : `<strong>${esc(label.slice(0, -1))}</strong> <span class="percent-unit">٪</span>`; };
-  const signedScore = (value) => { const parsed = num(value); return parsed == null ? "—" : `${parsed > 0 ? "+" : parsed < 0 ? "−" : ""}${format(Math.abs(parsed), 1)}`; };
+  const signedPct = (value, fractionDigits) => { const parsed = num(value); return parsed == null ? "—" : `${parsed < 0 ? "−" : ""}${format(Math.abs(parsed), fractionDigits)}`; };
+  const signedPctMarkup = (value, fractionDigits) => { const label = signedPct(value, fractionDigits); return label === "—" ? label : `<strong>${esc(label)}</strong>`; };
+  const signedScore = (value) => { const parsed = num(value); return parsed == null ? "—" : `${parsed < 0 ? "−" : ""}${format(Math.abs(parsed), 1)}`; };
   const cellValue = (row, key) => key === "symbol" ? String(row[key] || "") : num(row[key]);
   const positionPercent = (rank, total) => {
     const r = num(rank), t = num(total);
@@ -104,7 +104,7 @@
     return result;
   }
   function metricCell(value, type, sortValue, title) {
-    const label = type === "billion" ? formatBillion(value) : type === "million0" ? (num(value) == null ? "—" : digits(Math.round(num(value) / 1e6).toLocaleString("fa-IR"))) : type === "pct1" ? signedPctMarkup(value, 1) : type === "pct0" ? signedPctMarkup(value, 0) : type === "position" ? (num(value) == null ? "—" : `<strong>${digits(num(value))}</strong> <span class="percent-unit">٪</span>`) : type === "industry" ? (value || "—") : type === "score" ? signedScore(value) : format(value, type === "power" ? 1 : 1);
+    const label = type === "billion" ? formatBillion(value) : type === "million0" ? (num(value) == null ? "—" : digits(Math.round(num(value) / 1e6).toLocaleString("fa-IR"))) : type === "pct1" ? signedPctMarkup(value, 1) : type === "pct0" ? signedPctMarkup(value, 0) : type === "position" ? (num(value) == null ? "—" : `<strong>${digits(num(value))}</strong>`) : type === "industry" ? (value || "—") : type === "score" ? signedScore(value) : format(value, type === "power" ? 1 : 1);
     return `<td data-sort-value="${sortValue == null ? "" : esc(sortValue)}"${title ? ` title="${esc(title)}"` : ""}><bdi>${label.indexOf("<") >= 0 ? label : esc(label)}</bdi></td>`;
   }
   function mergeSnapshotRows(detail) {

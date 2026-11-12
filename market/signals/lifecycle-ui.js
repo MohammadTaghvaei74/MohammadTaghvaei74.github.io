@@ -6,7 +6,7 @@
   const fmtNumber = (value, digits = 2) => Number.isFinite(Number(value))
     ? faDigits(Number(value).toLocaleString('fa-IR', { maximumFractionDigits: digits, minimumFractionDigits: digits }))
     : '—';
-  const fmtPct = (value) => Number.isFinite(Number(value)) ? `${value > 0 ? '+' : ''}${fmtNumber(value)}٪` : '—';
+  const fmtPct = (value) => Number.isFinite(Number(value)) ? `${Number(value) < 0 ? '−' : ''}${fmtNumber(Math.abs(Number(value)))}` : '—';
   const fmtDate = (value) => {
     if (!value || Number.isNaN(Date.parse(value))) return '—';
     return faDigits(new Date(value).toLocaleString('fa-IR', {
@@ -75,7 +75,7 @@
       $('#performanceDetails').textContent = '—';
     } else {
       performanceState.textContent = 'آمار تحقق‌یافته بر اساس پرونده‌های بسته معتبر.';
-      $('#performanceDetails').textContent = `برد: ${faDigits(publicStats.wins)} · سربه‌سر: ${faDigits(publicStats.breakeven)} · باخت: ${faDigits(publicStats.losses)} · Win Rate: ${fmtPct(publicStats.win_rate)} · PF: ${fmtNumber(publicStats.profit_factor)} · افت تحقق‌یافته: ${fmtNumber(publicStats.max_drawdown_points)}٪`;
+      $('#performanceDetails').textContent = `برد: ${faDigits(publicStats.wins)} · سربه‌سر: ${faDigits(publicStats.breakeven)} · باخت: ${faDigits(publicStats.losses)} · Win Rate: ${fmtPct(publicStats.win_rate)} · PF: ${fmtNumber(publicStats.profit_factor)} · افت تحقق‌یافته: ${fmtPct(publicStats.max_drawdown_points)}`;
     }
   }
 

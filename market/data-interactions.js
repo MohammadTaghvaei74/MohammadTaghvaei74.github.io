@@ -2,7 +2,7 @@
 (function (root) {
   'use strict';
   var KEYS = ['symbol','industry','score','score_10d_total','score_position_pct','industry_score_position_pct','avg_trade_value_toman','last_close_diff_pct','queue_value_toman','buy_per_capita_toman','buyer_power','legal_buy_pct','legal_sell_pct'];
-  var LABELS = {symbol:'نماد',industry:'صنعت',score:'امتیاز',score_10d_total:'مجموع ۱۰ روزه',score_position_pct:'جایگاه بازار',industry_score_position_pct:'جایگاه صنعت',avg_trade_value_toman:'میانگین ارزش (میلیارد تومان)',last_close_diff_pct:'اختلاف آخرین و پایانی (%)',queue_value_toman:'صف (میلیارد تومان)',buy_per_capita_toman:'سرانه خرید (میلیون تومان)',buyer_power:'قدرت',legal_buy_pct:'خرید حقوقی (%)',legal_sell_pct:'فروش حقوقی (%)'};
+  var LABELS = {symbol:'نماد',industry:'صنعت',score:'امتیاز',score_10d_total:'مجموع ۱۰ روزه',score_position_pct:'جایگاه بازار',industry_score_position_pct:'جایگاه صنعت',avg_trade_value_toman:'میانگین ارزش (میلیارد تومان)',last_close_diff_pct:'اختلاف آخرین و پایانی',queue_value_toman:'صف (میلیارد تومان)',buy_per_capita_toman:'سرانه خرید (میلیون تومان)',buyer_power:'قدرت',legal_buy_pct:'خرید حقوقی',legal_sell_pct:'فروش حقوقی'};
   var STORAGE = 'sorena.comprehensive.presets.v1';
   var CHARTS = {
     turnoverChart: ['.turnover-bar','.ma5-path','.ma20-path'],

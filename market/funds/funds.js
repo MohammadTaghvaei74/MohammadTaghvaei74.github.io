@@ -29,11 +29,11 @@
   const publicNote = value => !value ? '' : /[A-Za-z]/.test(String(value)) ? 'جزئیات گزارش کامل نیست؛ فایل اصلی را بررسی کنید.' : String(value);
   const initialSymbol = (funds, requested, prior) => { const requestedFund=funds.find(f=>f.symbol===requested), priorFund=funds.find(f=>f.symbol===prior), available=funds.find(f=>portfolioModel(f).available); return requestedFund ? requestedFund.symbol : priorFund ? priorFund.symbol : available ? available.symbol : funds.length ? funds[0].symbol : ''; };
   const fmt = (v,d=2) => number(v) === null ? '—' : v.toLocaleString('fa-IR',{maximumFractionDigits:d});
-  const pct = v => number(v) === null ? 'نامشخص' : v > 0 && v < 0.05 ? 'کمتر از ۰٫۱٪' : `${v.toLocaleString('fa-IR',{minimumFractionDigits:1,maximumFractionDigits:1})}٪`;
+  const pct = v => number(v) === null ? 'نامشخص' : v > 0 && v < 0.05 ? 'کمتر از ۰٫۱' : `${v.toLocaleString('fa-IR',{minimumFractionDigits:1,maximumFractionDigits:1})}`;
   const holdingLabel = h => String(h.symbol || h.name || '').replace(/ي/g,'ی').replace(/ك/g,'ک');
   const color = i => `hsl(${(i*137.5+165)%360} 48% 38%)`;
   function chartMarkup(items, model, id) {
-    if (model.overflow) return '<p class="fund-warning">مجموع وزن‌های گزارش بیش از ۱۰۰٪ است؛ برای جلوگیری از نمایش گمراه‌کننده، نمودار رسم نمی‌شود. وزن‌های اصلی در جدول حفظ شده‌اند.</p>';
+    if (model.overflow) return '<p class="fund-warning">مجموع وزن‌های گزارش بیش از ۱۰۰ است؛ برای جلوگیری از نمایش گمراه‌کننده، نمودار رسم نمی‌شود. وزن‌های اصلی در جدول حفظ شده‌اند.</p>';
     if (!model.available || !items.some(x=>x.weight_pct !== null)) return '<p class="fund-empty">وزن معتبر برای رسم نمودار در دسترس نیست.</p>';
     const slices = [...items].sort((a,b)=>(b.weight_pct === null || b.weight_pct === undefined ? -1 : b.weight_pct)-(a.weight_pct === null || a.weight_pct === undefined ? -1 : a.weight_pct)).map(x=>({name:holdingLabel(x),weight_pct:x.weight_pct,unknown:x.unknown}));
     if (model.remainder>0) slices.push({name:'افشا‌نشده / غیرسهامی',weight_pct:model.remainder,remainder:true});
@@ -90,7 +90,7 @@
         $('sourceLink').hidden=!source; $('sourceMissing').hidden=!!source;
         if(source){$('sourceLink').href=source;$('sourceLink').textContent=`↓ ${fund.source_label || 'دریافت فایل اصلی گزارش'}`;}
         else $('sourceLink').removeAttribute('href');
-        $('portfolioStatus').textContent=(model.available?`${fmt(model.holdings.length,0)} ردیف سهام؛ مجموع وزن معلوم ${pct(model.total)}.${model.unknown?` وزن ${fmt(model.unknown,0)} ردیف نامشخص است.`:''}${model.overflow?' هشدار: مجموع وزن‌ها بیش از ۱۰۰٪؛ نمودارها غیرفعال شده‌اند.':''}`:'ریز سهام معتبر برای این صندوق در دسترس نیست. اگر فایل منبع موجود است، گزارش اصلی را بررسی کنید.')+(fund.note?` ${publicNote(fund.note)}`:'');
+        $('portfolioStatus').textContent=(model.available?`${fmt(model.holdings.length,0)} ردیف سهام؛ مجموع وزن معلوم ${pct(model.total)}.${model.unknown?` وزن ${fmt(model.unknown,0)} ردیف نامشخص است.`:''}${model.overflow?' هشدار: مجموع وزن‌ها بیش از ۱۰۰؛ نمودارها غیرفعال شده‌اند.':''}`:'ریز سهام معتبر برای این صندوق در دسترس نیست. اگر فایل منبع موجود است، گزارش اصلی را بررسی کنید.')+(fund.note?` ${publicNote(fund.note)}`:'');
         $('holdingsCount').textContent=`${fmt(model.holdings.length,0)} ردیف سهام گزارش`;
         $('holdingsRows').innerHTML=[...model.holdings].sort((a,b)=>(b.weight_pct === null || b.weight_pct === undefined ? -1 : b.weight_pct)-(a.weight_pct === null || a.weight_pct === undefined ? -1 : a.weight_pct)).map(h=>`<tr><td>${escapeHtml(holdingLabel(h))}</td><td>${escapeHtml(h.industry)}</td><td><bdi>${pct(h.weight_pct)}</bdi></td><td>${escapeHtml(h.source_sheet || '—')} / ${escapeHtml(faText(h.source_row === null || h.source_row === undefined ? '—' : h.source_row))}</td></tr>`).join('') || empty(4,'ریز سهام در دسترس نیست.');
         $('industryRows').innerHTML=model.industries.map(g=>`<tr><td>${escapeHtml(g.name)}</td><td>${fmt(g.count,0)}</td><td><bdi>${pct(g.weight_pct)}</bdi></td><td>${g.unknown?`${fmt(g.unknown,0)} وزن نامشخص؛ جمع فقط وزن‌های معلوم`:'وزن‌های معلوم'}</td></tr>`).join('') || empty(4,'اطلاعات صنایع در دسترس نیست.');
