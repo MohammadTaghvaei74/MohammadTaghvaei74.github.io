@@ -30,36 +30,32 @@ function formatPercent(value, digits = 2) {
 function formatScore(value) { return formatSigned(value, 1); }
 function formatMillion(value, suffix = " M", digits = 1) {
   const parsed = number(value);
-  return parsed === null ? "—" : formatNumber(parsed / 1e6, digits);
+  return parsed === null ? "—" : `${formatNumber(parsed / 1e6, digits)}${suffix}`;
 }
 function formatBillion(value, suffix = " B", digits = 1) {
   const parsed = number(value);
-  return parsed === null ? "—" : formatNumber(parsed / 1e9, digits);
+  return parsed === null ? "—" : `${formatNumber(parsed / 1e9, digits)}${suffix}`;
 }
 function formatMillionToman(value) { return formatMillion(value, " M", 1); }
-function formatBillionToman(value) { return formatBillion(value, " B", 1); }
+function formatBillionToman(value) { return formatBillion(value, " B", 0); }
 function closePercent(closePrice, yesterdayPrice) {
   const close = number(closePrice), yesterday = number(yesterdayPrice);
   return close === null || yesterday === null || yesterday === 0 ? null : ((close - yesterday) / yesterday) * 100;
 }
 function formatQueueBillion(value) {
   const parsed = number(value);
-  return parsed === null || parsed <= 0 ? "—" : formatBillion(parsed, " B", 0);
+  return parsed === null || parsed <= 0 ? "—" : formatBillion(parsed, "", 0);
 }
-function sourceTimestamp(data) { return data && data.market && data.market.timestamp || data && data.generated_at || null; }
-function formatDate(value) {
+function sourceTimestamp(data) { return data && data.market && data.market.timestamp || null; }
+function formatDate(value, includeSeconds = false) {
   if (!value) return "—";
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "—";
   const datePart = new Intl.DateTimeFormat("fa-IR", { timeZone: TEHRAN_TIME_ZONE, year: "numeric", month: "short", day: "numeric" }).format(date);
-  const timePart = new Intl.DateTimeFormat("fa-IR", { timeZone: TEHRAN_TIME_ZONE, hour: "2-digit", minute: "2-digit" }).format(date);
+  const timePart = new Intl.DateTimeFormat("fa-IR", { timeZone: TEHRAN_TIME_ZONE, hour: "2-digit", minute: "2-digit", ...(includeSeconds ? { second: "2-digit" } : {}) }).format(date);
   return `${datePart} · ${timePart}`;
 }
 function findLeaders(data) { return (Array.isArray(data && data.groups) ? data.groups : []).find((group) => String(group.group_name || "").includes("لیدر")) || null; }
-function isBaseMarket(row) {
-  const value = String(row && (row.instrument_type || row.market_segment || row.market_title) || "").trim();
-  return ["P1", "C1", "L1"].includes(value.toUpperCase()) || value.includes("بازار پایه");
-}
 function allocation(marketMedian, leaderMedian) {
   const market = number(marketMedian), leaders = number(leaderMedian);
   if (market === null || leaders === null) return { key: "none", label: "داده تخصیص کافی نیست", gap: null };
@@ -75,7 +71,7 @@ function validateSnapshot(data) {
   for (const key of ["schema_version", "source", "generated_at", "market"]) if (!(key in data)) throw new Error(`فیلد الزامی «${key}» وجود ندارد.`);
   if (!data.market || typeof data.market !== "object" || Array.isArray(data.market)) throw new Error("ساختار market نامعتبر است.");
   const requiredArrays = ["groups", "top_stocks", "leveraged", "industries", "daily"];
-  if (number(data.schema_version) >= 2) requiredArrays.push("stocks", "top_buy_queue", "industry_table", "intraday", "queue_intraday");
+  if (number(data.schema_version) >= 2) requiredArrays.push("stocks", "top_buy_queue", "intraday", "queue_intraday");
   for (const key of requiredArrays) {
     if (!Array.isArray(data[key])) throw new Error(`فیلد «${key}» باید آرایه باشد.`);
     if (data[key].some((row) => !row || typeof row !== "object" || Array.isArray(row))) throw new Error(`ساختار ردیف «${key}» نامعتبر است.`);
@@ -99,6 +95,10 @@ function chartSeries(data) {
     rest: daily.map((row) => chartScore(row.rest_median_score)),
   };
 }
+function chartExtrema(values) {
+  const valid = (Array.isArray(values) ? values : []).map(number).filter((value) => value !== null);
+  return valid.length ? { min: Math.min(...valid), max: Math.max(...valid) } : { min: null, max: null };
+}
 function integerNiceTicks(minValue, maxValue, targetCount = 5) {
   let lo = Number(minValue), hi = Number(maxValue);
   if (!Number.isFinite(lo) || !Number.isFinite(hi)) return [];
@@ -113,7 +113,14 @@ function integerNiceTicks(minValue, maxValue, targetCount = 5) {
   const last = Math.ceil(hi / step) * step;
   return Array.from({ length: Math.round((last - first) / step) + 1 }, (_, index) => Math.round(first + index * step));
 }
+function chartScale(...series) {
+  const extrema = chartExtrema(series.flat());
+  if (extrema.min === null) return { min: -3, max: 3, ticks: [-3, -2, -1, 0, 1, 2, 3] };
+  const min = Math.min(-3, Math.floor(extrema.min));
+  const max = Math.max(3, Math.ceil(extrema.max));
+  return { min, max, ticks: Array.from({ length: max - min + 1 }, (_, index) => min + index) };
+}
 
-const api = { TEHRAN_TIME_ZONE, number, faDigits, formatNumber, formatInteger, formatSigned, formatPercent, formatScore, formatMillion, formatBillion, formatMillionToman, formatBillionToman, closePercent, formatQueueBillion, sourceTimestamp, formatDate, findLeaders, isBaseMarket, allocation, validateSnapshot, chartSeries, integerNiceTicks };
+const api = { TEHRAN_TIME_ZONE, number, faDigits, formatNumber, formatInteger, formatSigned, formatPercent, formatScore, formatMillion, formatBillion, formatMillionToman, formatBillionToman, closePercent, formatQueueBillion, sourceTimestamp, formatDate, findLeaders, allocation, validateSnapshot, chartSeries, chartExtrema, integerNiceTicks, chartScale };
 if (typeof module !== "undefined") module.exports = api;
 if (typeof window !== "undefined") window.MarketCore = api;

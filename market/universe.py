@@ -12,16 +12,13 @@ import statistics
 from typing import Any, Iterable
 
 BASE_MARKET_MARKER = "بازار پایه"
-BASE_MARKET_CODES = frozenset({"P1", "C1", "L1"})
 
 
 def is_base_market(row: dict[str, Any]) -> bool:
     """Return true only when the source explicitly identifies the base market."""
     value = row.get("instrument_type")
-    if str(value or "").strip().upper() in BASE_MARKET_CODES:
-        return True
     if value is None:
-        value = row.get("market_segment") or row.get("market_board_title") or row.get("market_flow_title") or row.get("market_title")
+        value = row.get("market_segment") or row.get("market_title")
     return BASE_MARKET_MARKER in str(value or "")
 
 
@@ -83,4 +80,4 @@ def aggregate_industries(rows: list[dict[str, Any]], selected: Iterable[str] | N
     return output[:limit]
 
 
-__all__ = ["BASE_MARKET_MARKER", "BASE_MARKET_CODES", "is_base_market", "analytical_rows", "aggregate_rows", "aggregate_industries"]
+__all__ = ["BASE_MARKET_MARKER", "is_base_market", "analytical_rows", "aggregate_rows", "aggregate_industries"]

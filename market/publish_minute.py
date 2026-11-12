@@ -65,6 +65,13 @@ def main() -> int:
     os.environ["SKIP_TSETMC_ENRICHMENT"] = "1"
     with p.connect() as conn:
         market = p.build_market(conn)
+        from market.universe import analytical_rows, aggregate_rows, aggregate_industries
+        analytical = analytical_rows(market.get("stocks", []))
+        market["market"] = dict(market.get("market") or {})
+        market["market"].update(aggregate_rows(analytical))
+        market["top_stocks"] = sorted(analytical, key=lambda row: (-(float(row.get("score")) if row.get("score") is not None else -1e99), str(row.get("symbol") or "")))[:10]
+        market["top_buy_queue"] = sorted([row for row in analytical if float(row.get("buy_queue_value_toman") or 0) > 0], key=lambda row: (-float(row.get("buy_queue_value_toman") or 0), -(float(row.get("score") or -1e99)), str(row.get("symbol") or "")))[:10]
+        market["industries"] = aggregate_industries(analytical, limit=6)
         market["published_at"] = datetime.now(TEHRAN).isoformat()
         portfolio_special = build_portfolio_special(conn, market["generated_at"])
         fund_report = p.load_fund_report()
