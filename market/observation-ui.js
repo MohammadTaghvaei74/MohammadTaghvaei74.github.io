@@ -45,13 +45,31 @@
          return {res,data};
        } finally {clearTimeout(timer);if(signal)signal.removeEventListener('abort',abort);}
      };
+     const marketJson=url.pathname.endsWith('/market.json');
+     const tehranParts=value=>Object.fromEntries(new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Tehran',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false}).formatToParts(new Date(value)).filter(x=>x.type!=='literal').map(x=>[x.type,x.value]));
+     const canonicalAllowed=data=>{
+       if(!marketJson) return true;
+       const stamp=data?.market?.timestamp||data?.timestamp||data?.generated_at;
+       const parsed=stamp?Date.parse(stamp):NaN;
+       if(!Number.isFinite(parsed)) return false;
+       const now=Date.now(), age=(now-parsed)/1000;
+       const n=tehranParts(now), d=tehranParts(parsed);
+       const weekday=new Intl.DateTimeFormat('en-US',{timeZone:'Asia/Tehran',weekday:'short'}).format(new Date(now));
+       const minute=Number(n.hour)*60+Number(n.minute);
+       const marketOpen=['Sat','Sun','Mon','Tue','Wed'].includes(weekday)&&minute>=540&&minute<=751;
+       return !marketOpen || (n.year===d.year&&n.month===d.month&&n.day===d.day&&age>=-30&&age<=150);
+     };
      try {
        let result, fallback=false;
-       try {result=await request(live,2000);} catch(error) {fallback=true;result=await request(local,7000);}
+       try {result=await request(live,2000);} catch(error) {
+         fallback=true;
+         result=await request(local,7000);
+         if(!canonicalAllowed(result.data)) {const stale=new Error('No fresh current-day market snapshot');stale.code='STALE_CANONICAL';throw stale;}
+       }
        response=result.res;
-       if(url.pathname.endsWith('/market.json'))transportStatus(fallback?'fallback':'live',result.data);
+       if(marketJson)transportStatus(fallback?'fallback':'live',result.data);
      } catch(error) {
-       if(url.pathname.endsWith('/market.json'))transportStatus('error');
+       if(marketJson)transportStatus(error?.code==='STALE_CANONICAL'?'stale':'error');
        throw error;
      }
    } else response=await originalFetch.apply(this,args);
@@ -67,7 +85,7 @@
    el.dataset.state=state;
    const snapshotAt=data?.market?.timestamp||data?.timestamp||data?.generated_at||'';
    const age=snapshotAt?`؛ سن snapshot: ${format(snapshotAt)}`:'';
-   el.textContent=state==='error'?'دریافت داده ناموفق بود؛ اتصال را بررسی کنید و دوباره به‌روزرسانی کنید.':state==='fallback'?`نمایش نسخه ذخیره‌شده سایت${age}؛ تازگی داده در هر بخش مشخص است.`:'اتصال زنده برقرار است؛ تازگی داده در هر بخش مشخص است.';
+   el.textContent=state==='stale'?'دادهٔ تازهٔ بازار در دسترس نیست؛ نسخهٔ روز قبل نمایش داده نشد.':state==='error'?'دریافت داده ناموفق بود؛ اتصال را بررسی کنید و دوباره به‌روزرسانی کنید.':state==='fallback'?`نمایش نسخه ذخیره‌شده سایت${age}؛ تازگی داده در هر بخش مشخص است.`:'اتصال زنده برقرار است؛ تازگی داده در هر بخش مشخص است.';
  }
  function feed(suffix) { const key=Object.keys(feeds).find(k=>k.endsWith(suffix)); return key?feeds[key]:null; }
  function selectedSymbol() { return new URLSearchParams(location.search).get('symbol') || document.querySelector('#selectedSymbol')?.textContent || document.querySelector('#dossier h2')?.textContent; }
