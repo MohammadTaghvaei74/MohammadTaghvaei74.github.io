@@ -59,7 +59,7 @@ class InvestmentCompanyContractTests(unittest.TestCase):
         self.assertEqual(data["row_count"], len(data["rows"]))
         self.assertGreaterEqual(data["row_count"], 1)
         self.assertTrue(all("board_score" in row and "portfolio_score" in row for row in data["rows"]))
-        self.assertIsNone(data["rows"][0]["portfolio_score"])
+        self.assertTrue(any(row["portfolio_score"] is None for row in data["rows"]))
         self.assertTrue(data["portfolio_contract"]["no_renormalization"])
 
     def test_real_codal_checkpoint_is_present_and_fars_keeps_missing_score_honest(self):

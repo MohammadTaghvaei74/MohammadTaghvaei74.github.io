@@ -68,6 +68,8 @@ def is_investment_company(row: dict) -> bool:
     industry = norm(row.get("industry"))
     description = norm(row.get("description") or row.get("company_name"))
     symbol = norm(row.get("symbol"))
+    if row.get("instrument_type") == "H1" or description.startswith(norm("صندوق")):
+        return False
     return (
         industry in {norm(INVESTMENT_INDUSTRY), norm("شرکتهای چند رشته ای")}
         or symbol == norm("فارس")
@@ -207,6 +209,7 @@ def build_rows(market: dict, raw: dict | None = None, as_of: date | None = None)
         report = reports.get(symbol) or {"symbol": symbol, "status": "not_collected"}
         holdings, basis = build_report_holdings(report, index) if report.get("status") == "verified" else ([], {})
         portfolio_score, matched, missing = weighted_portfolio_details(holdings, board_scores)
+        listed_holdings = [holding for holding in holdings if not holding.get("is_unlisted")]
         report_date = report.get("report_date")
         status = report.get("status")
         if status == "verified" and portfolio_score is not None:
@@ -244,7 +247,7 @@ def build_rows(market: dict, raw: dict | None = None, as_of: date | None = None)
             "unlisted_weight_pct": sum(h.get("weight_pct") or 0.0 for h in holdings if h.get("is_unlisted")),
             "nav_discount_pct": None,
             "holdings_count": len(holdings),
-            "holdings": holdings,
+            "holdings": listed_holdings,
             "denominator": basis,
             "source_url": report.get("detail_url"),
             "source_note": "داده خام از صفحه گزارش ماهانه کدال؛ وزن غیربورسی امتیاز ندارد و در مخرج باقی می‌ماند." if status == "verified" else report.get("error"),
