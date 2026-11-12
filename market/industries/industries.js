@@ -429,13 +429,25 @@ if (typeof window !== "undefined") {
       render();
     }
     function selectIndustry(name, scroll) {
-      var group = state.groups.find(function (item) { return item.name === name; });
-      if (!group) return;
+      var group = state.groups.find(function (item) { return item.name === name || E.normalizeFa(item.name) === E.normalizeFa(name); });
+      if (!group) return false;
       state.selected = group; render();
       if (scroll) {
         var detail = $("selectedIndustry");
-        if (detail && detail.scrollIntoView) detail.scrollIntoView({behavior: "smooth", block: "start"});
+        if (detail && detail.scrollIntoView) {
+          window.requestAnimationFrame(function () {
+            window.requestAnimationFrame(function () {
+              detail.scrollIntoView({behavior: "smooth", block: "start"});
+            });
+          });
+        }
       }
+      return true;
+    }
+    function selectRequestedIndustry() {
+      var query = new URLSearchParams(window.location.search).get("industry");
+      if (!query) return false;
+      return selectIndustry(query, true);
     }
     function load() {
       updateStatus(state.last, state.error, true);
@@ -474,7 +486,7 @@ if (typeof window !== "undefined") {
       var search = $("search"); if (search) search.addEventListener("input", applyVisible);
       var choice = $("industrySelectFilter"); if (choice) choice.addEventListener("change", applyVisible);
       var choiceText = $("industryTextFilter"); if (choiceText) choiceText.addEventListener("input", applyVisible);
-      load(); setInterval(load, 60000);
+      load().then(selectRequestedIndustry); setInterval(load, 60000);
     });
     window.IndustryExplorerSelect = selectIndustry;
   })();
