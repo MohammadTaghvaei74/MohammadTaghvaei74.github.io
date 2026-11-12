@@ -160,9 +160,9 @@
   };
   function parseFilter(input, selectedOperator) {
     const raw = normalizeSortable(input).replace(/٪/g, "%").trim();
-    const match = raw.match(/^(>=|<=|!=|>|<|=)\s*(.+)$/);
-    const operator = selectedOperator && selectedOperator !== "contains" ? selectedOperator : (match ? match[1] : "contains");
-    const value = (match && (!selectedOperator || selectedOperator === "contains") ? match[2] : raw).trim();
+    const match = raw.match(/^(>|<|=)\s*(.+)$/);
+    const operator = selectedOperator || (match ? match[1] : ">");
+    const value = (match && !selectedOperator ? match[2] : raw).trim();
     const number = Number(value.replace(/[%٬،,]/g, "").replace(/٫/g, "."));
     return {operator, value, number: Number.isFinite(number) ? number : null};
   }
@@ -173,13 +173,9 @@
         if (!filter.value) return false;
         const cell = row.cells[index] && row.cells[index].textContent;
         const parsed = sortValue(cell);
-        if (filter.operator === "contains") return !normalizeSortable(cell).toLocaleLowerCase("fa").includes(filter.value.toLocaleLowerCase("fa"));
-        if (filter.number === null || parsed.type !== "number") return true;
+        if (filter.number === null || parsed.type !== "number") return filter.operator === "=" ? !normalizeSortable(cell).toLocaleLowerCase("fa").includes(filter.value.toLocaleLowerCase("fa")) : true;
         if (filter.operator === ">") return !(parsed.value > filter.number);
-        if (filter.operator === ">=") return !(parsed.value >= filter.number);
         if (filter.operator === "<") return !(parsed.value < filter.number);
-        if (filter.operator === "<=") return !(parsed.value <= filter.number);
-        if (filter.operator === "!=") return parsed.value === filter.number;
         return parsed.value !== filter.number;
       });
     });
@@ -212,7 +208,7 @@
       table.classList.add("sortable-table");
       if (!table._overviewInitialized) {
         const tools = document.createElement("div"); tools.className = "table-tools";
-        table._overviewFilters = headers.map(header => { const field = document.createElement("span"); field.className = "table-filter-field"; const operator = document.createElement("select"); operator.setAttribute("aria-label", `عملگر فیلتر ${header.textContent.trim()}`); [["contains","شامل"],[">","بیشتر از"],[">=","حداقل"],["<","کمتر از"],["<=","حداکثر"],["=","برابر"],["!=","نابرابر"]].forEach(([value,label]) => { const option = document.createElement("option"); option.value = value; option.textContent = label; operator.appendChild(option); }); const input = document.createElement("input"); input.type = "search"; input.inputMode = "text"; input.placeholder = `فیلتر ${header.textContent.trim()}`; input.setAttribute("aria-label", `مقدار فیلتر ستون ${header.textContent.trim()}`); input.addEventListener("input", () => applyTableFilter(table)); operator.addEventListener("change", () => applyTableFilter(table)); field.appendChild(operator); field.appendChild(input); tools.appendChild(field); return {input, operator}; });
+        table._overviewFilters = headers.map(header => { const field = document.createElement("span"); field.className = "table-filter-field"; const operator = document.createElement("select"); operator.setAttribute("aria-label", `عملگر فیلتر ${header.textContent.trim()}`); [[">","بیشتر از"],["<","کمتر از"],["=","برابر"]].forEach(([value,label]) => { const option = document.createElement("option"); option.value = value; option.textContent = label; operator.appendChild(option); }); const input = document.createElement("input"); input.type = "search"; input.inputMode = "text"; input.placeholder = `فیلتر ${header.textContent.trim()}`; input.setAttribute("aria-label", `مقدار فیلتر ستون ${header.textContent.trim()}`); input.addEventListener("input", () => applyTableFilter(table)); operator.addEventListener("change", () => applyTableFilter(table)); field.appendChild(operator); field.appendChild(input); tools.appendChild(field); return {input, operator}; });
         table.closest(".parity-card, .data-card").insertBefore(tools, table.closest(".table-scroll, .compact-table-wrap") || table);
         table._overviewSort = {column: -1, direction: "none", defaultRows: []};
         headers.forEach((header, index) => {
