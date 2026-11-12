@@ -21,13 +21,14 @@
    const liveFeed=/^\/market\/data\/(market|comprehensive|funds|options|signals|portfolio-special)\.json$/.test(url.pathname);
    let response;
    if (liveFeed) {
-     // The canonical GitHub Pages origin is the authoritative public feed.
-     // Do not rewrite requests to sslip.io: cold-cache/WebView clients must not
-     // depend on a second host, and the public route must remain same-origin.
+     // During market hours market.json comes from the validated live bridge.
+     // If the bridge is unavailable or blocked by a WebView, the request falls
+     // back to the same-origin canonical snapshot and shows its age.
      const local=new URL(url.pathname+url.search,location.origin);
-     // Canonical same-origin JSON is authoritative; the public route must not
-     // depend on a second host that can fail in cold-cache/WebView clients.
-     const live=new URL(local.href);
+     const live=url.pathname.endsWith('/market.json')
+       ? new URL('https://94-101-184-98.sslip.io/api/live/latest')
+       : new URL(local.href);
+     if(url.pathname.endsWith('/market.json')) live.searchParams.set('observation',Date.now());
      const request=async(target,ms)=>{
        const controller=new AbortController();
        const timer=setTimeout(()=>controller.abort(),ms);
