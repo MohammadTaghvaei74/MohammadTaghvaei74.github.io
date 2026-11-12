@@ -328,4 +328,9 @@
   loadData();
 })();
 
+document.querySelector('[data-industry-preset="money-where"]')?.addEventListener("observation:preset-unavailable", () => {
+  const button = document.querySelector('[data-industry-preset="money-where"]');
+  if (button) button.setAttribute("aria-pressed", "false");
+});
+
 if (navigator.userAgent.includes("MarketPulseAndroid")) document.documentElement.classList.add("native-market-webview");
