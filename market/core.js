@@ -21,11 +21,11 @@ function formatInteger(value) {
 function formatSigned(value, digits = 1) {
   const parsed = number(value);
   if (parsed === null) return "—";
-  return `${parsed > 0 ? "+" : parsed < 0 ? "−" : ""}${formatNumber(Math.abs(parsed), digits)}`;
+  return `${parsed < 0 ? "−" : ""}${formatNumber(Math.abs(parsed), digits)}`;
 }
 function formatPercent(value, digits = 2) {
   const parsed = number(value);
-  return parsed === null ? "—" : `${formatSigned(parsed, digits)}٪`;
+  return parsed === null ? "—" : formatSigned(parsed, digits);
 }
 function formatScore(value) { return formatSigned(value, 1); }
 function formatMillion(value, suffix = " M", digits = 1) {
@@ -36,7 +36,7 @@ function formatBillion(value, suffix = " B", digits = 1) {
   const parsed = number(value);
   return parsed === null ? "—" : `${formatNumber(parsed / 1e9, digits)}${suffix}`;
 }
-function formatMillionToman(value) { return formatMillion(value, " M", 1); }
+function formatMillionToman(value) { return formatMillion(value, " M", 0); }
 function formatBillionToman(value) { return formatBillion(value, " B", 0); }
 function closePercent(closePrice, yesterdayPrice) {
   const close = number(closePrice), yesterday = number(yesterdayPrice);
