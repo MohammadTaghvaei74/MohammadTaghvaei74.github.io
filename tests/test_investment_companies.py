@@ -75,6 +75,16 @@ class InvestmentCompanyContractTests(unittest.TestCase):
         self.assertIsNotNone(fars_public["portfolio_score"])
         self.assertEqual(fars_public["portfolio_status"], "محاسبه شد")
         self.assertGreater(fars_public["total_investment_assets_million_rial"], 0)
+        self.assertGreater(fars_public["listed_market_value_billion_toman"], 0)
+        self.assertIsNotNone(fars_public["source_url"])
+        self.assertIsNotNone(fars_public["market_cap_to_nav_pct"])
+
+    def test_public_table_contract_uses_requested_persian_columns(self):
+        html = (ROOT / "market/investments/index.html").read_text(encoding="utf-8")
+        for label in ("اختلاف امتیازها", "لینک گزارش", "ارزش روز پرتفو بورسی (میلیارد تومان)", "مارکت‌کپ ÷ NAV"):
+            self.assertIn(label, html)
+        for removed in ("نام / شناسه", "وضعیت معامله", "فاصله", "سایر سرمایه‌گذاری", "جمع دارایی سرمایه‌گذاری", "تعداد دارایی"):
+            self.assertNotIn(f">{removed}<", html)
 
     def test_report_age_uses_jalali_date_without_fabricating(self):
         self.assertEqual(MODULE.report_age_days("1405/07/30", date(2026, 11, 8)), 17)

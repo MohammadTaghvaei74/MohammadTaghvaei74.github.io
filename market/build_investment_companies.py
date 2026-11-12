@@ -140,6 +140,15 @@ def market_index(market: dict) -> tuple[dict[str, dict], dict[str, float | None]
     return {key: rows[0] for key, rows in by_name.items() if len(rows) == 1}, scores
 
 
+def market_cap_index(root: Path) -> dict[str, dict]:
+    path = root / "data/investment-market-cap.json"
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        return payload.get("rows") or {}
+    except (OSError, ValueError, TypeError):
+        return {}
+
+
 def resolve_symbol(name: str, index: dict[str, dict]) -> tuple[str | None, str]:
     key = norm(name)
     if not key:
@@ -197,7 +206,9 @@ def build_report_holdings(report: dict, index: dict[str, dict]) -> tuple[list[di
 def build_rows(market: dict, raw: dict | None = None, as_of: date | None = None) -> list[dict]:
     as_of = as_of or date.today()
     raw = raw or {"reports": {}}
+    root = Path(__file__).resolve().parent
     index, board_scores = market_index(market)
+    market_caps = market_cap_index(root)
     catalog = {norm(row.get("symbol")): row for row in market.get("investment_catalog", []) if norm(row.get("symbol"))}
     for row in market.get("stocks", []):
         if is_investment_company(row):
@@ -223,6 +234,12 @@ def build_rows(market: dict, raw: dict | None = None, as_of: date | None = None)
         else:
             portfolio_status = "داده پیدا نشد"
         board_score = number(row.get("last_pct"))
+        cap_data = market_caps.get(symbol) or {}
+        shares_outstanding = number(cap_data.get("shares_outstanding"))
+        last_price = number(row.get("last_price"))
+        market_cap_million_rial = shares_outstanding * last_price / 1_000_000 if shares_outstanding and last_price else None
+        nav_million_rial = basis.get("denominator_million_rial")
+        market_cap_to_nav_pct = market_cap_million_rial / nav_million_rial * 100 if market_cap_million_rial and nav_million_rial else None
         rows.append({
             "symbol": symbol,
             "company_name": row.get("description") or row.get("company_name") or symbol,
@@ -243,7 +260,12 @@ def build_rows(market: dict, raw: dict | None = None, as_of: date | None = None)
             "deposit_cost_million_rial": summary_value(report.get("investment_summary") or {}, "bank_deposits") if status == "verified" else None,
             "other_investment_cost_million_rial": basis.get("official_other_investment_cost_million_rial"),
             "listed_market_value_million_rial": basis.get("listed_market_value_million_rial"),
+            "listed_market_value_billion_toman": (basis.get("listed_market_value_million_rial") / 10000) if basis.get("listed_market_value_million_rial") is not None else None,
             "total_investment_assets_million_rial": basis.get("denominator_million_rial"),
+            "nav_million_rial": nav_million_rial,
+            "market_cap_million_rial": market_cap_million_rial,
+            "market_cap_to_nav_pct": market_cap_to_nav_pct,
+            "shares_outstanding": shares_outstanding,
             "unlisted_weight_pct": sum(h.get("weight_pct") or 0.0 for h in holdings if h.get("is_unlisted")),
             "nav_discount_pct": None,
             "holdings_count": len(holdings),
