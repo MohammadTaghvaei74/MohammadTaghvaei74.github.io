@@ -434,12 +434,15 @@ if (typeof window !== "undefined") {
       state.selected = group; render();
       if (scroll) {
         var detail = $("selectedIndustry");
-        if (detail && detail.scrollIntoView) {
+        if (detail) {
+          var scrollDetail = function () {
+            var top = detail.getBoundingClientRect().top + window.pageYOffset - 12;
+            window.scrollTo(0, Math.max(0, top));
+          };
           window.requestAnimationFrame(function () {
-            window.requestAnimationFrame(function () {
-              detail.scrollIntoView({behavior: "smooth", block: "start"});
-            });
+            window.requestAnimationFrame(scrollDetail);
           });
+          window.setTimeout(scrollDetail, 180);
         }
       }
       return true;
