@@ -9,7 +9,7 @@ test('page provides accessible RTL sections and retained complete menu',()=>{
  assert.match(html,/dir="rtl"/);
  for(const id of ['fundSelect','fundReportRows','holdingsRows','industryRows','stockChart','industryChart','sourceLink','reportDate']) assert.ok(html.includes(`id="${id}"`),id);
  const nav=html.match(/<nav class="main-nav"[\s\S]*?<\/nav>/)[0];
- assert.equal((nav.match(/<a /g)||[]).length,9);
+ assert.equal((nav.match(/<a /g)||[]).length,10);
  assert.match(nav,/aria-current="page"[^>]*>صندوق‌ها/);
 });
 test('browser loader independently fetches summary and portfolios and renders selection',async()=>{

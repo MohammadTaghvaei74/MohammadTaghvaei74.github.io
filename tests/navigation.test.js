@@ -10,7 +10,7 @@ function links(route) {
 }
 test('all market headers retain the same complete ordered navigation and destinations',()=>{
 const expected=links('');
-assert.equal(expected.length,8);
+assert.equal(expected.length,10);
 for(const route of routes) assert.deepEqual(links(route),expected,route||'overview');
 });
 
@@ -18,3 +18,4 @@ test('median history route declares the shared favicon instead of falling back t
 const html=fs.readFileSync(`${root}/market/median-history/index.html`,'utf8');
 assert.match(html,/rel="icon"[^>]+href="\.\.\/\.\.\/assets\/market-pulse\.svg"/);
 });
+
