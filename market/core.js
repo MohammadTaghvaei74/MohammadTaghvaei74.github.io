@@ -99,7 +99,21 @@ function chartSeries(data) {
     rest: daily.map((row) => chartScore(row.rest_median_score)),
   };
 }
+function integerNiceTicks(minValue, maxValue, targetCount = 5) {
+  let lo = Number(minValue), hi = Number(maxValue);
+  if (!Number.isFinite(lo) || !Number.isFinite(hi)) return [];
+  if (lo > hi) [lo, hi] = [hi, lo];
+  if (lo === hi) { lo -= 1; hi += 1; }
+  const raw = (hi - lo) / Math.max(1, targetCount);
+  const magnitude = 10 ** Math.floor(Math.log10(raw || 1));
+  const normalized = raw / magnitude;
+  const nice = normalized <= 1 ? 1 : normalized <= 2 ? 2 : normalized <= 5 ? 5 : 10;
+  const step = Math.max(1, nice * magnitude);
+  const first = Math.floor(lo / step) * step;
+  const last = Math.ceil(hi / step) * step;
+  return Array.from({ length: Math.round((last - first) / step) + 1 }, (_, index) => Math.round(first + index * step));
+}
 
-const api = { TEHRAN_TIME_ZONE, number, faDigits, formatNumber, formatInteger, formatSigned, formatPercent, formatScore, formatMillion, formatBillion, formatMillionToman, formatBillionToman, closePercent, formatQueueBillion, sourceTimestamp, formatDate, findLeaders, isBaseMarket, allocation, validateSnapshot, chartSeries };
+const api = { TEHRAN_TIME_ZONE, number, faDigits, formatNumber, formatInteger, formatSigned, formatPercent, formatScore, formatMillion, formatBillion, formatMillionToman, formatBillionToman, closePercent, formatQueueBillion, sourceTimestamp, formatDate, findLeaders, isBaseMarket, allocation, validateSnapshot, chartSeries, integerNiceTicks };
 if (typeof module !== "undefined") module.exports = api;
 if (typeof window !== "undefined") window.MarketCore = api;
