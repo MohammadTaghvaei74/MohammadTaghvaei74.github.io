@@ -291,7 +291,7 @@
       // options feed must never delay the first useful paint.
       const data = core.validateSnapshot(await fetchJson(`data/market.json?ts=${Date.now()}`));
       render(data, emptyOptions());
-      window.ObservationSafety?.accept(data);
+      if (window.ObservationSafety && window.ObservationSafety.accept) window.ObservationSafety.accept(data);
       text("#sourceStatus", `منبع: ${currentData.source} · زمان منبع: ${core.formatDate(core.sourceTimestamp(currentData))}`);
       void fetchOptionsInBackground();
       if (showToast) toast("داده داشبورد به‌روزرسانی شد");
@@ -328,9 +328,9 @@
   loadData();
 })();
 
-document.querySelector('[data-industry-preset="money-where"]')?.addEventListener("observation:preset-unavailable", () => {
-  const button = document.querySelector('[data-industry-preset="money-where"]');
-  if (button) button.setAttribute("aria-pressed", "false");
+const moneyWhereButton = document.querySelector('[data-industry-preset="money-where"]');
+if (moneyWhereButton) moneyWhereButton.addEventListener("observation:preset-unavailable", () => {
+  moneyWhereButton.setAttribute("aria-pressed", "false");
 });
 
 if (navigator.userAgent.includes("MarketPulseAndroid")) document.documentElement.classList.add("native-market-webview");

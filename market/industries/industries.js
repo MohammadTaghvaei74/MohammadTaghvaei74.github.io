@@ -241,11 +241,11 @@
   }
   function signedPercent(value) {
     var parsed = number(value);
-    return parsed === null ? "—" : (parsed < 0 ? "−" : "") + formatNumber(Math.abs(parsed), 2);
+    return parsed === null ? "—" : (parsed < 0 ? "−" : "") + formatNumber(Math.abs(parsed), 2) + "٪";
   }
   function signedPercentOne(value) {
     var parsed = number(value);
-    return parsed === null ? "—" : (parsed < 0 ? "−" : "") + formatNumber(Math.abs(parsed), 1);
+    return parsed === null ? "—" : (parsed < 0 ? "−" : "") + formatNumber(Math.abs(parsed), 1) + "٪";
   }
   function percentMarkup(value, digits) {
     var label = digits === 1 ? signedPercentOne(value) : signedPercent(value);
