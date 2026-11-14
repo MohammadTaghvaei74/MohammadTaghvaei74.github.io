@@ -363,7 +363,7 @@
     const svg = $("#priceDistributionChart");
     if (!svg) return;
     const bins = [-3, -2, -1, 0, 1, 2].map((start) => ({start, end: start + 1, count: 0}));
-    const stocks = Array.isArray(data.stocks) ? data.stocks : [];
+    const stocks = (Array.isArray(data.stocks) ? data.stocks : []).filter((stock) => !core.isBaseMarket(stock));
     stocks.forEach((stock) => {
       const change = numeric(stock && stock.last_pct);
       if (change === null || change < -3 || change > 3) return;
