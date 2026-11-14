@@ -149,6 +149,15 @@ def market_cap_index(root: Path) -> dict[str, dict]:
         return {}
 
 
+def turnover_index(root: Path) -> dict[str, dict]:
+    path = root / "data/investment-turnover-15.json"
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        return payload.get("rows") or {}
+    except (OSError, ValueError, TypeError):
+        return {}
+
+
 def resolve_symbol(name: str, index: dict[str, dict]) -> tuple[str | None, str]:
     key = norm(name)
     if not key:
@@ -209,6 +218,7 @@ def build_rows(market: dict, raw: dict | None = None, as_of: date | None = None)
     root = Path(__file__).resolve().parent
     index, board_scores = market_index(market)
     market_caps = market_cap_index(root)
+    turnover = turnover_index(root)
     catalog = {norm(row.get("symbol")): row for row in market.get("investment_catalog", []) if norm(row.get("symbol"))}
     for row in market.get("stocks", []):
         if is_investment_company(row):
@@ -235,6 +245,7 @@ def build_rows(market: dict, raw: dict | None = None, as_of: date | None = None)
             portfolio_status = "داده پیدا نشد"
         board_score = number(row.get("last_pct"))
         cap_data = market_caps.get(symbol) or {}
+        turnover_data = turnover.get(symbol) or {}
         shares_outstanding = number(cap_data.get("shares_outstanding"))
         last_price = number(row.get("last_price"))
         market_cap_million_rial = shares_outstanding * last_price / 1_000_000 if shares_outstanding and last_price else None
@@ -266,6 +277,13 @@ def build_rows(market: dict, raw: dict | None = None, as_of: date | None = None)
             "market_cap_million_rial": market_cap_million_rial,
             "market_cap_to_nav_pct": market_cap_to_nav_pct,
             "shares_outstanding": shares_outstanding,
+            "avg15_trade_value_toman": number(
+                row.get("avg15_trade_value_toman") if row.get("avg15_trade_value_toman") is not None else turnover_data.get("avg_trade_value_toman")
+            ),
+            "avg15_trade_value_billion_toman": (
+                number(row.get("avg15_trade_value_toman") if row.get("avg15_trade_value_toman") is not None else turnover_data.get("avg_trade_value_toman")) / 1e9
+                if number(row.get("avg15_trade_value_toman") if row.get("avg15_trade_value_toman") is not None else turnover_data.get("avg_trade_value_toman")) is not None else None
+            ),
             "unlisted_weight_pct": sum(h.get("weight_pct") or 0.0 for h in holdings if h.get("is_unlisted")),
             "nav_discount_pct": None,
             "holdings_count": len(holdings),

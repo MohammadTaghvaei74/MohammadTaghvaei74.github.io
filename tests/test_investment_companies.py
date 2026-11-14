@@ -78,10 +78,11 @@ class InvestmentCompanyContractTests(unittest.TestCase):
         self.assertGreater(fars_public["listed_market_value_billion_toman"], 0)
         self.assertIsNotNone(fars_public["source_url"])
         self.assertIsNotNone(fars_public["market_cap_to_nav_pct"])
+        self.assertIsNotNone(fars_public["avg15_trade_value_billion_toman"])
 
     def test_public_table_contract_uses_requested_persian_columns(self):
         html = (ROOT / "market/investments/index.html").read_text(encoding="utf-8")
-        for label in ("اختلاف امتیازها", "لینک گزارش", "ارزش روز پرتفو بورسی (میلیارد تومان)", "مارکت‌کپ ÷ NAV"):
+        for label in ("اختلاف امتیازها", "لینک گزارش", "ارزش روز پرتفو بورسی (میلیارد تومان)", "مارکت‌کپ ÷ NAV", "میانگین ارزش معاملات ۱۵ روز اخیر (میلیارد تومان)"):
             self.assertIn(label, html)
         for removed in ("نام / شناسه", "وضعیت معامله", "فاصله", "سایر سرمایه‌گذاری", "جمع دارایی سرمایه‌گذاری", "تعداد دارایی"):
             self.assertNotIn(f">{removed}<", html)

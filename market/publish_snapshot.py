@@ -52,6 +52,7 @@ PUBLISHED_FILES = (
     "market/data/signals.json",
     "market/data/options.json",
     "market/data/investment-companies.json",
+    "market/data/investment-turnover-15.json",
     "market/data/investment-portfolio-reports.json",
     "market/history/data/history.json",
     "market/history/data/score-candles.json",
@@ -207,6 +208,9 @@ def build_market(conn: sqlite3.Connection) -> dict:
     for item in analytical:
         item["avg15_trade_value_toman"] = avg_by_symbol.get(item.get("symbol"))
         item["avg15_trade_volume"] = avg_volume_by_symbol.get(item.get("symbol"))
+    average_by_symbol = {item.get("symbol"): item.get("avg15_trade_value_toman") for item in analytical}
+    for item in stocks:
+        item["avg15_trade_value_toman"] = average_by_symbol.get(item.get("symbol"))
     attach_history_metrics(conn, analytical, latest[:10])
     score_total = len(analytical)
     for score_rank, item in enumerate(analytical, start=1):
@@ -479,10 +483,24 @@ def main() -> None:
     OPTIONS_OUT = SITE / "market/data/options.json"
     INVESTMENTS_OUT = SITE / "market/data/investment-companies.json"
     INVESTMENT_REPORTS_OUT = SITE / "market/data/investment-portfolio-reports.json"
+    INVESTMENT_TURNOVER_OUT = SITE / "market/data/investment-turnover-15.json"
     with connect() as conn:
         market = build_market(conn)
         history = build_history(conn)
         candles = build_candles(conn)
+    turnover_rows = {
+        item.get("symbol"): {"avg_trade_value_toman": item.get("avg15_trade_value_toman"), "day_count": 15}
+        for item in market.get("stocks", [])
+        if item.get("symbol") and item.get("avg15_trade_value_toman") is not None
+    }
+    turnover_payload = {
+        "schema_version": 1,
+        "source": "scores_history.db stock_snapshots final row per complete trading day",
+        "unit": "toman",
+        "window_days": 15,
+        "rows": turnover_rows,
+    }
+    atomic_json(INVESTMENT_TURNOVER_OUT, turnover_payload)
     signal_payload = export_signals(event_db, SIGNALS_OUT)
     options_payload = export_from_scores_db(DB, OPTIONS_OUT)
     investment_payload = build_investment_payload(market)
