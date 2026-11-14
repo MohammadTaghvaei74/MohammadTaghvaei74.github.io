@@ -24,7 +24,8 @@
      // The canonical GitHub Pages origin is the authoritative public feed.
      // Do not rewrite requests to sslip.io: cold-cache/WebView clients must not
      // depend on a second host, and the public route must remain same-origin.
-     const marketJson=url.pathname.endsWith('/market.json'); const local=marketJson ? new URL('https://94-101-184-98.sslip.io/api/live/latest'+url.search) : new URL(url.pathname+url.search,location.origin)
+     const marketJson=url.pathname.endsWith('/market.json');
+     const local=new URL(url.pathname+url.search,location.origin)
      const request=async(target,ms)=>{
        const controller=new AbortController();
        const timer=setTimeout(()=>controller.abort(),ms);
