@@ -306,4 +306,11 @@
    Unknown/stale labels and all source timestamps remain visible. */
 .shell:has(> #overview) .market-state[data-observation-health="fresh"] { display:none; }
 /* Above 1100px the original shared heading row/subgrid keeps chart tops aligned. */
+/* Keep every primary destination visible in the compact mobile header. */
+@media (max-width:760px){
+  html body header.topbar:has(.main-nav), html body .topbar:not(.menu-open) { height:auto!important; min-height:204px!important; }
+  html body .topbar .main-nav { height:auto!important; min-height:96px!important; overflow:visible!important; flex-wrap:wrap!important; justify-content:stretch!important; align-content:stretch!important; gap:0!important; }
+  html body .topbar .main-nav a { height:48px!important; min-height:44px!important; min-width:20%!important; flex:1 0 20%!important; }
+  html { scroll-padding-top:220px; }
+}
 
