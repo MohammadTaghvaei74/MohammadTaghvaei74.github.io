@@ -103,28 +103,56 @@
 
   const leaderSymbols = ["وبملت","فملی","فولاد","وتجارت","فزر","خودرو","شستا","شپدیس","فارس","ومعادن","تاپیکو","خساپا","وبصادر","وپارس","نوری","وپاسار","ونوین","کگل","رمپنا","ذوب","وغدیر","فخوز","خگستر","صبا","وساپا","کالا","اخابر","سپید","شسپا","پارسان","تیپیکو","دزاگرس","مبین","کاما","کچاد","دعبید","خبهمن","اروند","دی","خزامیا"];
   const parityEmpty = '<tr><td colspan="6" class="parity-empty">داده‌ای برای نمایش نیست.</td></tr>';
-  const parityLine = (values, width, height, color, min, max) => {
-    const clean = values.map(numeric), pad = {top:18,right:12,bottom:24,left:30};
-    const x = index => clean.length === 1 ? width / 2 : pad.left + index * (width - pad.left - pad.right) / Math.max(clean.length - 1, 1);
-    const y = value => pad.top + (max - value) * (height - pad.top - pad.bottom) / Math.max(max - min, 1);
-    let path = "";
-    clean.forEach((value, index) => { if (value === null) return; path += `${path && clean[index - 1] !== null ? "L" : "M"}${x(index).toFixed(1)},${y(value).toFixed(1)} `; });
-    const points = clean.map((value, index) => value === null ? "" : `<circle cx="${x(index).toFixed(1)}" cy="${y(value).toFixed(1)}" r="3.5" fill="${color}"/>`).join("");
-    return path ? `<path d="${path}" fill="none" stroke="${color}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>${points}` : "";
-  };
-  function renderParityChart(id, rows, series, colors, queue = false) {
+  function renderLineChart(id, rows, series, colors, labels, options = {}) {
     const svg = $(id); if (!svg) return;
+    const width = 760, height = 320, pad = {top: 18, right: 18, bottom: 34, left: 58};
     const values = series.flat().map(numeric).filter(value => value !== null);
-    if (!values.length) { svg.innerHTML = '<text class="chart-empty" x="380" y="105" text-anchor="middle">داده درون‌روزی موجود نیست.</text>'; return; }
-    const min = queue ? 0 : Math.min(-3, ...values) - .4, max = queue ? Math.max(1, ...values) * 1.12 : Math.max(3, ...values) + .4;
-    const grid = [min, queue ? max / 2 : 0, max].map(value => `<line x1="30" x2="748" y1="${18 + (max - value) * 168 / Math.max(max - min, 1)}" y2="${18 + (max - value) * 168 / Math.max(max - min, 1)}" stroke="#d9d9d1" stroke-dasharray="3 5"/>`).join("");
-    svg.innerHTML = `${grid}${series.map((values, index) => parityLine(values, 760, 210, colors[index], min, max)).join("")}<text class="chart-axis" x="30" y="202">${escapeHtml(rows[0] && (rows[0].time || rows[0].timestamp || ""))}</text><text class="chart-axis" x="748" y="202" text-anchor="end">${escapeHtml(rows[rows.length - 1] && (rows[rows.length - 1].time || rows[rows.length - 1].timestamp || ""))}</text>`;
+    if (!values.length) { svg.innerHTML = '<text class="chart-empty" x="380" y="160" text-anchor="middle">داده معتبر برای امروز موجود نیست.</text>'; return; }
+    const forcedMin = options.min;
+    const forcedMax = options.max;
+    const min = forcedMin !== undefined ? forcedMin : Math.min(0, Math.floor(Math.min(...values)));
+    const max = forcedMax !== undefined ? forcedMax : Math.max(1, Math.ceil(Math.max(...values)));
+    const range = Math.max(max - min, 1);
+    const x = index => pad.left + index * (width - pad.left - pad.right) / Math.max(rows.length - 1, 1);
+    const y = value => pad.top + (max - value) * (height - pad.top - pad.bottom) / range;
+    const path = values => { const clean = values.map(numeric); let result = ""; clean.forEach((value, index) => { if (value === null) return; result += `${result && clean[index - 1] !== null ? "L" : "M"}${x(index).toFixed(1)},${y(value).toFixed(1)} `; }); return result.trim(); };
+    const ticks = options.ticks || [min, (min + max) / 2, max];
+    const grid = ticks.map(tick => `<line class="${tick === 0 ? "chart-zero" : "chart-grid-line"}" x1="${pad.left}" x2="${width - pad.right}" y1="${y(tick)}" y2="${y(tick)}"/><text class="chart-axis" x="${pad.left - 10}" y="${y(tick) + 4}" text-anchor="end">${escapeHtml(options.formatTick ? options.formatTick(tick) : core.formatNumber(tick, 0))}</text>`).join("");
+    const xLabels = rows.map((row, index) => { const time = String(row.time || row.timestamp || row.trading_date || "").slice(0, 5); return index === 0 || index === rows.length - 1 || /:(00|30)$/.test(time) ? `<text class="chart-axis" x="${x(index)}" y="${height - 9}" text-anchor="middle">${escapeHtml(core.faDigits(time))}</text>` : ""; }).join("");
+    const lines = series.map((values, index) => `<path class="chart-path parity-line-${index}" d="${path(values)}" stroke="${colors[index]}"/>`).join("");
+    const crosshair = `<line class="chart-crosshair" x1="${x(0)}" x2="${x(0)}" y1="${pad.top}" y2="${height - pad.bottom}" opacity="0"/>`;
+    const hitArea = `<rect class="chart-hit-area" x="${pad.left}" y="${pad.top}" width="${width - pad.left - pad.right}" height="${height - pad.top - pad.bottom}" tabindex="0" aria-label="نمایش داده نقطه انتخاب‌شده"/>`;
+    svg.innerHTML = `${grid}${xLabels}${lines}${crosshair}${hitArea}`;
+    const wrap = svg.parentElement; if (!wrap) return;
+    let tooltip = wrap.querySelector(".chart-tooltip-html"); if (!tooltip) { tooltip = document.createElement("div"); tooltip.className = "chart-tooltip-html"; tooltip.hidden = true; wrap.appendChild(tooltip); }
+    let last = -1;
+    const show = index => { if (index === last) return; last = index; const row = rows[index] || {}; const time = String(row.time || row.timestamp || row.trading_date || "—").slice(0, 5); tooltip.innerHTML = `<strong>ساعت ${core.faDigits(time)}</strong>${series.map((values, i) => { const value = numeric(values[index]); return `<span style="color:${colors[i]}">${escapeHtml(labels[i])}: ${value === null ? "—" : escapeHtml(core.formatNumber(value, options.digits === undefined ? 1 : options.digits))}${options.unit || ""}</span>`; }).join("")}`; tooltip.hidden = false; const box = svg.getBoundingClientRect(), wrapBox = wrap.getBoundingClientRect(); const anchorX = x(index) / width * box.width + box.left - wrapBox.left; const anchorY = y(numeric(series[0][index]) === null ? 0 : numeric(series[0][index])) / height * box.height + box.top - wrapBox.top; tooltip.style.left = `${Math.max(8, Math.min(anchorX + 12, wrap.clientWidth - tooltip.offsetWidth - 8))}px`; tooltip.style.top = `${Math.max(8, Math.min(anchorY - tooltip.offsetHeight / 2, wrap.clientHeight - tooltip.offsetHeight - 8))}px`; const line = svg.querySelector(".chart-crosshair"); if (line) { line.setAttribute("x1", x(index)); line.setAttribute("x2", x(index)); line.setAttribute("opacity", "1"); } };
+    const hide = () => { tooltip.hidden = true; last = -1; const line = svg.querySelector(".chart-crosshair"); if (line) line.setAttribute("opacity", "0"); };
+    const hit = svg.querySelector(".chart-hit-area"), step = (width - pad.left - pad.right) / Math.max(rows.length - 1, 1); if (hit) { const move = event => { const box = svg.getBoundingClientRect(); const svgX = (event.clientX - box.left) * width / box.width; show(Math.max(0, Math.min(rows.length - 1, Math.round((svgX - pad.left) / step)))); }; hit.addEventListener("pointerenter", move); hit.addEventListener("pointermove", move); hit.addEventListener("pointerleave", hide); hit.addEventListener("focus", () => show(0)); hit.addEventListener("blur", hide); }
+  }
+  function renderDistributionChart(rows) {
+    const svg = $("#priceDistributionChart"); if (!svg) return;
+    const width = 760, height = 320, pad = {top:18,right:18,bottom:54,left:58};
+    const max = Math.max(1, ...rows.map(row => row.count));
+    const y = value => pad.top + (max - value) * (height - pad.top - pad.bottom) / max;
+    const slot = (width - pad.left - pad.right) / Math.max(rows.length, 1), bar = slot * .66;
+    const ticks = [0, Math.ceil(max / 2), max];
+    const grid = ticks.map(tick => `<line class="${tick === 0 ? "chart-zero" : "chart-grid-line"}" x1="${pad.left}" x2="${width - pad.right}" y1="${y(tick)}" y2="${y(tick)}"/><text class="chart-axis" x="${pad.left - 10}" y="${y(tick) + 4}" text-anchor="end">${escapeHtml(core.formatInteger(tick))}</text>`).join("");
+    const bars = rows.map((row, index) => { const x = pad.left + index * slot + (slot - bar) / 2; const top = y(row.count); return `<g class="distribution-bar"><rect x="${x}" y="${top}" width="${bar}" height="${Math.max(1, y(0) - top)}" rx="4"/><text class="chart-axis" x="${x + bar / 2}" y="${height - 26}" text-anchor="middle">${escapeHtml(core.faDigits(row.label))}</text><text class="distribution-count" x="${x + bar / 2}" y="${Math.max(top - 7, 12)}" text-anchor="middle">${escapeHtml(core.formatInteger(row.count))}</text></g>`; }).join("");
+    svg.innerHTML = `${grid}${bars}`;
   }
   function renderParity(data, options) {
     const intraday = Array.isArray(data.intraday) && data.intraday.length ? data.intraday.slice(-80) : (Array.isArray(data.daily) ? data.daily.slice(-80).map(row => ({...row, time: row.trading_date})) : []);
-    renderParityChart("#intradayChart", intraday, [intraday.map(row => row.median_score), intraday.map(row => row.leader_median_score), intraday.map(row => row.rest_median_score)], ["#3f735b","#e87958","#8bb8c9"]);
-    const queueValues = Array.isArray(data.queue_intraday) && data.queue_intraday.length ? data.queue_intraday.slice(-80).map(row => ({...row, buy_value_hmt: row.buy_value_hmt, sell_value_hmt: row.sell_value_hmt})) : Array.isArray(data.queue_count_intraday) && data.queue_count_intraday.length ? data.queue_count_intraday.slice(-80).map(row => ({...row, buy_value_hmt: row.buy_queue_count, sell_value_hmt: row.sell_queue_count})) : [{time: core.formatDate(core.sourceTimestamp(data)), buy_value_hmt: numeric(data.market && data.market.buy_value_hmt) || 0, sell_value_hmt: numeric(data.market && data.market.sell_value_hmt) || 0}];
-    renderParityChart("#queueChart", queueValues, [queueValues.map(row => row.buy_value_hmt), queueValues.map(row => row.sell_value_hmt)], ["#3f735b","#e87958"], true);
+    renderLineChart("#intradayChart", intraday, [intraday.map(row => row.median_score), intraday.map(row => row.leader_median_score), intraday.map(row => row.rest_median_score)], ["#3f735b","#e87958","#8bb8c9"], ["کل بازار","لیدرها","سایر بازار"], {min:-3,max:3,ticks:[-3,0,3],digits:2});
+    const queueValues = Array.isArray(data.queue_intraday) ? data.queue_intraday.slice(-80) : [];
+    renderLineChart("#queueValueChart", queueValues, [queueValues.map(row => row.buy_value_hmt), queueValues.map(row => row.sell_value_hmt)], ["#3f735b","#e87958"], ["صف خرید","صف فروش"], {min:0,ticks:[0,1,2],digits:0,unit:" همت"});
+    const queueCounts = Array.isArray(data.queue_count_intraday) ? data.queue_count_intraday.slice(-80) : [];
+    const countMax = Math.max(1, ...queueCounts.flatMap(row => [numeric(row.buy_queue_count), numeric(row.sell_queue_count)]).filter(value => value !== null));
+    renderLineChart("#queueCountChart", queueCounts, [queueCounts.map(row => row.buy_queue_count), queueCounts.map(row => row.sell_queue_count)], ["#3f735b","#e87958"], ["صف خرید","صف فروش"], {min:0,max:Math.ceil(countMax / 50) * 50,ticks:[0,Math.ceil(countMax / 100) * 50,Math.ceil(countMax / 50) * 50],digits:0});
+    const stocks = Array.isArray(data.stocks) ? data.stocks : [];
+    const bins = [-3,-2,-1,0,1,2].map(start => ({start,end:start+1,count:0})); stocks.forEach(row => { const value = numeric(row.last_pct); if (value !== null && value >= -3 && value <= 3) bins[Math.min(5, Math.floor(value + 3))].count += 1; });
+    const distributionRows = bins.map(bin => ({label:`${bin.start < 0 ? "−" : ""}${Math.abs(bin.start)} تا ${bin.end < 0 ? "−" : ""}${Math.abs(bin.end)}`, count:bin.count}));
+    renderDistributionChart(distributionRows);
     const topQueue = Array.isArray(data.top_buy_queue) ? data.top_buy_queue : [];
     const queueRows = $("#topBuyQueueRows"); if (queueRows) queueRows.innerHTML = topQueue.map(row => `<tr><td>${escapeHtml(row.symbol)}</td><td class="${numeric(row.score) >= 0 ? "positive" : "negative"}">${escapeHtml(signed(row.score, 1))}</td><td>${escapeHtml(core.formatQueueBillion(row.buy_queue_value_toman))}</td><td>${escapeHtml(core.formatBillionToman(row.avg15_trade_value_toman))}</td><td>${escapeHtml(core.formatPercent(row.legal_sell_pct, 0))}</td></tr>`).join("") || '<tr><td colspan="5" class="parity-empty">صف خرید معتبر برای نمایش نیست.</td></tr>';
     const stockMap = new Map((Array.isArray(data.stocks) ? data.stocks : []).map(row => [row.symbol, row]));

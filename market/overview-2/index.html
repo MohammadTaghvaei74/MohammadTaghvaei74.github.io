@@ -35,19 +35,6 @@
       </header>
 
       <main>
-        <section class="story-grid">
-          <article class="story-card chart-card">
-            <div class="card-head"><div><span class="card-kicker">01 / MARKET RHYTHM</span><h2>ریتم بازار</h2></div><span class="quiet-label">روند روزانه</span></div>
-            <div class="chart-wrap"><svg id="marketChart" viewBox="0 0 760 265" role="img" aria-label="روند امتیاز بازار در روزهای اخیر"></svg></div>
-            <div class="legend"><span><i class="legend-dot market"></i>کل بازار</span><span><i class="legend-dot leaders"></i>لیدرها</span><span><i class="legend-dot rest"></i>سایر بازار</span><span class="legend-note">امتیاز، نه سیگنال خرید</span></div>
-          </article>
-          <aside class="story-card focus-card">
-            <div class="card-head"><div><span class="card-kicker">02 / DIRECTION</span><h2>جهت جریان</h2></div><span class="direction-icon" aria-hidden="true">↗</span></div>
-            <div class="direction-reading"><strong id="directionTitle">بدون تمایل مشخص</strong><span id="directionText">فاصله میانه‌ها برای خوانش جهت کافی نیست.</span></div>
-            <div class="balance"><div class="balance-labels"><span>لیدرها</span><span>هم‌وزن</span></div><div class="balance-track"><i id="allocationMarker"></i></div></div>
-            <div class="mini-facts"><div><span>خالص صف‌ها</span><strong id="netQueue">—</strong></div><div><span>منبع</span><strong id="sourceName">—</strong></div></div>
-          </aside>
-        </section>
 
         <section class="section-block" aria-labelledby="focusTitle">
           <div class="section-head"><div><span class="card-kicker">03 / FOCUS</span><h2 id="focusTitle">جاهایی که ارزش نگاه دارند</h2></div><p>برترین‌های snapshot فعلی؛ رتبه‌بندی به‌تنهایی توصیه خرید نیست.</p></div>
@@ -59,8 +46,10 @@
         <section class="parity-section" aria-labelledby="parityTitle">
           <div class="section-head"><div><span class="card-kicker">04 / FULL MARKET READ</span><h2 id="parityTitle">نمای کامل بازار</h2></div><p>همان داده‌ی پذیرفته‌شده‌ی نمای اصلی، با خوانش فشرده‌تر و مستقل.</p></div>
           <div class="parity-grid">
-            <article class="parity-card"><span class="card-kicker">INTRADAY PULSE</span><h3>حرکت درون‌روزی امتیاز</h3><svg id="intradayChart" viewBox="0 0 760 210" role="img" aria-label="روند درون‌روزی امتیاز بازار"></svg><div class="legend"><span>کل بازار</span><span>لیدرها</span><span>سایر بازار</span></div></article>
-            <article class="parity-card"><span class="card-kicker">QUEUE FLOW</span><h3>جریان صف‌ها</h3><svg id="queueChart" viewBox="0 0 760 210" role="img" aria-label="روند درون‌روزی ارزش صف‌ها"></svg><div class="legend"><span>صف خرید</span><span>صف فروش</span></div></article>
+            <article class="parity-card chart-parity-card"><span class="card-kicker">TODAY MARKET SCORE</span><h3>امتیاز بازار امروز</h3><div class="chart-wrap"><svg id="intradayChart" viewBox="0 0 760 320" role="img" aria-label="روند درون‌روزی امتیاز بازار امروز"></svg></div><div class="legend"><span><i class="legend-dot market"></i>کل بازار</span><span><i class="legend-dot leaders"></i>لیدرها</span><span><i class="legend-dot rest"></i>سایر بازار</span></div></article>
+            <article class="parity-card chart-parity-card"><span class="card-kicker">QUEUE VALUE</span><h3>ارزش صف‌ها</h3><div class="chart-wrap"><svg id="queueValueChart" viewBox="0 0 760 320" role="img" aria-label="روند درون‌روزی ارزش صف خرید و صف فروش"></svg></div><div class="legend"><span><i class="legend-dot market"></i>صف خرید</span><span><i class="legend-dot leaders"></i>صف فروش</span></div></article>
+            <article class="parity-card chart-parity-card"><span class="card-kicker">QUEUE COUNT</span><h3>تعداد صف‌ها</h3><div class="chart-wrap"><svg id="queueCountChart" viewBox="0 0 760 320" role="img" aria-label="روند درون‌روزی تعداد صف خرید و صف فروش"></svg></div><div class="legend"><span><i class="legend-dot market"></i>صف خرید</span><span><i class="legend-dot leaders"></i>صف فروش</span></div></article>
+            <article class="parity-card chart-parity-card"><span class="card-kicker">LAST TRADE DISTRIBUTION</span><h3>توزیع سهام براساس تغییر آخرین معامله</h3><div class="chart-wrap"><svg id="priceDistributionChart" viewBox="0 0 760 320" role="img" aria-label="توزیع سهام براساس تغییر آخرین معامله"></svg></div></article>
             <article class="parity-card top-queue-card"><span class="card-kicker">TOP BUY QUEUE</span><h3>صف خریدهای برتر</h3><div class="table-scroll"><table><thead><tr><th>نماد</th><th>امتیاز</th><th>صف</th><th>میانگین ارزش معاملات ۱۵ روز اخیر</th><th>سهم حقوقی از فروش</th></tr></thead><tbody id="topBuyQueueRows"></tbody></table></div></article>
             <article class="parity-card"><span class="card-kicker">LEADERS</span><h3>لیدرهای بازار</h3><div class="table-scroll"><table><thead><tr><th>نماد</th><th>امتیاز</th><th>جایگاه</th><th>صف</th></tr></thead><tbody id="leaderRows"></tbody></table></div></article>
             <article class="parity-card"><span class="card-kicker">INDUSTRY TABLE</span><h3>جدول صنایع</h3><div class="table-scroll"><table><thead><tr><th>صنعت</th><th>امتیاز (میانه)</th><th>ارزش معاملات</th><th>میانگین ارزش معاملات ۱۵ روز اخیر</th></tr></thead><tbody id="industryRows"></tbody></table></div></article>
