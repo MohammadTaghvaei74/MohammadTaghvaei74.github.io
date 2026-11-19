@@ -39,7 +39,7 @@ with sync_playwright() as pw:
             failures=[]
             if state['scrollWidth'] > state['width'] + 1: failures.append('horizontal overflow')
             if not state['header'] or not state['header']['height']: failures.append('missing header')
-            if len(state['links']) != 8 or len({x['href'] for x in state['links']}) != 8: failures.append('navigation must contain eight destinations')
+            if len(state['links']) != 10 or len({x['href'] for x in state['links']}) != 10: failures.append('navigation must contain ten destinations')
             if sum(x['current']=='page' for x in state['links']) != 1: failures.append('exactly one current nav link')
             if any(size > 40 for size in state['headings']): failures.append('page title above 40px')
             if state['bodyFont'] != '16px': failures.append('body is not 16px')
