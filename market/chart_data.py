@@ -6,6 +6,7 @@ medians or from the aggregate market row.
 """
 from __future__ import annotations
 
+import math
 import statistics
 import sqlite3
 from typing import Any
@@ -171,4 +172,68 @@ def load_intraday_chart_rows(
     return output
 
 
-__all__ = ["LEADER_SYMBOLS", "daily_median_fields", "load_daily_chart_rows", "load_intraday_chart_rows"]
+def _finite(value: Any) -> float | None:
+    try:
+        parsed = float(value)
+    except (TypeError, ValueError, OverflowError):
+        return None
+    return parsed if math.isfinite(parsed) else None
+
+
+def load_intraday_queue_rows(
+    conn: sqlite3.Connection,
+    trading_date: str,
+    start_time: str = "09:15",
+) -> list[dict[str, Any]]:
+    """Load observed aggregate queue values for one session."""
+    available = {row[1] for row in conn.execute("PRAGMA table_info(market_snapshots)")}
+    required = {"timestamp", "buy_value_hmt", "sell_value_hmt"}
+    if not required.issubset(available):
+        return []
+    rows = conn.execute(
+        "SELECT timestamp,buy_value_hmt,sell_value_hmt FROM market_snapshots "
+        "WHERE substr(timestamp,1,10)=? AND substr(timestamp,12,5)>=? ORDER BY timestamp",
+        (trading_date, start_time),
+    )
+    return [
+        {"timestamp": str(timestamp), "time": str(timestamp)[11:16],
+         "buy_value_hmt": buy, "sell_value_hmt": sell}
+        for timestamp, buy, sell in rows
+        if buy is not None or sell is not None
+    ]
+
+
+def load_intraday_queue_count_rows(
+    conn: sqlite3.Connection,
+    trading_date: str,
+    start_time: str = "09:15",
+) -> list[dict[str, Any]]:
+    """Count positive buy/sell queues from each minute's last symbol sample."""
+    available = {row[1] for row in conn.execute("PRAGMA table_info(stock_snapshots)")}
+    required = {"timestamp", "trading_date", "valid", "symbol",
+                "buy_queue_value_toman", "sell_queue_value_toman"}
+    if not required.issubset(available):
+        return []
+    rows = conn.execute(
+        """SELECT timestamp, symbol, buy_queue_value_toman, sell_queue_value_toman
+           FROM stock_snapshots
+           WHERE trading_date=? AND valid=1 AND substr(timestamp,12,5)>=?
+           ORDER BY timestamp, rowid""",
+        (trading_date, start_time),
+    ).fetchall()
+    by_minute: dict[str, dict[str, tuple[str, Any, Any]]] = {}
+    for timestamp, symbol, buy, sell in rows:
+        by_minute.setdefault(str(timestamp)[:16], {})[str(symbol)] = (str(timestamp), buy, sell)
+    return [
+        {"timestamp": max(row[0] for row in symbols.values()), "time": minute[11:16],
+         "buy_queue_count": sum(1 for _, buy, _ in symbols.values() if _finite(buy) is not None and _finite(buy) > 0),
+         "sell_queue_count": sum(1 for _, _, sell in symbols.values() if _finite(sell) is not None and _finite(sell) > 0)}
+        for minute, symbols in sorted(by_minute.items())
+    ]
+
+
+__all__ = [
+    "LEADER_SYMBOLS", "daily_median_fields", "load_daily_chart_rows",
+    "load_intraday_chart_rows", "load_intraday_queue_rows",
+    "load_intraday_queue_count_rows",
+]
