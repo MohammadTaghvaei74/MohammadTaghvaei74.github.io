@@ -49,7 +49,7 @@ with sync_playwright() as pw:
                 nav=page.locator('.main-nav')
                 if not nav.is_visible(): failures.append('mobile fixed navigation missing')
                 sizes=nav.locator('a').evaluate_all('(links)=>links.map(a=>a.getBoundingClientRect().height)')
-                if len(sizes) != 8: failures.append('mobile nav does not expose all eight destinations')
+                if len(sizes) != 10: failures.append('mobile nav does not expose all ten destinations')
                 if any(size<44 for size in sizes): failures.append('nav touch target below 44px')
             if errors: failures.append('page errors: '+str(errors))
             state.update(route=route or 'overview',viewport=width,errors=errors,failures=failures)
