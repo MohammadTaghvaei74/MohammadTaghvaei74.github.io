@@ -21,6 +21,17 @@ SOURCES = (
 )
 
 
+def final_raw_path(day):
+    """Return the same-day final capture, allowing recorder-second jitter."""
+    prefix = day.replace('-', '') + 'T'
+    candidates = []
+    for path in RAW_DIR.glob(prefix + '*_stocks.json.gz'):
+        match = re.match(rf'{re.escape(prefix)}(\d{{6}})_stocks\.json\.gz$', path.name)
+        if match and 123000 <= int(match.group(1)) <= 123059:
+            candidates.append(path)
+    return sorted(candidates)[0] if candidates else None
+
+
 def raw_components(rows):
     totals = {'stocks': Decimal(0), 'leveraged': Decimal(0)}
     counts = {'stocks': 0, 'leveraged': 0}
@@ -79,8 +90,10 @@ def load_completed_daily(conn, now):
                'status': 'unavailable_final_raw_snapshot'}
         # The final 12:30 capture is fenced by the independently dated
         # finalization record. Never use 12:29 or an arbitrary latest quote.
-        path = RAW_DIR / (day.replace('-', '') + 'T123000_stocks.json.gz')
+        path = final_raw_path(day)
         try:
+            if path is None:
+                raise FileNotFoundError('missing same-day 12:30 capture')
             with gzip.open(path, 'rt', encoding='utf-8') as handle:
                 components = raw_components(json.load(handle))
             row.update(components)

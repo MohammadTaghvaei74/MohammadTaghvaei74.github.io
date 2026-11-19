@@ -1,4 +1,6 @@
+import gzip
 import importlib.util
+import json
 import sqlite3
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
@@ -7,6 +9,33 @@ import unittest
 ROOT = Path(__file__).resolve().parents[1]
 
 class DailyTurnoverTests(unittest.TestCase):
+    def test_final_capture_accepts_recorder_second_jitter(self):
+        path = ROOT / 'market/daily_turnover.py'
+        spec = importlib.util.spec_from_file_location('daily_turnover_jitter', path)
+        mod = importlib.util.module_from_spec(spec); spec.loader.exec_module(mod)
+        conn = sqlite3.connect(':memory:')
+        prefix = 'persisted 12:30 MarketWatch final snapshot; '
+        conn.execute('CREATE TABLE v2_days(day TEXT PRIMARY KEY,turnover REAL,source TEXT,complete INTEGER)')
+        conn.execute('INSERT INTO v2_days VALUES (?,?,?,1)',
+                     ('2026-10-28', 3e12, prefix+'2026-10-28T12:30:04+03:30'))
+        with __import__('tempfile').TemporaryDirectory() as raw:
+            mod.RAW_DIR = Path(raw)
+            rows = []
+            for instrument, isin, symbol, family, amount in [
+                ('1', 'IRO1TEST', 'TEST', '5A', '100000000000'),
+                ('2', 'IRT1TEST', 'LEV', '5A', '200000000000'),
+            ]:
+                fields = [instrument, isin, symbol] + [''] * 7 + [amount] + [''] * 14 + [family]
+                rows.append(','.join(fields))
+            with gzip.open(Path(raw) / '20261028T123004_stocks.json.gz', 'wt', encoding='utf8') as handle:
+                json.dump(rows, handle)
+            daily = mod.load_completed_daily(
+                conn, datetime(2026, 10, 31, 11, tzinfo=timezone(timedelta(hours=3, minutes=30))))
+        self.assertEqual(len(daily), 1)
+        self.assertTrue(daily[0]['complete'])
+        self.assertEqual(daily[0]['raw_source'], '20261028T123004_stocks.json.gz')
+        self.assertEqual(daily[0]['final_turnover_toman'], 30000000000.0)
+
     def test_complete_validated_history_and_timestamp_preservation(self):
         path = ROOT / 'market/daily_turnover.py'
         self.assertTrue(path.exists(), 'completed daily history loader is missing')
