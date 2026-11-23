@@ -828,7 +828,7 @@ const LIVE_DATA_ORIGIN = new URL('/market/', location.origin).href;
 
   async function fetchComprehensiveInBackground() {
     try {
-      const comprehensive = await fetchJson("data/comprehensive.json?cb=" + String(Date.now()), "no-store");
+      const comprehensive = await fetchJson("data/comprehensive-live-v2.json?cb=" + String(Date.now()), "no-store");
       if (currentData && typeof window.dispatchEvent === "function") {
         window.ObservationSafety.accept(comprehensive);
         const detail = {...currentData, observationPayload: comprehensive, comprehensive_stocks: Array.isArray(comprehensive.rows) ? comprehensive.rows : [], comprehensive_meta: comprehensive.meta || {}};
