@@ -1,34 +1,23 @@
 <!doctype html>
 <html lang="fa" dir="rtl">
   <head>
-<script>!function(){var p='dark',e=document.documentElement;try{var v=localStorage.getItem('sorena-theme');p=['light','dark','system'].indexOf(v)<0?'dark':v}catch(_){}try{var d=typeof matchMedia==='function'&&matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light',t=p==='system'?d:p;e.dataset.theme=t;e.dataset.themePreference=p;e.style.colorScheme=t}catch(_){} }();</script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#000000" />
-    <meta name="description" content="بخش آپشن سورنا واچ." />
+    <meta name="theme-color" content="#f4f6ef" />
+    <meta name="description" content="دیده‌بان و زنجیره قراردادهای اختیار معامله سورنا واچ." />
     <link rel="icon" type="image/svg+xml" href="../../assets/market-pulse.svg" />
     <link rel="apple-touch-icon" href="../../assets/market-pulse.svg" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="../styles.css?v=compact-pulse-2" />
+    <link rel="stylesheet" href="../styles.css?v=options-chain-1" />
     <link rel="stylesheet" href="../header.css?v=shared-header-1" />
-    <link rel="stylesheet" href="../mobile.css?v=chart-contrast-3" />
-    <link rel="stylesheet" href="../options.css" />
-    <title>SORENA WATCH | آپشن</title>
-
-<link rel="stylesheet" href="../observation-safety.css?v=session-freshness-20261101">
-<script src="../observation-safety.js?v=session-freshness-tolerance-1"></script>
-<script src="../observation-ui.js?v=session-freshness-tolerance-1"></script>
-<link rel="stylesheet" href="../history-tab.css?v=1">
-<link rel="stylesheet" href="../design-system.css?v=rollout-1">
-<script src="../design-system.js?v=rollout-1" defer></script>
-<link rel="stylesheet" href="../theme-preference.css?v=dark-readability-7">
-<script src="../theme-preference.js?v=dark-readability-1" defer></script>
-<script src="../theme-init.js?v=rollout-1" defer></script>
-<link rel="stylesheet" href="../numeric-typography.css">  <link rel="stylesheet" href="/market/reference-theme.css?v=20261102">
-  <link rel="stylesheet" href="/market/reference-theme-mobile.css?v=20261102">
-</head>
+    <link rel="stylesheet" href="../mobile.css?v=options-chain-1" />
+    <link rel="stylesheet" href="../options.css?v=options-chain-1" />
+    <link rel="stylesheet" href="../observation-safety.css?v=2" />
+    <link rel="stylesheet" href="../history-tab.css?v=1" />
+    <title>SORENA WATCH | دیده‌بان و زنجیره آپشن</title>
+  </head>
   <body>
     <div class="shell">
       <header class="topbar">
@@ -36,35 +25,40 @@
           <span class="sorena-logo-mark" aria-hidden="true"><svg viewBox="0 0 48 48" role="img"><path d="M5 36 15 20l8 8L34 10l9 26Z"/><path d="M7 40h34"/></svg></span>
           <span class="brand-copy"><b>SORENA WATCH</b><small>MARKET INTELLIGENCE / DATA DESK</small></span>
         </a>
-        <nav class="main-nav" aria-label="ناوبری اصلی؛ ده مقصد"><a href="../#overview">نمای کلی</a><a href="../overview-2/">نمای کلی ۲</a><a href="../signals/">سیگنال‌ها</a><a href="../symbols/">سهام</a><a href="../industries/">صنایع</a><a class="active" aria-current="page" href="../options/">آپشن</a><a href="/market/funds/">صندوق‌ها</a><a href="../investments/">هلدینگ‌ها</a><a href="../portfolio/">امتیاز پرتفو</a><a href="../#history">تاریخچه</a></nav>
-        <div class="topbar-actions">
-          <span class="market-state"><i></i><span>داده آپشن در دسترس نیست</span></span>
-        </div>
+        <nav class="main-nav" aria-label="ناوبری اصلی"><a href="../#overview">نمای کلی</a><a href="../signals/">سیگنال‌ها</a><a href="../symbols/">سهام</a><a href="../industries/">صنایع</a><a class="active" aria-current="page" href="./">آپشن</a><a href="/market/funds/">صندوق‌ها</a><a href="../portfolio/">امتیاز پرتفو</a><a data-history-tab="true" href="../#history">تاریخچه</a></nav>
+        <div class="topbar-actions"><span class="market-state" id="optionsTopStatus"><i></i><span>در حال دریافت داده آپشن</span></span><button class="refresh-button" id="optionsRefresh" type="button" aria-label="به‌روزرسانی داده آپشن">↻</button></div>
       </header>
 
-      <main>
-        <section class="options-section" id="options" aria-labelledby="options-title">
-          <div class="options-copy">
-
-            <span class="category-tag blue">OPTIONS DESK</span>
-            <h1 id="options-title">آپشن</h1>
-            <div class="options-preparation" data-state="empty">
-              <p>داده معتبر آپشن در snapshot فعلی منتشر نشده است؛ بنابراین هیچ قیمت، سیگنال یا نمودار ساختگی نمایش داده نمی‌شود.</p>
-              <p class="panel-note">به‌محض آماده‌شدن منبع تأییدشده، این اتاق با همان قرارداد تازگی و provenance سایر بخش‌ها تکمیل می‌شود.</p>
-              <a class="options-cta" href="../#overview">بازگشت به نمای کلی بازار</a>
-            </div>
-          </div>
+      <main class="options-page" id="optionsPage">
+        <section class="options-hero" aria-labelledby="optionsTitle">
+          <div><span class="category-tag blue">OPTIONS DESK / WATCH &amp; CHAIN</span><h1 id="optionsTitle">دیده‌بان و زنجیره آپشن</h1><p>همه قراردادهای اختیار معامله در یک سطح داده‌ای مستقل از استراتژی؛ برای مشاهده، مقایسه و تحلیل بعدی.</p></div>
+          <div class="options-data-status" role="status" aria-live="polite"><b id="chainStatus">در حال دریافت</b><span id="chainMessage">snapshot زنجیره در حال خواندن است.</span><small id="chainUpdated">آخرین داده: —</small></div>
         </section>
-      </main>
 
+        <section class="options-metrics" aria-label="خلاصه زنجیره آپشن">
+          <article><span>قراردادها</span><strong id="metricContracts">—</strong></article><article><span>نمادهای پایه</span><strong id="metricUnderlyings">—</strong></article><article><span>کال</span><strong id="metricCalls">—</strong></article><article><span>پوت</span><strong id="metricPuts">—</strong></article><article><span>قراردادهای تازه</span><strong id="metricFresh">—</strong></article>
+        </section>
+
+        <section class="options-workspace" aria-label="داده آپشن">
+          <article class="panel options-card" id="watchPanel">
+            <div class="options-card-heading"><div><span class="eyebrow">01 / WATCHLIST</span><h2>دیده‌بان قراردادها</h2><p>داده کامل قراردادها؛ ردیف‌های ناقص حذف نشده‌اند و دلیل عدم اعتبارشان قابل مشاهده است.</p></div><span class="count-label" id="watchCount">—</span></div>
+            <div class="options-filters" role="group" aria-label="فیلترهای دیده‌بان"><label>جست‌وجو<input id="watchSearch" type="search" placeholder="نماد یا پایه" autocomplete="off" /></label><label>نماد پایه<select id="watchUnderlying"><option value="">همه نمادها</option></select></label><label>نوع<select id="watchType"><option value="">کال و پوت</option><option value="call">کال</option><option value="put">پوت</option></select></label><label>سررسید<select id="watchExpiry"><option value="">همه سررسیدها</option></select></label><label>کیفیت<select id="watchQuality"><option value="">همه وضعیت‌ها</option><option value="fresh">فقط تازه</option><option value="usable">قابل استفاده</option><option value="incomplete">ناقص یا قدیمی</option></select></label><button class="download-button" id="watchClear" type="button">پاک‌کردن فیلترها</button></div>
+            <div class="options-table-scroll"><table class="options-watch-table" aria-label="دیده‌بان قراردادهای اختیار معامله"><thead><tr><th>قرارداد</th><th>پایه</th><th>نوع</th><th>سررسید / روز</th><th>اعمال</th><th>آخرین</th><th>Bid</th><th>Ask</th><th>حجم</th><th>ارزش</th><th>OI</th><th>وضعیت</th></tr></thead><tbody id="watchRows"><tr><td colspan="12" class="options-empty">در حال دریافت داده…</td></tr></tbody></table></div>
+          </article>
+
+          <article class="panel options-card" id="chainPanel">
+            <div class="options-card-heading"><div><span class="eyebrow">02 / OPTION CHAIN</span><h2>زنجیره قراردادها</h2><p>کال و پوت با قیمت اعمال مشترک در یک ردیف؛ قیمت پایه برای مقایسه ثابت بالای جدول نمایش داده می‌شود.</p></div><span class="count-label" id="chainCount">—</span></div>
+            <div class="chain-controls"><label>نماد پایه<select id="chainUnderlying"><option value="">انتخاب نماد پایه</option></select></label><label>سررسید<select id="chainExpiry"><option value="">انتخاب سررسید</option></select></label><div class="chain-underlying-summary" id="underlyingSummary">نماد پایه‌ای انتخاب نشده است.</div></div>
+            <div class="chain-note" id="chainNote">برای دیدن زنجیره، نماد پایه و سررسید را انتخاب کنید.</div>
+            <div class="options-table-scroll chain-scroll"><table class="options-chain-table" aria-label="زنجیره کال و پوت"><thead><tr><th colspan="4" class="call-head">اختیار خرید / کال</th><th class="strike-head">قیمت اعمال</th><th colspan="4" class="put-head">اختیار فروش / پوت</th></tr><tr><th>قرارداد</th><th>Bid</th><th>Ask</th><th>OI</th><th class="strike-head">تومان</th><th>OI</th><th>Bid</th><th>Ask</th><th>قرارداد</th></tr></thead><tbody id="chainRows"><tr><td colspan="9" class="options-empty">زنجیره‌ای انتخاب نشده است.</td></tr></tbody></table></div>
+          </article>
+        </section>
+
+        <section class="options-quality panel" aria-labelledby="qualityTitle"><div><span class="eyebrow">DATA QUALITY</span><h2 id="qualityTitle">کیفیت و پوشش داده</h2><p id="qualityNote">داده‌های قدیمی برای مشاهده نگه داشته می‌شوند، اما مبنای ورود یا سیگنال نیستند.</p></div><div id="qualityDiagnostics" class="quality-diagnostics">—</div></section>
+      </main>
       <footer class="site-footer"><div><span class="sorena-logo-mark" aria-hidden="true"><svg viewBox="0 0 48 48"><path d="M5 36 15 20l8 8L34 10l9 26Z"/><path d="M7 40h34"/></svg></span><span>SORENA WATCH / ساخته‌شده برای تصمیم‌های دقیق‌تر</span></div><span>داده نمایشی و تحلیلی است؛ توصیه سرمایه‌گذاری نیست.</span></footer>
     </div>
-    <nav class="mobile-nav" aria-label="ناوبری سریع موبایل">
-      <a href="../#overview"><span aria-hidden="true">⌂</span><b>نمای کلی</b></a>
-      <a href="../signals/"><span aria-hidden="true">⌁</span><b>سیگنال‌ها</b></a>
-      <a href="../symbols/"><span aria-hidden="true">⌕</span><b>نماد</b></a>
-      <a href="../industries/"><span aria-hidden="true">▦</span><b>صنایع</b></a>
-      <a class="active" aria-current="page" href="./"><span aria-hidden="true">◈</span><b>آپشن</b></a>
-    </nav>
+    <nav class="mobile-nav" aria-label="ناوبری سریع موبایل"><a href="../#overview"><span aria-hidden="true">⌂</span><b>نمای کلی</b></a><a href="../signals/"><span aria-hidden="true">⌁</span><b>سیگنال‌ها</b></a><a href="../symbols/"><span aria-hidden="true">⌕</span><b>نماد</b></a><a href="../industries/"><span aria-hidden="true">▦</span><b>صنایع</b></a><a class="active" href="./"><span aria-hidden="true">◈</span><b>آپشن</b></a></nav>
+    <script src="../observation-safety.js?v=dependencies-4"></script><script src="../observation-ui.js?v=dependencies-4"></script><script src="../options-chain.js?v=watch-chain-1" defer></script>
   </body>
 </html>

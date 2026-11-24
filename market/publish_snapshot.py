@@ -21,6 +21,7 @@ import subprocess
 import tempfile
 from datetime import datetime
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 from zipfile import ZIP_DEFLATED, ZipFile, ZipInfo
 from xml.sax.saxutils import escape
@@ -51,6 +52,7 @@ PUBLISHED_FILES = (
     "market/data/market.json",
     "market/data/signals.json",
     "market/data/options.json",
+    "market/data/options-chain.json",
     "market/data/investment-companies.json",
     "market/data/investment-turnover-15.json",
     "market/data/investment-portfolio-reports.json",
@@ -64,6 +66,17 @@ SITE = Path(os.environ.get("SITE_REPO", "/root/bourse-site"))
 MARKET_OUT = SITE / "market/data/market.json"
 HISTORY_OUT = SITE / "market/history/data/history.json"
 XLSX_OUT = SITE / "market/history/data/market-score-history.xlsx"
+TEHRAN = ZoneInfo("Asia/Tehran")
+
+
+def is_publish_window(now: datetime | None = None) -> bool:
+    """Allow scheduled publication only during the Tehran market window."""
+    now = now or datetime.now(TEHRAN)
+    if now.weekday() not in (0, 1, 2, 5, 6):
+        return False
+    start = now.replace(hour=8, minute=45, second=0, microsecond=0)
+    end = now.replace(hour=12, minute=30, second=0, microsecond=0)
+    return start <= now < end
 
 
 def connect() -> sqlite3.Connection:
@@ -472,6 +485,9 @@ def git_publish(site: Path, paths: list[str]) -> bool:
 
 
 def main() -> None:
+    if not is_publish_window():
+        print("SKIP_OUTSIDE_MARKET_WINDOW")
+        return
     global DB, SITE, MARKET_OUT, HISTORY_OUT, XLSX_OUT
     DB = Path(os.environ.get("BOURSE_DB", str(DB)))
     event_db = Path(os.environ.get("EVENT_DB", "/root/bourse-alert/event_live.db"))

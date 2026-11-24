@@ -5,7 +5,7 @@ from pathlib import Path
 
 import sys
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from market.export_options import build_snapshot, atomic_export
+from market.export_options import build_snapshot, build_chain_snapshot, atomic_export
 
 
 def test_partial_history_is_rejected_and_diagnostic_is_real(tmp_path):
@@ -98,6 +98,26 @@ def test_missing_source_is_explicitly_unavailable(tmp_path):
     assert payload['status'] == 'unavailable'
     assert payload['source_at'] is None
     assert payload['pairs'] == []
+
+
+def test_chain_preserves_calls_puts_and_quality_reasons():
+    now = datetime(2026, 10, 17, 8, tzinfo=timezone.utc)
+    contracts = [
+        {'symbol': 'ضCALL', 'underlying': 'X', 'option_type': 'call', 'expiry': '1405/08/06', 'strike': 100, 'last': 12, 'bid': 11, 'ask': 13, 'quote_timestamp': now.isoformat()},
+        {'symbol': 'طPUT', 'underlying': 'X', 'option_type': 'put', 'expiry': '1405/08/06', 'strike': 100, 'last': 8, 'bid': 7, 'ask': 9, 'quote_timestamp': now.isoformat()},
+        {'symbol': 'طSTALE', 'underlying': 'X', 'option_type': 'put', 'expiry': '1405/08/06', 'strike': 90, 'bid': 0, 'ask': 0, 'quote_timestamp': '2026-01-01T00:00:00+00:00'},
+    ]
+    payload = build_chain_snapshot(contracts, {'X': {'last_price': 100, 'close_price': 99, 'quote_timestamp': now.isoformat()}}, now)
+    assert payload['kind'] == 'options_chain'
+    assert payload['counts']['calls'] == 1
+    assert payload['counts']['puts'] == 2
+    assert payload['counts']['chains'] == 1
+    row = next(item for item in payload['chains'][0]['rows'] if item['strike_toman'] == 100)
+    assert row['call']['symbol'] == 'ضCALL'
+    assert row['put']['symbol'] == 'طPUT'
+    stale = next(item for item in payload['contracts'] if item['symbol'] == 'طSTALE')
+    assert stale['data_quality']['usable_for_analysis'] is False
+    assert 'Bid/Ask معتبر نیست' in stale['data_quality']['reasons']
 
 
 def test_risk_budget_is_non_executable_without_verified_multiplier(tmp_path, monkeypatch):

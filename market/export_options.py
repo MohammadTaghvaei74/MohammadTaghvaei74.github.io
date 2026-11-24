@@ -15,8 +15,19 @@ from pathlib import Path
 from typing import Any, Iterable
 
 SCHEMA_VERSION = 1
+CHAIN_SCHEMA_VERSION = 1
 MAX_QUOTE_AGE = 120
 MIN_TODAY_VALUE = 15_000_000_000
+
+
+def _option_type(symbol: Any) -> str | None:
+    """Return the Iranian option family without guessing unknown prefixes."""
+    prefix = str(symbol or "")[:1]
+    if prefix == "ض":
+        return "call"
+    if prefix == "ط":
+        return "put"
+    return None
 
 
 def _iso(value: Any) -> str | None:
@@ -99,6 +110,153 @@ def _risk_payload():
     return {"max_risk_percent": 1.5, "capital_toman": capital,
             "max_strategy_loss_toman": loss, "multiplier_verified": False,
             "max_contracts": None}
+
+
+def build_chain_snapshot(contracts: Iterable[dict], underlyings: dict[str, dict], now: datetime) -> dict:
+    """Build the strategy-independent watch/chain feed.
+
+    This deliberately keeps every parsed contract, including incomplete or
+    stale quotes.  The UI can explain why a row is not executable, while the
+    strategy feed remains a separate consumer of this contract.
+    """
+    now = now if now.tzinfo else now.replace(tzinfo=timezone.utc)
+    raw = list(contracts)
+    normalized: list[dict] = []
+    diagnostics: dict[str, int] = {}
+    for item in raw:
+        symbol = str(item.get("symbol") or "")
+        kind = item.get("option_type") or _option_type(symbol)
+        if kind not in {"call", "put"}:
+            diagnostics["نوع قرارداد ناشناخته"] = diagnostics.get("نوع قرارداد ناشناخته", 0) + 1
+            continue
+        underlying = str(item.get("underlying") or "")
+        expiry = str(item.get("expiry") or "")
+        quote_at = _iso(item.get("quote_timestamp") or item.get("quote_at"))
+        try:
+            strike = float(item.get("strike"))
+        except (TypeError, ValueError):
+            strike = None
+        u = underlyings.get(underlying, {})
+        reasons: list[str] = []
+        if not symbol or not underlying or not expiry or strike is None or strike <= 0:
+            reasons.append("هویت قرارداد ناقص است")
+        if not _fresh(quote_at, now):
+            reasons.append("قیمت سرخط قدیمی یا نامعتبر است")
+        try:
+            bid = float(item.get("bid")) if item.get("bid") is not None else None
+            ask = float(item.get("ask")) if item.get("ask") is not None else None
+        except (TypeError, ValueError):
+            bid = ask = None
+        if bid is None or ask is None or bid <= 0 or ask <= 0:
+            reasons.append("Bid/Ask معتبر نیست")
+        if bid is not None and ask is not None and ask < bid:
+            reasons.append("ترتیب Bid/Ask نامعتبر است")
+        dte = _dte(expiry, now)
+        normalized.append({
+            "symbol": symbol,
+            "underlying": underlying,
+            "option_type": kind,
+            "expiry": expiry,
+            "dte": dte,
+            "strike_toman": strike,
+            "last_toman": item.get("last"),
+            "close_toman": item.get("close"),
+            "bid_toman": bid,
+            "ask_toman": ask,
+            "bid_volume": item.get("bid_volume"),
+            "ask_volume": item.get("ask_volume"),
+            "trade_volume": item.get("trade_volume"),
+            "trade_value_toman": item.get("trade_value_toman"),
+            "open_interest": item.get("open_interest"),
+            "multiplier": item.get("multiplier"),
+            "quote_at": quote_at,
+            "data_quality": {
+                "quote": "fresh" if "قیمت سرخط قدیمی یا نامعتبر است" not in reasons else "stale",
+                "bid_ask": "valid" if not any("Bid/Ask" in r or "ترتیب" in r for r in reasons) else "invalid",
+                "underlying": "fresh" if _fresh(u.get("quote_timestamp"), now) else "stale",
+                "usable_for_analysis": not reasons,
+                "reasons": reasons,
+            },
+        })
+        for reason in reasons:
+            diagnostics[reason] = diagnostics.get(reason, 0) + 1
+
+    by_chain: dict[tuple[str, str], list[dict]] = {}
+    for row in normalized:
+        by_chain.setdefault((row["underlying"], row["expiry"]), []).append(row)
+    chains = []
+    for (underlying, expiry), rows in sorted(by_chain.items()):
+        u = underlyings.get(underlying, {})
+        calls = {r["strike_toman"]: r for r in rows if r["option_type"] == "call"}
+        puts = {r["strike_toman"]: r for r in rows if r["option_type"] == "put"}
+        strikes = sorted(set(calls) | set(puts))
+        chain_rows = []
+        for strike in strikes:
+            call = calls.get(strike)
+            put = puts.get(strike)
+            underlying_price = float(u["last_price"]) if u.get("last_price") else None
+            is_atm = bool(underlying_price and abs(strike - underlying_price) / underlying_price <= 0.02)
+            chain_rows.append({
+                "strike_toman": strike,
+                "moneyness": "atm" if is_atm else None,
+                "call_moneyness": "atm" if is_atm else ("itm" if underlying_price and strike < underlying_price else "otm"),
+                "put_moneyness": "atm" if is_atm else ("itm" if underlying_price and strike > underlying_price else "otm"),
+                "call": call,
+                "put": put,
+            })
+        chains.append({
+            "underlying": underlying,
+            "expiry": expiry,
+            "dte": _dte(expiry, now),
+            "underlying_last_toman": u.get("last_price"),
+            "underlying_close_toman": u.get("close_price"),
+            "underlying_quote_at": _iso(u.get("quote_timestamp")),
+            "calls_count": len(calls),
+            "puts_count": len(puts),
+            "rows": chain_rows,
+        })
+
+    underlyings_out = []
+    for symbol in sorted({r["underlying"] for r in normalized}):
+        rows = [r for r in normalized if r["underlying"] == symbol]
+        expiries = sorted({r["expiry"] for r in rows})
+        u = underlyings.get(symbol, {})
+        underlyings_out.append({
+            "symbol": symbol,
+            "last_toman": u.get("last_price"),
+            "close_toman": u.get("close_price"),
+            "quote_at": _iso(u.get("quote_timestamp")),
+            "contract_count": len(rows),
+            "call_count": sum(r["option_type"] == "call" for r in rows),
+            "put_count": sum(r["option_type"] == "put" for r in rows),
+            "expiries": expiries,
+        })
+    source_at = max((r["quote_at"] for r in normalized if r.get("quote_at")), default=None)
+    fresh = bool(source_at and _fresh(source_at, now))
+    status = "ready" if normalized and fresh else ("stale" if normalized else "unavailable")
+    return {
+        "schema_version": CHAIN_SCHEMA_VERSION,
+        "kind": "options_chain",
+        "generated_at": now.isoformat(),
+        "source_at": source_at,
+        "source": "TSETMC",
+        "status": status,
+        "message": "زنجیره آپشن آماده است." if status == "ready" else ("آخرین زنجیره برای بررسی نمایش داده می‌شود؛ قیمت‌ها مبنای ورود نیستند." if status == "stale" else "داده زنجیره آپشن در دسترس نیست."),
+        "counts": {
+            "contracts": len(normalized),
+            "underlyings": len(underlyings_out),
+            "chains": len(chains),
+            "calls": sum(r["option_type"] == "call" for r in normalized),
+            "puts": sum(r["option_type"] == "put" for r in normalized),
+            "fresh_contracts": sum(r["data_quality"]["quote"] == "fresh" for r in normalized),
+        },
+        "underlyings": underlyings_out,
+        "chains": chains,
+        "contracts": normalized,
+        "diagnostics": [{"label": key, "count": value} for key, value in sorted(diagnostics.items())],
+        "monetary_unit_note": "قیمت‌ها و ارزش‌ها بر حسب تومان هستند؛ مقادیر ناموجود null هستند.",
+        "freshness_note": "داده قدیمی برای مشاهده حفظ می‌شود اما مبنای ورود یا سیگنال نیست.",
+    }
 
 
 def _history(db_path: os.PathLike[str] | str, symbol: str, before: str):
@@ -215,16 +373,33 @@ def export_from_scores_db(scores_db, output_path, now=None):
         with sqlite3.connect(f"file:{Path(scores_db).resolve()}?mode=ro", uri=True) as conn:
             conn.row_factory = sqlite3.Row
             raw = conn.execute("SELECT * FROM raw_tse_snapshots ORDER BY timestamp DESC LIMIT 1").fetchone()
-            if raw is None: payload = _empty("unavailable", "اسنپ‌شات خام بازار موجود نیست.", now, None)
+            if raw is None:
+                payload = _empty("unavailable", "اسنپ‌شات خام بازار موجود نیست.", now, None)
+                chain_payload = build_chain_snapshot([], {}, now)
             else:
                 stock_rows = load_marketwatch(raw["stocks_path"])
                 latest = conn.execute("SELECT symbol,last_price,score FROM stock_snapshots WHERE timestamp=? AND valid=1 ORDER BY score DESC", (raw["timestamp"],)).fetchall()
-                leaders = {r["symbol"]: {"last_price": r["last_price"], "leader_rank": i + 1} for i, r in enumerate(latest[:10])}
+                # The chain/watch universe is all valid stock and fund bases
+                # present in the same market snapshot.  Strategy feeds may use
+                # a narrower universe later; the chain must not.
+                all_underlyings = {
+                    r["symbol"]: {
+                        "last_price": float(r["last_price"] or 0) / 10,
+                        "close_price": None,
+                        "leader_rank": i + 1,
+                        "quote_timestamp": raw["timestamp"],
+                    }
+                    for i, r in enumerate(latest)
+                    if r["symbol"]
+                }
                 contracts = []
-                leaders = {symbol: {"last_price": None, "leader_rank": rank, "quote_timestamp": raw["timestamp"]} for rank, symbol in enumerate(_load_leaders(), 1) if rank <= 40}
-                for r in latest:
-                    if r["symbol"] in leaders:
-                        leaders[r["symbol"]].update(last_price=float(r["last_price"] or 0) / 10, quote_timestamp=raw["timestamp"])
+                leader_order = _load_leaders()
+                leader_rank_by_symbol = {symbol: rank for rank, symbol in enumerate(leader_order, 1) if rank <= 40}
+                strategy_underlyings = {
+                    symbol: {**all_underlyings[symbol], "leader_rank": rank}
+                    for symbol, rank in leader_rank_by_symbol.items()
+                    if symbol in all_underlyings
+                }
                 depth_by_code = {}
                 for item in load_marketwatch(raw["depth_path"]):
                     fields = str(item).split(',')
@@ -232,18 +407,43 @@ def export_from_scores_db(scores_db, output_path, now=None):
                         depth_by_code[fields[0]] = fields
                 for item in stock_rows:
                     fields = str(item).split(',')
-                    if len(fields) < 22 or not fields[2].startswith('ض'): continue
-                    match = re.search(r"اختیارخ\s+(.+?)-(\d+)-(\d{4}/\d{1,2}/\d{1,2})$", fields[3].replace('ي', 'ی').replace('ك', 'ک'))
-                    if not match or match.group(1) not in leaders: continue
+                    if len(fields) < 22 or fields[2][:1] not in {'ض', 'ط'}: continue
+                    match = re.search(r"اختیار[خف]\s+(.+?)-(\d+)-(\d{4}/\d{1,2}/\d{1,2})$", fields[3].replace('ي', 'ی').replace('ك', 'ک'))
+                    if not match or match.group(1) not in all_underlyings: continue
                     depth = depth_by_code.get(fields[0], [])
                     if len(depth) < 8: continue
-                    contracts.append({"symbol": fields[2], "underlying": match.group(1), "expiry": match.group(3), "strike": float(match.group(2)) / 10, "ask": float(depth[4] or 0) / 10, "bid": float(depth[5] or 0) / 10, "trade_value_toman": float(fields[10] or 0) / 10, "quote_timestamp": raw["timestamp"]})
+                    contracts.append({
+                        "symbol": fields[2],
+                        "underlying": match.group(1),
+                        "option_type": _option_type(fields[2]),
+                        "expiry": match.group(3),
+                        "strike": float(match.group(2)) / 10,
+                        "last": float(fields[7] or 0) / 10,
+                        "close": float(fields[8] or 0) / 10,
+                        "trade_volume": float(fields[9] or 0),
+                        "ask": float(depth[4] or 0) / 10,
+                        "bid": float(depth[5] or 0) / 10,
+                        "ask_volume": float(depth[6] or 0),
+                        "bid_volume": float(depth[7] or 0),
+                        "trade_value_toman": float(fields[10] or 0) / 10,
+                        "multiplier": float(fields[21] or 0),
+                        "quote_timestamp": raw["timestamp"],
+                    })
                 # Current-day liquidity does not depend on the history database.
                 # Ordinary-stock v2_days fences do not prove option-session completion.
                 # Never manufacture option history from capture time alone.
-                payload = build_snapshot(history_db, contracts, leaders, now)
+                # Keep the existing strategy feed isolated from the new chain
+                # feed.  Bull-call logic currently consumes call contracts.
+                call_contracts = [c for c in contracts if c.get("option_type") == "call"]
+                strategy_contracts = [c for c in call_contracts if c.get("underlying") in strategy_underlyings]
+                payload = build_snapshot(history_db, strategy_contracts, strategy_underlyings, now)
+                chain_payload = build_chain_snapshot(contracts, all_underlyings, now)
                 payload["source_at"] = raw["timestamp"]
+                chain_payload["source_at"] = raw["timestamp"]
     except (OSError, sqlite3.Error, ValueError, KeyError, IndexError, TypeError) as exc:
         payload = _empty("unavailable", f"داده اختیار در دسترس نیست: {type(exc).__name__}.", now, None)
+        chain_payload = build_chain_snapshot([], {}, now)
     atomic_export(output_path, payload)
+    chain_output = os.environ.get("OPTIONS_CHAIN_OUTPUT", str(Path(output_path).with_name("options-chain.json")))
+    atomic_export(chain_output, chain_payload)
     return payload
